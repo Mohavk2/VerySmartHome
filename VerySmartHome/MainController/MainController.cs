@@ -8,6 +8,6 @@ namespace VerySmartHome.MainController
 {
     class MainController
     {
-        IEnumerable<DeviceController> DeviceControllers;
+        LinkedList<DeviceController> DeviceControllers;
     }
 }

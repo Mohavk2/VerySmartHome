@@ -10,6 +10,6 @@ namespace VerySmartHome.MainController
     {
         public virtual string DeviceType { get; } = "Device";
         public abstract string DeviceMSearchMessage { get; }
-        protected abstract IEnumerable<Device> Devices { get; set; }
+        protected abstract LinkedList<Device> Devices { get; set; }
     }
 }
