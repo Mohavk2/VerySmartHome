@@ -5,8 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VerySmartHome"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" ResizeMode="NoResize">
+    <Window.Background>
+        <ImageBrush ImageSource="Resources/Background.jpg"/>
+    </Window.Background>
+    <Window.Resources>
+        <Style x:Key="MainButtonStyle">
+            <Setter Property="Control.Background" Value="Black"/>
+            <Setter Property="Control.Width" Value="166"/>
+            <Setter Property="Control.Height" Value="44"/>
+            <Setter Property="Control.FontSize" Value="16"/>
+            <Setter Property="Control.FontWeight" Value="Bold"/>
+            <Setter Property="Control.Foreground" Value="#FF00F92D"/>
+        </Style>
+    </Window.Resources>
     <Grid>
-        
+        <TextBlock HorizontalAlignment="Left" Margin="171,10,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="399" Width="611" FontSize="16" Background="Black" Foreground="#FF0035E8"/>
+        <Button Style="{StaticResource MainButtonStyle}" Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0"/>
     </Grid>
 </Window>
