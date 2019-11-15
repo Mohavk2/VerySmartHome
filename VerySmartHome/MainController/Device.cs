@@ -11,5 +11,7 @@ namespace VerySmartHome.MainController
         protected abstract int ID { get; set; }
         protected abstract int IP { get; set; }
         protected abstract int Port { get; set; }
+        protected abstract bool IsConnected { get; set; }
+        protected abstract bool IsPowered { get; set; }
     }
 }
