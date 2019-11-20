@@ -66,6 +66,7 @@
     <Compile Include="MainController\Device.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
+    <Compile Include="MainController\SSDPDiscoverer.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
