@@ -30,7 +30,7 @@ namespace VerySmartHome
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
             MainConsole.Text += discoverer.GetLANDeviceEndPoints();
-
+            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
