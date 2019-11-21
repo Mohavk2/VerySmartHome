@@ -29,8 +29,12 @@ namespace VerySmartHome
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-            MainConsole.Text += discoverer.GetLANDeviceEndPoints();
-            
+            discoverer.GetDeviceCollectiveResponse();
+            string []responses = discoverer.SplitCollectiveResponse();
+            foreach(var response in responses)
+            {
+                MainConsole.Text += response;
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -40,7 +44,12 @@ namespace VerySmartHome
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-            MainConsole.Text += discoverer.GetLANDeviceEndPoints();
+            discoverer.GetDeviceCollectiveResponse();
+            string[] responses = discoverer.SplitCollectiveResponse();
+            foreach (var response in responses)
+            {
+                MainConsole.Text += response;
+            }
         }
     }
 }

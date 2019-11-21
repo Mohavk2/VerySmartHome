@@ -13,6 +13,7 @@ namespace VerySmartHome.MainController
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
         public int MulticastPort { get; set; } = 1982;
+        private string CollectiveResponse { get; set; } = "";
         public SSDPDiscoverer(string message)
         {
             this.SearchMessage = message;
@@ -22,7 +23,11 @@ namespace VerySmartHome.MainController
             this.MulticastIP = ip;
             this.MulticastPort = port;
         }
-        public /*IPEndPoint[]*/ string GetLANDeviceEndPoints()
+        /*public IPEndPoint[] GetSSDPDeviceEndPoints()
+        {
+
+        }*/
+        public string GetDeviceCollectiveResponse()
         {
             var udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             var localEP = new IPEndPoint(GetLocalIP(), 60000);
@@ -37,14 +42,31 @@ namespace VerySmartHome.MainController
             udpSocket.Dispose();
             if (recData.Length != 0)
             {
-                var answer = Encoding.UTF8.GetString(recData);
-                return answer;
-                /*IPEndPoint[] endPoints = ParseEndPoints(answer);
-                return endPoints;*/
+                var collectiveResponse = Encoding.UTF8.GetString(recData);
+                //TODO Handle extra spaces, find the reason
+                return CollectiveResponse = collectiveResponse;
             }
             else
             {
-                throw new Exception("No Devices Found Exception");
+                throw new Exception("Devices no responde exception");
+            }
+        }
+        public string[] SplitCollectiveResponse()
+        {
+            string[] temp = CollectiveResponse.Split(new [] { "HTTP/1.1 200 OK\r\n" }, StringSplitOptions.None);
+            if (temp.Length != 0)
+            {
+                string[] responses = new string[temp.Length - 1];
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    if (i < responses.Length)
+                        responses[i] = "HTTP/1.1 200 OK\r\n" + temp[i + 1];
+                }
+                return responses;
+            }
+            else
+            {
+                throw new Exception("There is no valid responses in CollectiveResponse to split");
             }
         }
         /*
