@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VerySmartHome.MainController
@@ -27,7 +28,7 @@ namespace VerySmartHome.MainController
         {
 
         }*/
-        public string GetDeviceCollectiveResponse()
+        public List<string> GetDeviceResponses()
         {
             var udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             var localEP = new IPEndPoint(GetLocalIP(), 60000);
@@ -35,42 +36,26 @@ namespace VerySmartHome.MainController
 
             udpSocket.Bind(localEP);
             udpSocket.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicastEP);
-
-            byte[] recData = new byte[64000];
+            Thread.Sleep(1000);
+            byte[] recData = new byte[1024];
             udpSocket.ReceiveTimeout = 5000;
-            udpSocket.Receive(recData);
+            List<string>collectiveResponse = new List<string>();
+            while (udpSocket.Available > 0)
+            {
+                udpSocket.Receive(recData);
+                collectiveResponse.Add(Encoding.UTF8.GetString(recData));
+            }
             udpSocket.Dispose();
-            if (recData.Length != 0)
+            if (collectiveResponse.Count != 0)
             {
-                var collectiveResponse = Encoding.UTF8.GetString(recData);
-                //TODO Handle extra spaces, find the reason
-                return CollectiveResponse = collectiveResponse;
+                return collectiveResponse;
             }
             else
             {
-                throw new Exception("Devices no responde exception");
-            }
+                throw new Exception("Devices no response exception");
+            }           
         }
-        public string[] SplitCollectiveResponse()
-        {
-            string[] temp = CollectiveResponse.Split(new [] { "HTTP/1.1 200 OK\r\n" }, StringSplitOptions.None);
-            if (temp.Length != 0)
-            {
-                string[] responses = new string[temp.Length - 1];
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    if (i < responses.Length)
-                        responses[i] = "HTTP/1.1 200 OK\r\n" + temp[i + 1];
-                }
-                return responses;
-            }
-            else
-            {
-                throw new Exception("There is no valid responses in CollectiveResponse to split");
-            }
-        }
-        /*
-        private IPEndPoint[] ParseEndPoints(string answer)
+        /*private IPEndPoint[] ParseEndPoints(string answer)
         {
             IPEndPoint[] endPoints = null;
             string substring = 
