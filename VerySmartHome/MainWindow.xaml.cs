@@ -29,11 +29,10 @@ namespace VerySmartHome
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-            discoverer.GetDeviceResponses();
             List<string> deviceResponses = discoverer.GetDeviceResponses();
             foreach(var response in deviceResponses)
             {
-                MainConsole.Text += response;
+                MainConsole.Text += response + "\n";
             }
         }
 
@@ -44,11 +43,10 @@ namespace VerySmartHome
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-            discoverer.GetDeviceResponses();
             List<string> deviceResponses = discoverer.GetDeviceResponses();
             foreach (var response in deviceResponses)
             {
-                MainConsole.Text += response;
+                MainConsole.Text += response + "\n";
             }
         }
     }

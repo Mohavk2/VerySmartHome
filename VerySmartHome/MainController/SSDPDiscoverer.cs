@@ -14,7 +14,7 @@ namespace VerySmartHome.MainController
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
         public int MulticastPort { get; set; } = 1982;
-        private string CollectiveResponse { get; set; } = "";
+        private int LocalPort { get; set; } = 61213;
         public SSDPDiscoverer(string message)
         {
             this.SearchMessage = message;
@@ -26,30 +26,37 @@ namespace VerySmartHome.MainController
         }
         public List<string> GetDeviceResponses()
         {
-            var udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            var localEP = new IPEndPoint(GetLocalIP(), 60000);
-            var multicastEP = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
+            var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
+            var responder = (EndPoint) new IPEndPoint(IPAddress.Any, 0);
+            var responders = new List<EndPoint>();
+            var response = new byte[1024];
+            var responses = new List<string>();
 
-            udpSocket.Bind(localEP);
-            udpSocket.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicastEP);
-            Thread.Sleep(1000);
-            byte[] recData = new byte[1024];
-            udpSocket.ReceiveTimeout = 5000;
-            List<string>collectiveResponse = new List<string>();
-            while (udpSocket.Available > 0)
+            searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
+            searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
+
+            Thread.Sleep(1000); //to give a time to devices for responding
+            searcher.ReceiveTimeout = 5000;
+            while (searcher.Available > 0)
             {
-                udpSocket.Receive(recData);
-                collectiveResponse.Add(Encoding.UTF8.GetString(recData));
+                searcher.ReceiveFrom(response, ref responder);
+
+                if (responders.Count == 0 | !(responders.Contains(responder)))
+                {
+                    responders.Add(responder);
+                    responses.Add(Encoding.UTF8.GetString(response));
+                }
             }
-            udpSocket.Dispose();
-            if (collectiveResponse.Count != 0)
+            searcher.Dispose();
+            if (responses.Count != 0)
             {
-                return collectiveResponse;
+                return responses;
             }
             else
             {
                 throw new Exception("Devices no response exception");
-            }           
+            } 
         }
         public IPAddress GetLocalIP()
         {
