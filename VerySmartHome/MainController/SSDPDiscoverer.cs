@@ -24,10 +24,6 @@ namespace VerySmartHome.MainController
             this.MulticastIP = ip;
             this.MulticastPort = port;
         }
-        /*public IPEndPoint[] GetSSDPDeviceEndPoints()
-        {
-
-        }*/
         public List<string> GetDeviceResponses()
         {
             var udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -55,20 +51,6 @@ namespace VerySmartHome.MainController
                 throw new Exception("Devices no response exception");
             }           
         }
-        /*private IPEndPoint[] ParseEndPoints(string answer)
-        {
-            IPEndPoint[] endPoints = null;
-            string substring = 
-            if(endPoints != null)
-            {
-                return endPoints;
-            }
-            else
-            {
-                throw new Exception("Invalid device answers exception. No entry points found!");
-            }
-        }
-        */
         public IPAddress GetLocalIP()
         {
             IPAddress localIP;
