@@ -56,12 +56,9 @@ namespace VerySmartHome
             {
                 VideoColor.Dispatcher.Invoke(new Action(() =>
                 {
-
                     VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
-                    Thread.Sleep(20);
-
                 }));
-                Thread.Sleep(20);
+                Thread.Sleep(3);
             }
         }
     }
