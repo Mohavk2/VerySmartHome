@@ -32,5 +32,8 @@
         </ScrollViewer>
         <Button Style="{StaticResource MainButtonStyle}" 
                 Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Click="Button_Click"/>
+        <Button x:Name="VideoButton" Style="{StaticResource MainButtonStyle}"
+                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,59,0,0" Click="Button_Click_1" />
+        <Ellipse x:Name="VideoColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="100" Stroke="Black" VerticalAlignment="Top" Width="100" Margin="30,122,0,0"/>
     </Grid>
 </Window>

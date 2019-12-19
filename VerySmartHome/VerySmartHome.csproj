@@ -37,6 +37,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -66,6 +68,7 @@
     <Compile Include="MainController\Device.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
+    <Compile Include="Tools\ScreenColorAnalyzer.cs" />
     <Compile Include="MainController\SSDPDiscoverer.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
