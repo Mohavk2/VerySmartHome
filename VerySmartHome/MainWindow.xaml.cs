@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Media;
 using VerySmartHome.MainController;
 using VerySmartHome.Tools;
+using System.Windows.Threading;
 
 namespace VerySmartHome
 {
@@ -13,6 +14,9 @@ namespace VerySmartHome
     /// </summary>
     public partial class MainWindow : Window
     {
+        bool IsAmbientLightActive = false;
+        ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
+        DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Render);
         public MainWindow()
         {
             InitializeComponent();
@@ -44,22 +48,29 @@ namespace VerySmartHome
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-
-            Thread thread = new Thread(new ThreadStart(StartAmbilight));
-            thread.Start();
+            ToggleAmbilight();
         }
 
-        void StartAmbilight()
+        void ToggleAmbilight()
         {
-            ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
-            while (true)
-            {
-                VideoColor.Dispatcher.Invoke(new Action(() =>
-                {
-                    VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
-                }));
-                Thread.Sleep(3);
+            if(!IsAmbientLightActive)
+            {                
+                timer.Tick += new EventHandler (SwitchAmbientLightFrame);
+                timer.Interval = new TimeSpan(0, 0, 0, 0, 5);
+                timer.Start();
+                IsAmbientLightActive = true;
             }
+            else
+            {
+                timer.Tick -= SwitchAmbientLightFrame;
+                timer.Stop();
+                IsAmbientLightActive = false;
+            }
+        }
+
+        void SwitchAmbientLightFrame(object obj, EventArgs e)
+        {
+            VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
         }
     }
 }
