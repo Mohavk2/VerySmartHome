@@ -14,20 +14,28 @@ namespace SmartBulbColor
                                                       "HOST: 239.255.255.250:1982\r\n" +
                                                       "MAN: \"ssdp:discover\"\r\n" +
                                                       "ST: wifi_bulb";
-        protected override LinkedList<Device> Devices { get; set; }
+        public LinkedList<Bulb> Bulbs { get; set; }
         public bool IsThereBulbs { get; set; }
-
+        public override LinkedList<Device> GetDevices()
+        {
+            if (Bulbs.Count != 0)
+            {
+                LinkedList<Device> devices = new LinkedList<Device>(Bulbs);
+                return devices;
+            }
+            else return new LinkedList<Device>();
+        }
         public void DiscoverForBulbs()
         {
             SSDPDiscoverer discoverer = new SSDPDiscoverer(SSDPMessage);
-            Devices = ParseDevices(discoverer.GetDeviceResponses());
+            Bulbs = ParseDevices(discoverer.GetDeviceResponses());
         }
 
-        LinkedList<Device> ParseDevices(List<string> responses)
+        LinkedList<Bulb> ParseDevices(List<string> responses)
         {
-            LinkedList<Device> devices = new LinkedList<Device>();
+            LinkedList<Bulb> bulbs = new LinkedList<Bulb>();
 
-            return devices;
+            return bulbs;
         }
         /*(
         private string[] SplitResponse(string response)

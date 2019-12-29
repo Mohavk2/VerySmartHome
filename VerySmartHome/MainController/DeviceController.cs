@@ -12,6 +12,6 @@ namespace VerySmartHome.MainController
     {
         public virtual string DeviceType { get; } = "Device";
         public abstract string SSDPMessage { get; }
-        protected abstract LinkedList<Device> Devices { get; set; }
+        public abstract LinkedList<Device> GetDevices();
     }
 }
