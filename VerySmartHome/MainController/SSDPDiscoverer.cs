@@ -14,7 +14,7 @@ namespace VerySmartHome.MainController
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
         public int MulticastPort { get; set; } = 1982;
-        private int LocalPort { get; set; } = 61213;
+        private int LocalPort { get; set; } = 65212; //61213;
         public SSDPDiscoverer(string message)
         {
             this.SearchMessage = message;

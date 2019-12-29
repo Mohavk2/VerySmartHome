@@ -10,12 +10,13 @@ namespace SmartBulbColor
     sealed class BulbController : DeviceController
     {
         public override string DeviceType { get; } = "MiBulbColor";
-        public override string SSDPMessage { get; } = "M-SEARCH* HTTP/1.1\r\n" +
-                                                      "HOST: 239.255.255.250:1982\r\n" +
-                                                      "MAN: \"ssdp:discover\"\r\n" +
-                                                      "ST: wifi_bulb";
-        public LinkedList<Bulb> Bulbs { get; set; }
-        public override bool DeviceCount { get; }
+        public override string SSDPMessage { get; } = (
+                "M-SEARCH * HTTP/1.1\r\n" +
+                "HOST: 239.255.255.250:1982\r\n" +
+                "MAN: \"ssdp:discover\"\r\n" +
+                "ST: wifi_bulb");
+        public LinkedList<Bulb> Bulbs { get; private set; } = new LinkedList<Bulb>();
+        public override int DeviceCount { get; protected set; }
         public override LinkedList<Device> GetDevices()
         {
             if (Bulbs.Count != 0)
@@ -28,35 +29,46 @@ namespace SmartBulbColor
         public void DiscoverForBulbs()
         {
             SSDPDiscoverer discoverer = new SSDPDiscoverer(SSDPMessage);
-            Bulbs = ParseDevices(discoverer.GetDeviceResponses());
+            try
+            {
+                Bulbs = ParseBulbs(discoverer.GetDeviceResponses());
+                DeviceCount = Bulbs.Count;
+            }
+            catch(Exception NoDeviceException)
+            {
+                throw NoDeviceException = new Exception("No device found!!!");
+            }
         }
-
-        LinkedList<Bulb> ParseDevices(List<string> responses)
+        public List<String> GetDeviceReports()
+        {
+            List<String> reports = new List<string>();
+            if (Bulbs.Count != 0)
+            {
+                foreach (Bulb bulb in Bulbs)
+                {
+                    reports.Add(bulb.GetReport());
+                }
+                return reports;
+            }
+            else
+            {
+                reports.Add("No color bulbs found yet!!!");
+                return reports;
+            }
+        }
+        LinkedList<Bulb> ParseBulbs(List<string> responses)
         {
             LinkedList<Bulb> bulbs = new LinkedList<Bulb>();
-
+            for(int i = 0; i < responses.Count; i++)
+            {
+                Bulb bulb = Bulb.Parse(responses[i]);
+                if (bulb.Model == "color")
+                {
+                    bulbs.AddLast(bulb);
+                }
+            }
             return bulbs;
         }
-        /*(
-        private string[] SplitResponse(string response)
-        {
-            if (Answer != null)
-            {
-                string[] Prop = Answer.Split('\r');
-                for (int i = 0; i < Prop.Length; i++)
-                {
-                    int ind;
-                    string subString = ": ";
-                    if ((ind = Prop[i].IndexOf(subString)) < 0)
-                    {
-                        continue;
-                    }
-                    Prop[i] = Prop[i].Remove(0, ind + subString.Length);
-                }
-                return Prop;
-            }
-            else return null;
-        }
-        */
+
     }
 }

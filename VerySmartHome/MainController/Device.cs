@@ -8,9 +8,9 @@ namespace VerySmartHome.MainController
 {
     public abstract class Device
     {
-        public abstract int ID { get; set; }
+        public abstract int Id { get; set; }
         public abstract string Name { get; set; }
-        public abstract int IP { get; set; }
+        public abstract string Ip { get; set; }
         public abstract int Port { get; set; }
         public abstract bool IsConnected { get; set; }
         public abstract bool IsPowered { get; set; }
