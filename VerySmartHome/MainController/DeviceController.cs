@@ -12,6 +12,7 @@ namespace VerySmartHome.MainController
     {
         public virtual string DeviceType { get; } = "Device";
         public abstract string SSDPMessage { get; }
+        public abstract bool DeviceCount { get; }
         public abstract LinkedList<Device> GetDevices();
     }
 }

@@ -15,7 +15,7 @@ namespace SmartBulbColor
                                                       "MAN: \"ssdp:discover\"\r\n" +
                                                       "ST: wifi_bulb";
         public LinkedList<Bulb> Bulbs { get; set; }
-        public bool IsThereBulbs { get; set; }
+        public override bool DeviceCount { get; }
         public override LinkedList<Device> GetDevices()
         {
             if (Bulbs.Count != 0)
