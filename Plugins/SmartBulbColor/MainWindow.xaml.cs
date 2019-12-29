@@ -46,6 +46,7 @@ namespace SmartBulbColor
                 {
                     MainConsole.Text += report + "\n";
                 }
+                ConsoleScrollViewer.ScrollToEnd();
             }
             catch (Exception NoDeviceException)
             {

@@ -27,7 +27,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <ScrollViewer Margin="171,10,0,10">
+        <ScrollViewer Name ="ConsoleScrollViewer"  Margin="171,10,0,10">
             <TextBlock Name="MainConsole" HorizontalAlignment ="Left" VerticalAlignment="Stretch"  Width ="605" Height="auto" Padding ="10"/>
         </ScrollViewer>
         <Button Style="{StaticResource MainButtonStyle}" 
