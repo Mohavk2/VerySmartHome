@@ -8,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace VerySmartHome.MainController
 {
-    abstract class DeviceController
+    public abstract class DeviceController
     {
         public virtual string DeviceType { get; } = "Device";
+        public abstract string SSDPMessage { get; }
         protected abstract LinkedList<Device> Devices { get; set; }
     }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace VerySmartHome.MainController
 {
-    class SSDPDiscoverer
+    public class SSDPDiscoverer
     {
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";

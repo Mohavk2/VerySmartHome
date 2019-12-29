@@ -11,7 +11,7 @@ using Mcolor = System.Windows.Media.Color;
 
 namespace VerySmartHome.Tools
 {
-    public sealed class ScreenColorAnalyzer
+    class ScreenColorAnalyzer
     {
         public Mcolor GetAvgScreenColor()
         {

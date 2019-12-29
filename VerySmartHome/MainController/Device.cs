@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace VerySmartHome.MainController
 {
-    abstract class Device
+    public abstract class Device
     {
-        protected abstract int ID { get; set; }
-        protected abstract int IP { get; set; }
-        protected abstract int Port { get; set; }
-        protected abstract bool IsConnected { get; set; }
-        protected abstract bool IsPowered { get; set; }
+        public abstract int ID { get; set; }
+        public abstract string Name { get; set; }
+        public abstract int IP { get; set; }
+        public abstract int Port { get; set; }
+        public abstract bool IsConnected { get; set; }
+        public abstract bool IsPowered { get; set; }
     }
 }
