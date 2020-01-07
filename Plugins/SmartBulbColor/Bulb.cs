@@ -91,5 +91,9 @@ namespace SmartBulbColor
                 NAME.ToUpper() + Name + divider;
             return report;
         }
+        ~Bulb()
+        {
+            AcceptedClient.Dispose();
+        }
     }
 }

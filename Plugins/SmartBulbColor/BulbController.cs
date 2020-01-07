@@ -96,13 +96,17 @@ namespace SmartBulbColor
             {
                 Thread.Sleep(10);
                 color = analyzer.GetAvgScreenColor();
+                int brightness = (int)(analyzer.GetBrightness() * 100);
                 int colorDecimal = RGBToDecimal(color);
 
                 foreach (var bulb in Bulbs)
                 {
-                    string commandMessage = $"{{\"id\":{bulb.Id},\"method\":\"set_rgb\",\"params\":[{colorDecimal}]}}\r\n";
-                    byte[] buffer = Encoding.UTF8.GetBytes(commandMessage);
-                    bulb.AcceptedClient.Send(buffer);
+                    string brightnessCommand = $"{{\"id\":{bulb.Id},\"method\":\"set_bright\",\"params\":[{brightness}]}}\r\n";
+                    string colorCommand = $"{{\"id\":{bulb.Id},\"method\":\"set_rgb\",\"params\":[{colorDecimal}]}}\r\n";
+                    byte[] brightnessBuffer = Encoding.UTF8.GetBytes(brightnessCommand);
+                    byte[] colorBuffer = Encoding.UTF8.GetBytes(colorCommand);
+                    bulb.AcceptedClient.Send(brightnessBuffer);
+                    bulb.AcceptedClient.Send(colorBuffer);
                 }
             }
         }
@@ -138,6 +142,7 @@ namespace SmartBulbColor
         {
 
         }
+
         void ChangeColor_Bulb()
         {
 

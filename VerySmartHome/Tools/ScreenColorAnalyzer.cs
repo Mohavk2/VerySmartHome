@@ -13,6 +13,7 @@ namespace VerySmartHome.Tools
 {
     public sealed class ScreenColorAnalyzer
     {
+        Dcolor ColorBufer = Dcolor.Empty;
         public Mcolor GetAvgScreenColor()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
@@ -23,8 +24,15 @@ namespace VerySmartHome.Tools
             printscreen.Dispose();
             Dcolor dAvgColor = avgPixel.GetPixel(0, 0);
             avgPixel.Dispose();
+            ColorBufer = dAvgColor;
             Mcolor avgColor = DrowingToMediaColor(dAvgColor);
             return avgColor;
+        }
+        public float GetBrightness()
+        {
+            if (ColorBufer != Dcolor.Empty)
+                return ColorBufer.GetBrightness();
+            else return 0.5F;
         }
         Mcolor DrowingToMediaColor (Dcolor dcolor)
         {
