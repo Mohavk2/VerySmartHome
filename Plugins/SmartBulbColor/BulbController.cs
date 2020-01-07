@@ -97,16 +97,17 @@ namespace SmartBulbColor
                 Thread.Sleep(10);
                 color = analyzer.GetAvgScreenColor();
                 int brightness = (int)(analyzer.GetBrightness() * 100);
+                if(brightness == 0)
+                {
+                    brightness = 1;
+                }
                 int colorDecimal = RGBToDecimal(color);
 
                 foreach (var bulb in Bulbs)
                 {
-                    string brightnessCommand = $"{{\"id\":{bulb.Id},\"method\":\"set_bright\",\"params\":[{brightness}]}}\r\n";
-                    string colorCommand = $"{{\"id\":{bulb.Id},\"method\":\"set_rgb\",\"params\":[{colorDecimal}]}}\r\n";
-                    byte[] brightnessBuffer = Encoding.UTF8.GetBytes(brightnessCommand);
-                    byte[] colorBuffer = Encoding.UTF8.GetBytes(colorCommand);
-                    bulb.AcceptedClient.Send(brightnessBuffer);
-                    bulb.AcceptedClient.Send(colorBuffer);
+                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"color\", {colorDecimal}, {brightness}]}}\r\n";
+                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+                    bulb.AcceptedClient.Send(commandBuffer);
                 }
             }
         }
