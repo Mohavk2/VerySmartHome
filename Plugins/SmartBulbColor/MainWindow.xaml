@@ -33,7 +33,12 @@
         <Button Style="{StaticResource MainButtonStyle}" 
                 Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Click="Button_Click"/>
         <Button x:Name="VideoButton" Style="{StaticResource MainButtonStyle}"
-                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,59,0,0" Click="Button_Click_1" />
-        <Ellipse x:Name="VideoColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="100" Stroke="Black" VerticalAlignment="Top" Width="100" Margin="30,122,0,0"/>
+                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,180,0,0" Click="Button_Click_1" />
+        <Button x:Name="MusicModeButton" Style="{StaticResource MainButtonStyle}" 
+                Content="MusicMode" HorizontalAlignment="Left" Margin="0,131,0,0" VerticalAlignment="Top" Width="166" Click="MusicModeButton_Click"/>
+
+        <Button x:Name="ClearButton" Style="{StaticResource MainButtonStyle}"
+                Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,59,0,0" Click="ClearButton_Click" />
+        <Ellipse x:Name="VideoColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="147" Stroke="Black" VerticalAlignment="Top" Width="146" Margin="10,255,0,0"/>
     </Grid>
 </Window>

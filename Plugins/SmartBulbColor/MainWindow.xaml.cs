@@ -16,32 +16,18 @@ namespace SmartBulbColor
         bool IsAmbientLightActive = false;
         ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
         DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Render);
-        BulbController bulbController = new BulbController();
+        BulbController SmartBulbController = new BulbController();
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        //private void Button_Click(object sender, RoutedEventArgs e)
-        //{
-        //    SSDPDiscoverer discoverer = new SSDPDiscoverer(
-        //        "M-SEARCH * HTTP/1.1\r\n" +
-        //        "HOST: 239.255.255.250:1982\r\n" +
-        //        "MAN: \"ssdp:discover\"\r\n" +
-        //        "ST: wifi_bulb");
-        //    List<string> deviceResponses = discoverer.GetDeviceResponses();
-        //    foreach (var response in deviceResponses)
-        //    {
-        //        MainConsole.Text += response + "\n";
-        //    }
-        //}
-
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                bulbController.DiscoverForBulbs();
-                var reports = bulbController.GetDeviceReports();
+                SmartBulbController.DiscoverForBulbs();
+                var reports = SmartBulbController.GetDeviceReports();
                 foreach (var report in reports)
                 {
                     MainConsole.Text += report + "\n";
@@ -57,7 +43,10 @@ namespace SmartBulbColor
         {
             ToggleAmbilight();
         }
-
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainConsole.Text = string.Empty;
+        }
         void ToggleAmbilight()
         {
             if (!IsAmbientLightActive)
@@ -66,18 +55,40 @@ namespace SmartBulbColor
                 timer.Interval = new TimeSpan(0, 0, 0, 0, 5);
                 timer.Start();
                 IsAmbientLightActive = true;
+                VideoButton.Foreground = Brushes.Red;
+                MainConsole.Text += "Ambient Light ENABLED.. \n";
             }
             else
             {
                 timer.Tick -= SwitchAmbientLightFrame;
                 timer.Stop();
                 IsAmbientLightActive = false;
+                var converter = new System.Windows.Media.BrushConverter();
+                VideoButton.Foreground = (Brush)converter.ConvertFromString("#FF00F92D");
+                MainConsole.Text += "Ambient Light DISABLED.. \n";
             }
         }
 
         void SwitchAmbientLightFrame(object obj, EventArgs e)
         {
             VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
+        }
+
+        private void MusicModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (SmartBulbController.DeviceCount != 0)
+            {
+                try
+                {
+                    SmartBulbController.TurnOnAmbientLight_All();
+                    MainConsole.Text += "Music Mode is ON for all of Bulbs";
+                }
+                catch (Exception MusicModeFailedException)
+                {
+                    MainConsole.Text += MusicModeFailedException.Message.ToString();
+                }
+            }
+            else MainConsole.Text += "There is no found bulbs yet, please use \"Find Devices\" first";
         }
     }
 }

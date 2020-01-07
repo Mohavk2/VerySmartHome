@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,6 +39,8 @@ namespace SmartBulbColor
         public int Rgb { get; set; } = 0;
         public int Hue { get; set; } = 0;
         public int Saturation { get; set; } = 0;
+
+        public Socket AcceptedClient;
 
         public static Bulb Parse( string bulbResponse)
         {
