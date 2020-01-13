@@ -144,7 +144,7 @@ namespace VerySmartHome.Tools
                 {
                     pixel = image.GetPixel(j, i);                   
                     int hue = (int)pixel.GetHue();
-                    if(pixel.GetBrightness() > 0) //>= previosPixel.GetBrightness())
+                    if(GetAccurateBrightness(pixel) > 0) //>= previosPixel.GetBrightness())
                     {
                         HueHistogram[hue]++;
                         HueSatSumHistogram[hue] += pixel.GetSaturation();
@@ -181,7 +181,7 @@ namespace VerySmartHome.Tools
             }
             image.Dispose();
             int mostCommonHueSatAvg = 100 * (int)HueSatSumHistogram[MostCommonHue] / (int)HueSmoothHistogram[MostCommonHue];
-            int MostCommonHueBrightAvg = 100 * (int)HueBrightSumHistogram[MostCommonHue] / (int)HueSmoothHistogram[MostCommonHue];
+            float MostCommonHueBrightAvg = 100 * HueBrightSumHistogram[MostCommonHue] / HueSmoothHistogram[MostCommonHue];
             HSLColor AvgColor = new HSLColor(MostCommonHue, mostCommonHueSatAvg, MostCommonHueBrightAvg);
             return AvgColor;
         }

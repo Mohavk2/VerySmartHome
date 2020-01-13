@@ -23,6 +23,7 @@ namespace SmartBulbColor
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
         public LinkedList<Bulb> Bulbs { get; private set; } = new LinkedList<Bulb>();
+        public LinkedList<Bulb> DisconnectedBulbs { get; private set; } = new LinkedList<Bulb>();
         public override int DeviceCount { get; protected set; }
         public override LinkedList<Device> GetDevices()
         {
@@ -164,16 +165,32 @@ namespace SmartBulbColor
                 var hue = color.Hue;
                 var sat = color.Saturation;
                 var bright = color.Lightness;
-                if (color.Lightness < 2)
+                if (color.Lightness < 5)
                 {
+                    //bright = 30;
                     hue = previosHue;
-                    sat = 30;
+                    //sat = 30;
+                }
+                if (DisconnectedBulbs.Count != 0)
+                {
+                    foreach (var bulb in DisconnectedBulbs)
+                    {
+                        Bulbs.Remove(bulb);
+                    }
                 }
                 foreach (var bulb in Bulbs)
                 {
                     string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-                    bulb.AcceptedClient.Send(commandBuffer);
+                    try
+                    {
+                        bulb.AcceptedClient.Send(commandBuffer);
+                    }
+                    catch(Exception e)
+                    {
+                        DisconnectedBulbs.AddLast(bulb);
+                    }
+
                 }
                 previosHue = color.Hue;
                 Thread.Sleep(10);

@@ -9,10 +9,10 @@ namespace VerySmartHome.Tools
     public class HSLColor
     {
         public int Hue { get; }
-        public int Saturation { get;}
-        public int Lightness { get;}
+        public float Saturation { get;}
+        public float Lightness { get;}
 
-        public HSLColor(int Hue, int Sat, int Light)
+        public HSLColor(int Hue, float Sat, float Light)
         {
             this.Hue = Hue;
             this.Saturation = Sat;
