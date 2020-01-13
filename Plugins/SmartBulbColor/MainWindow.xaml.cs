@@ -74,21 +74,34 @@ namespace SmartBulbColor
             VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
         }
 
-        private void MusicModeButton_Click(object sender, RoutedEventArgs e)
+        private void AmbientLightButton_Click(object sender, RoutedEventArgs e)
         {
             if (SmartBulbController.DeviceCount != 0)
             {
                 try
                 {
-                    SmartBulbController.TurnOnAmbientLight_All();
-                    MainConsole.Text += "Music Mode is ON for all of Bulbs";
+                    if(SmartBulbController.IsAmbientLightON)
+                    {
+                        SmartBulbController.AmbientLight_OFF();
+                        MainConsole.Text += "Ambient Light is OFF\r\n";
+                    }
+                    else
+                    {
+                        SmartBulbController.AmbientLight_ON();
+                        MainConsole.Text += "Ambient Light is ON\r\n";
+                    }
                 }
                 catch (Exception MusicModeFailedException)
                 {
                     MainConsole.Text += MusicModeFailedException.Message.ToString();
                 }
             }
-            else MainConsole.Text += "There is no found bulbs yet, please use \"Find Devices\" first";
+            else MainConsole.Text += "There is no found bulbs yet, please use \"Find Devices\" first\r\n";
+        }
+
+        private void LightButton_Click(object sender, RoutedEventArgs e)
+        {
+            SmartBulbController.Light_ON();
         }
     }
 }

@@ -35,15 +35,21 @@ namespace SmartBulbColor
         }
 
         SSDPDiscoverer Discoverer;
-        Socket UdpServer;
+        Socket TcpServer;
         IPAddress LocalIP;
         int LocalUdpPort;
+
+        readonly Thread ALThread;
+        readonly ManualResetEvent ALTrigger;
+        public bool IsAmbientLightON { get; private set;} = false;
 
         public BulbController()
         {
             Discoverer = new SSDPDiscoverer(SSDPMessage);
             LocalIP = Discoverer.GetLocalIP();
             LocalUdpPort = 19446;
+            ALThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
+            ALTrigger = new ManualResetEvent(true);
         }
         public void DiscoverForBulbs()
         {
@@ -57,33 +63,53 @@ namespace SmartBulbColor
                 throw NoDeviceException = new Exception("No device found!!!");
             }
         }
-        public void TurnOnAmbientLight_All()
+        public void Light_ON()
+        {
+            AmbientLight_OFF();
+            foreach (var bulb in Bulbs)
+            {
+                var command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {5400}, {100}]}}\r\n";
+                sendCommandTo(bulb, command);
+            }
+        }
+        public void AmbientLight_ON()
         {
             try
             {
-                TurnOffMusicMode_All();
-                TurnOnMusicMode_All();
-                SetColorMode_All(2);
-                Thread thread = new Thread(new ThreadStart(StreamAmbientLight));
-                if (!thread.IsAlive)
+                MusicMode_ON();
+                SetColorMode(2);
+                if (ALThread.IsAlive)
                 {
-                    thread.Start();
+                    ALTrigger.Set();
                 }
-                else thread.Abort();
+                else
+                {
+                    ALThread.Start();
+                }
+                IsAmbientLightON = true;
             }
-            catch(Exception MusicModeFailedException)
+            catch (Exception MusicModeFailedException)
             {
                 throw MusicModeFailedException;
             }
         }
-        void StreamAmbientLight()
+        public void AmbientLight_OFF()
         {
-            UdpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            UdpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
-            UdpServer.Listen(10);
+            if(IsAmbientLightON)
+            {
+                MusicMode_OFF();
+                ALTrigger.Reset();
+                IsAmbientLightON = false;
+            }
+        }
+        void StreamAmbientLightRGB()
+        {
+            TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
+            TcpServer.Listen(10);
             foreach (var bulb in Bulbs)
             {
-                bulb.AcceptedClient = UdpServer.Accept();
+                bulb.AcceptedClient = TcpServer.Accept();
                 if (!bulb.AcceptedClient.Connected)
                 {
                     bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
@@ -94,8 +120,7 @@ namespace SmartBulbColor
 
             while (true)
             {
-                Thread.Sleep(10);
-                color = analyzer.GetAvgScreenColor();
+                color = analyzer.GetMostCommonColorRGB();
                 int brightness = (int)(analyzer.GetBrightness() * 100);
                 if(brightness == 0)
                 {
@@ -109,9 +134,53 @@ namespace SmartBulbColor
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
                     bulb.AcceptedClient.Send(commandBuffer);
                 }
+                Thread.Sleep(5);
             }
         }
-        public void TurnOnMusicMode_All()
+
+        void StreamAmbientLightHSL()
+        {
+            TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
+            TcpServer.Listen(10);
+            //tcpServer.NoDelay = true;
+
+            foreach (var bulb in Bulbs)
+            {
+                bulb.AcceptedClient = TcpServer.Accept();
+                if (!bulb.AcceptedClient.Connected)
+                {
+                    bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
+                }
+            }
+            ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
+            HSLColor color;
+            int previosHue = 0;
+            while (true)
+            {
+                ALTrigger.WaitOne(Timeout.Infinite);
+                color = analyzer.GetMostCommonColorHSL();
+
+                var hue = color.Hue;
+                var sat = color.Saturation;
+                var bright = color.Lightness;
+                if (color.Lightness < 2)
+                {
+                    hue = previosHue;
+                    sat = 30;
+                }
+                foreach (var bulb in Bulbs)
+                {
+                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
+                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+                    bulb.AcceptedClient.Send(commandBuffer);
+                }
+                previosHue = color.Hue;
+                Thread.Sleep(10);
+            }
+        }
+
+        public void MusicMode_ON()
         {
             if (Bulbs.Count != 0)
             {
@@ -127,7 +196,7 @@ namespace SmartBulbColor
         {
 
         }
-        void TurnOffMusicMode_All()
+        void MusicMode_OFF()
         {
             if (Bulbs.Count != 0)
             {
@@ -157,7 +226,7 @@ namespace SmartBulbColor
         /// Sets color mode
         /// </summary>
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
-        void SetColorMode_All(int value)
+        void SetColorMode(int value)
         {
             if (value > 0 & value <= 3)
             {

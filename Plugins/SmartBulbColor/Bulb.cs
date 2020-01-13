@@ -93,7 +93,7 @@ namespace SmartBulbColor
         }
         ~Bulb()
         {
-            AcceptedClient.Dispose();
+            AcceptedClient?.Dispose();
         }
     }
 }

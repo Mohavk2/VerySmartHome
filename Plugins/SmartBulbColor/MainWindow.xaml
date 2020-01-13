@@ -33,12 +33,15 @@
         <Button Style="{StaticResource MainButtonStyle}" 
                 Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Click="Button_Click"/>
         <Button x:Name="VideoButton" Style="{StaticResource MainButtonStyle}"
-                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,180,0,0" Click="Button_Click_1" />
-        <Button x:Name="MusicModeButton" Style="{StaticResource MainButtonStyle}" 
-                Content="MusicMode" HorizontalAlignment="Left" Margin="0,131,0,0" VerticalAlignment="Top" Width="166" Click="MusicModeButton_Click"/>
+                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,206,0,0" Click="Button_Click_1" />
+        <Button x:Name="LightButton"  Style="{StaticResource MainButtonStyle}"
+                Content="Light ON" HorizontalAlignment="Left" Margin="0,108,0,0" VerticalAlignment="Top" Width="166" Click="LightButton_Click"/>
+        <Button x:Name="AmbientLightButton" Style="{StaticResource MainButtonStyle}" 
+                Content="Ambient Light" HorizontalAlignment="Left" Margin="0,157,0,0" VerticalAlignment="Top" Width="166" Click="AmbientLightButton_Click"/>
 
         <Button x:Name="ClearButton" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,59,0,0" Click="ClearButton_Click" />
         <Ellipse x:Name="VideoColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="147" Stroke="Black" VerticalAlignment="Top" Width="146" Margin="10,255,0,0"/>
+
     </Grid>
 </Window>
