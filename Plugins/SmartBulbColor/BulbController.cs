@@ -41,6 +41,7 @@ namespace SmartBulbColor
             else return new LinkedList<Device>();
         }
 
+        public ScreenColorAnalyzer ColorAnalyzer;
         SSDPDiscoverer Discoverer;
         Socket TcpServer;
         IPAddress LocalIP;
@@ -53,6 +54,7 @@ namespace SmartBulbColor
         public BulbController()
         {
             Discoverer = new SSDPDiscoverer(SSDPMessage);
+            ColorAnalyzer = new ScreenColorAnalyzer();
             LocalIP = Discoverer.GetLocalIP();
             LocalUdpPort = 19446;
             ALThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
@@ -126,14 +128,13 @@ namespace SmartBulbColor
         }
         void StreamAmbientLightHSL()
         {
-            ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
             HSBColor color;
             int previosHue = 0;
             while (true)
             {
                 ALTrigger.WaitOne(Timeout.Infinite);
 
-                color = analyzer.GetMostCommonColorHSL();
+                color = ColorAnalyzer.GetMostCommonColorHSL();
 
                 var bright = color.Brightness;
                 var hue = (bright < 5) ? previosHue : color.Hue;

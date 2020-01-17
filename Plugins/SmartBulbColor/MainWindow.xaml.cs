@@ -13,8 +13,7 @@ namespace SmartBulbColor
     /// </summary>
     public partial class MainWindow : Window
     {
-        bool IsAmbientLightActive = false;
-        ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
+        bool IsColorTest = false;
         DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Render);
         BulbController SmartBulbController = new BulbController();
         public MainWindow()
@@ -40,39 +39,38 @@ namespace SmartBulbColor
                 MainConsole.Text += NoDeviceException.Message + "\n";
             }
         }
-        private void VideoModeButton_Click(object sender, RoutedEventArgs e)
+        private void ScreenColorTestButton_Click(object sender, RoutedEventArgs e)
         {
-            ToggleAmbilight();
+            ToggleColorTest();
         }
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             MainConsole.Text = string.Empty;
         }
-        void ToggleAmbilight()
+        void ToggleColorTest()
         {
-            if (!IsAmbientLightActive)
+            if (!IsColorTest)
             {
-                timer.Tick += new EventHandler(SwitchAmbientLightFrame);
+                timer.Tick += new EventHandler(GetColorTestFrame);
                 timer.Interval = new TimeSpan(0, 0, 0, 0, 5);
                 timer.Start();
-                IsAmbientLightActive = true;
-                VideoButton.Foreground = Brushes.Red;
+                IsColorTest = true;
+                ScreenColorTestButton.Foreground = Brushes.Red;
                 MainConsole.Text += "Ambient Light ENABLED.. \n";
             }
             else
             {
-                timer.Tick -= SwitchAmbientLightFrame;
+                timer.Tick -= GetColorTestFrame;
                 timer.Stop();
-                IsAmbientLightActive = false;
+                IsColorTest = false;
                 var converter = new System.Windows.Media.BrushConverter();
-                VideoButton.Foreground = (Brush)converter.ConvertFromString("#FF00F92D");
+                ScreenColorTestButton.Foreground = (Brush)converter.ConvertFromString("#FF00F92D");
                 MainConsole.Text += "Ambient Light DISABLED.. \n";
             }
         }
-
-        void SwitchAmbientLightFrame(object obj, EventArgs e)
+        void GetColorTestFrame(object obj, EventArgs e)
         {
-            VideoColor.Fill = new SolidColorBrush(analyzer.GetAvgScreenColor());
+            ScreenColor.Fill = new SolidColorBrush(SmartBulbController.ColorAnalyzer.GetColorBuffer());
         }
 
         private void AmbientLightButton_Click(object sender, RoutedEventArgs e)

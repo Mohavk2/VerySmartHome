@@ -32,16 +32,15 @@
         </ScrollViewer>
         <Button Style="{StaticResource MainButtonStyle}" 
                 Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Click="FindDevicesButton_Click"/>
-        <Button x:Name="VideoButton" Style="{StaticResource MainButtonStyle}"
-                Content="VideoMode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,206,0,0" Click="VideoModeButton_Click" />
+        <Button x:Name="ScreenColorTestButton" Style="{StaticResource MainButtonStyle}"
+                Content="ScreenColorTest" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,206,0,0" Click="ScreenColorTestButton_Click" />
         <Button x:Name="NormalLightButton"  Style="{StaticResource MainButtonStyle}"
                 Content="NormalLight" HorizontalAlignment="Left" Margin="0,108,0,0" VerticalAlignment="Top" Width="166" Click="NormalLightButton_Click"/>
         <Button x:Name="AmbientLightButton" Style="{StaticResource MainButtonStyle}" 
                 Content="Ambient Light" HorizontalAlignment="Left" Margin="0,157,0,0" VerticalAlignment="Top" Width="166" Click="AmbientLightButton_Click"/>
-
         <Button x:Name="ClearButton" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,59,0,0" Click="ClearButton_Click" />
-        <Ellipse x:Name="VideoColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="147" Stroke="Black" VerticalAlignment="Top" Width="146" Margin="10,255,0,0"/>
+        <Ellipse x:Name="ScreenColor" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="147" Stroke="Black" VerticalAlignment="Top" Width="146" Margin="10,255,0,0"/>
 
     </Grid>
 </Window>

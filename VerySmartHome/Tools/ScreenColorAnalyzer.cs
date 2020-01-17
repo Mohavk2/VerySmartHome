@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-//using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 
@@ -10,6 +10,7 @@ namespace VerySmartHome.Tools
     public sealed class ScreenColorAnalyzer
     {
         DColor ColorBufer = DColor.Empty;
+        object locker = new object();
         public MColor GetAvgScreenColor()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
@@ -92,44 +93,10 @@ namespace VerySmartHome.Tools
             Bitmap image = new Bitmap(printscreen, 320, 240);
             printscreen.Dispose();
             HSBColor hslPixel = GetAvgPixelHSL(image);
-            DColor rgbPixel = ColorFromHSL(hslPixel);
+            DColor rgbPixel = HsbToDColor(hslPixel);
             ColorBufer = rgbPixel;
             return DrowingToMediaColor(rgbPixel);
         }
-        //HSLColor GetAvgPixelHSL(Bitmap image)
-        //{
-        //    int[] HueHistogram = new int[360];
-        //    float[] HueSatSumHistogram = new float[360];
-        //    float[] HueBrightSumHistogram = new float[360];
-
-        //    Color pixel;
-        //    for (int i = 0; i < image.Height; i++)
-        //    {
-        //        for (int j = 0; j < image.Width; j++)
-        //        {
-        //            pixel = image.GetPixel(j, i);
-        //            int hue = (int)pixel.GetHue();
-        //            HueHistogram[hue]++;
-        //            HueSatSumHistogram[hue] += pixel.GetSaturation();
-        //            HueBrightSumHistogram[hue] += GetAccurateBrightness(pixel);
-        //        }
-        //    }
-        //    int temp = 0;
-        //    int MostCommonHue = 0;
-        //    for (int i = 0; i < HueHistogram.Length; i++)
-        //    {
-        //        if (HueHistogram[i] > temp)
-        //        {
-        //            temp = HueHistogram[i];
-        //            MostCommonHue = i;
-        //        }
-        //    }
-        //    image.Dispose();
-        //    int mostCommonHueSatAvg = 100 * (int)HueSatSumHistogram[MostCommonHue] / (int)HueHistogram[MostCommonHue];
-        //    int MostCommonHueBrightAvg = 100 * (int)HueBrightSumHistogram[MostCommonHue] / (int)HueHistogram[MostCommonHue];
-        //    HSLColor AvgColor = new HSLColor(MostCommonHue, mostCommonHueSatAvg, MostCommonHueBrightAvg);
-        //    return AvgColor;
-        //}
         HSBColor GetAvgPixelHSL(Bitmap image)
         {
             int[] HueHistogram = new int[360];
@@ -141,7 +108,11 @@ namespace VerySmartHome.Tools
             {
                 for (int j = 0; j < image.Width; j++)
                 {
-                    pixel = image.GetPixel(j, i);                   
+                    pixel = image.GetPixel(j, i);
+                    lock (locker)
+                    {
+                        ColorBufer = pixel;
+                    }
                     int hue = (int)pixel.GetHue();
                     if(GetAccurateBrightness(pixel) > 0)
                     {
@@ -237,49 +208,23 @@ namespace VerySmartHome.Tools
             mcolor.A = dcolor.A;
             return mcolor;
         }
-        public static Color ColorFromHSL(HSBColor hSLColor)
+        [DllImport("shlwapi.dll")]
+        public static extern int ColorHLSToRGB(int H, int L, int S);
+        public MColor GetColorBuffer()
         {
-            double h = hSLColor.Hue;
-            double s = hSLColor.Saturation/100;
-            double l = hSLColor.Brightness/100;
-            double r = 0, g = 0, b = 0;
-            if (l != 0)
+            lock (locker)
             {
-                if (s == 0)
-                    r = g = b = l;
-                else
-                {
-                    double temp2;
-                    if (l < 0.5)
-                        temp2 = l * (1.0 + s);
-                    else
-                        temp2 = l + s - (l * s);
-
-                    double temp1 = 2.0 * l - temp2;
-
-                    r = GetColorComponent(temp1, temp2, h + 1.0 / 3.0);
-                    g = GetColorComponent(temp1, temp2, h);
-                    b = GetColorComponent(temp1, temp2, h - 1.0 / 3.0);
-                }
+                var color = ColorBufer;
+                return DrowingToMediaColor(color);
             }
-            return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
         }
-
-        private static double GetColorComponent(double temp1, double temp2, double temp3)
+        private DColor HsbToDColor(HSBColor hsbColor)
         {
-            if (temp3 < 0.0)
-                temp3 += 1.0;
-            else if (temp3 > 1.0)
-                temp3 -= 1.0;
-
-            if (temp3 < 1.0 / 6.0)
-                return temp1 + (temp2 - temp1) * 6.0 * temp3;
-            else if (temp3 < 0.5)
-                return temp2;
-            else if (temp3 < 2.0 / 3.0)
-                return temp1 + ((temp2 - temp1) * ((2.0 / 3.0) - temp3) * 6.0);
-            else
-                return temp1;
-        }    
+            int hue = (hsbColor.Hue / 360) * 240;
+            float brt = (hsbColor.Brightness / 360) * 240;
+            float sat = (hsbColor.Saturation / 360) * 240;
+            int value = ColorHLSToRGB(hue, (int)sat, (int)sat);
+            return ColorTranslator.FromWin32(value);
+        }
     }
 }
