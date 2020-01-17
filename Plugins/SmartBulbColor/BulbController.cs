@@ -50,6 +50,7 @@ namespace SmartBulbColor
             LocalIP = Discoverer.GetLocalIP();
             LocalUdpPort = 19446;
             ALThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
+            ALThread.IsBackground = true;
             ALTrigger = new ManualResetEvent(true);
         }
         public void DiscoverForBulbs()
@@ -98,13 +99,13 @@ namespace SmartBulbColor
         {
             if(IsAmbientLightON)
             {
-                MusicMode_OFF();
                 ALTrigger.Reset();
                 IsAmbientLightON = false;
             }
         }
         void StreamAmbientLightRGB()
         {
+            TcpServer.Close();
             TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
             TcpServer.Listen(10);
