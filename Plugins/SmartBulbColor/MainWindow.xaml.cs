@@ -22,16 +22,17 @@ namespace SmartBulbColor
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void FindDevicesButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                SmartBulbController.DiscoverForBulbs();
+                SmartBulbController.ConnectBulbs_MusicMode();
                 var reports = SmartBulbController.GetDeviceReports();
                 foreach (var report in reports)
                 {
                     MainConsole.Text += report + "\n";
                 }
+                MainConsole.Text += SmartBulbController.DeviceCount + " bulbs found\n";
                 ConsoleScrollViewer.ScrollToEnd();
             }
             catch (Exception NoDeviceException)
@@ -39,7 +40,7 @@ namespace SmartBulbColor
                 MainConsole.Text += NoDeviceException.Message + "\n";
             }
         }
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void VideoModeButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleAmbilight();
         }
@@ -93,15 +94,15 @@ namespace SmartBulbColor
                 }
                 catch (Exception MusicModeFailedException)
                 {
-                    MainConsole.Text += MusicModeFailedException.Message.ToString();
+                    MainConsole.Text += MusicModeFailedException.Message.ToString() + "\n";
                 }
             }
             else MainConsole.Text += "There is no found bulbs yet, please use \"Find Devices\" first\r\n";
         }
 
-        private void LightButton_Click(object sender, RoutedEventArgs e)
+        private void NormalLightButton_Click(object sender, RoutedEventArgs e)
         {
-            SmartBulbController.Light_ON();
+            SmartBulbController.NormalLight_ON();
         }
     }
 }

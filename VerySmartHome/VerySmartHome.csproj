@@ -68,7 +68,7 @@
     <Compile Include="MainController\Device.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
-    <Compile Include="Tools\HSLColor.cs" />
+    <Compile Include="Tools\HSBColor.cs" />
     <Compile Include="Tools\ScreenColorAnalyzer.cs" />
     <Compile Include="MainController\SSDPDiscoverer.cs" />
     <Compile Include="MainWindow.xaml.cs">

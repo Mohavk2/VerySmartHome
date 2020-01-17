@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace VerySmartHome.Tools
 {
-    public class HSLColor
+    public class HSBColor
     {
         public int Hue { get; }
         public float Saturation { get;}
-        public float Lightness { get;}
+        public float Brightness { get;}
 
-        public HSLColor(int Hue, float Sat, float Light)
+        public HSBColor(int Hue, float Sat, float Light)
         {
             this.Hue = Hue;
             this.Saturation = Sat;
-            this.Lightness = Light;
+            this.Brightness = Light;
         }
     }
 }

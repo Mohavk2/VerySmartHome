@@ -24,7 +24,13 @@ namespace SmartBulbColor
                 "ST: wifi_bulb");
         public LinkedList<Bulb> Bulbs { get; private set; } = new LinkedList<Bulb>();
         public LinkedList<Bulb> DisconnectedBulbs { get; private set; } = new LinkedList<Bulb>();
-        public override int DeviceCount { get; protected set; }
+        public override int DeviceCount
+        {
+            get
+            {
+                return Bulbs.Count;
+            }
+        }
         public override LinkedList<Device> GetDevices()
         {
             if (Bulbs.Count != 0)
@@ -53,32 +59,47 @@ namespace SmartBulbColor
             ALThread.IsBackground = true;
             ALTrigger = new ManualResetEvent(true);
         }
-        public void DiscoverForBulbs()
+        public void ConnectBulbs_MusicMode()
         {
             try
             {
                 Bulbs = ParseBulbs(Discoverer.GetDeviceResponses());
-                DeviceCount = Bulbs.Count;
+                MusicMode_ON();
             }
-            catch (Exception NoDeviceException)
+            catch (Exception NoResponseException)
             {
-                throw NoDeviceException = new Exception("No device found!!!");
+                throw NoResponseException;
             }
         }
-        public void Light_ON()
+        public void NormalLight_ON()
         {
             AmbientLight_OFF();
-            foreach (var bulb in Bulbs)
+            Thread.Sleep(500);
+            if(Bulbs.Count != 0)
             {
-                var command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {5400}, {100}]}}\r\n";
-                sendCommandTo(bulb, command);
+                foreach (var bulb in Bulbs)
+                {
+                    var command =
+                    $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {5400}, {100}]}}\r\n";
+                    sendCommandTo(bulb, command);
+                }
+            }
+            else
+            {
+                try
+                {
+                    ConnectBulbs_MusicMode();
+                }
+                catch (Exception NoResponseException)
+                {
+                    throw NoResponseException;
+                }
             }
         }
         public void AmbientLight_ON()
         {
             try
             {
-                MusicMode_ON();
                 SetColorMode(2);
                 if (ALThread.IsAlive)
                 {
@@ -103,85 +124,36 @@ namespace SmartBulbColor
                 IsAmbientLightON = false;
             }
         }
-        void StreamAmbientLightRGB()
-        {
-            TcpServer.Close();
-            TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
-            TcpServer.Listen(10);
-            foreach (var bulb in Bulbs)
-            {
-                bulb.AcceptedClient = TcpServer.Accept();
-                if (!bulb.AcceptedClient.Connected)
-                {
-                    bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
-                }
-            }
-            ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
-            Color color;
-
-            while (true)
-            {
-                color = analyzer.GetMostCommonColorRGB();
-                int brightness = (int)(analyzer.GetBrightness() * 100);
-                if(brightness == 0)
-                {
-                    brightness = 1;
-                }
-                int colorDecimal = RGBToDecimal(color);
-
-                foreach (var bulb in Bulbs)
-                {
-                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"color\", {colorDecimal}, {brightness}]}}\r\n";
-                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-                    bulb.AcceptedClient.Send(commandBuffer);
-                }
-                Thread.Sleep(5);
-            }
-        }
-
         void StreamAmbientLightHSL()
         {
-            TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
-            TcpServer.Listen(10);
-            //tcpServer.NoDelay = true;
-
-            foreach (var bulb in Bulbs)
-            {
-                bulb.AcceptedClient = TcpServer.Accept();
-                if (!bulb.AcceptedClient.Connected)
-                {
-                    bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
-                }
-            }
             ScreenColorAnalyzer analyzer = new ScreenColorAnalyzer();
-            HSLColor color;
+            HSBColor color;
             int previosHue = 0;
             while (true)
             {
                 ALTrigger.WaitOne(Timeout.Infinite);
+
                 color = analyzer.GetMostCommonColorHSL();
 
-                var hue = color.Hue;
+                var bright = color.Brightness;
+                var hue = (bright < 5) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-                var bright = color.Lightness;
-                if (color.Lightness < 5)
-                {
-                    //bright = 30;
-                    hue = previosHue;
-                    //sat = 30;
-                }
+                
                 if (DisconnectedBulbs.Count != 0)
                 {
                     foreach (var bulb in DisconnectedBulbs)
                     {
                         Bulbs.Remove(bulb);
                     }
+                    if (Bulbs.Count == 0)
+                    {
+                        AmbientLight_OFF();
+                    }
                 }
                 foreach (var bulb in Bulbs)
                 {
-                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
+                    string command = 
+                    $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
                     try
                     {
@@ -189,9 +161,8 @@ namespace SmartBulbColor
                     }
                     catch(Exception e)
                     {
-                        DisconnectedBulbs.AddLast(bulb);
+                        DisconnectedBulbs.AddLast(bulb);                        
                     }
-
                 }
                 previosHue = color.Hue;
                 Thread.Sleep(10);
@@ -202,17 +173,35 @@ namespace SmartBulbColor
         {
             if (Bulbs.Count != 0)
             {
-                foreach (var bulb in Bulbs)
+                try
                 {
-                    string commandMessage = $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalUdpPort}]}}\r\n";
-                    sendCommandTo(bulb, commandMessage);
+                    foreach (var bulb in Bulbs)
+                    {
+                        string commandMessage = 
+                        $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalUdpPort}]}}\r\n";
+                        sendCommandTo(bulb, commandMessage);
+                    }
+                    if(TcpServer == null)
+                    {
+                        TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
+                        TcpServer.Listen(10);
+                    }
+                    foreach (var bulb in Bulbs)
+                    {
+                        bulb.AcceptedClient = TcpServer.Accept();
+                        if (!bulb.AcceptedClient.Connected)
+                        {
+                            bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
+                        }
+                    }
+                }
+                catch(Exception e)
+                {
+                    throw new Exception("Can't turn Music Mode ON becouse of some connection problem");
                 }
             }
             else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
-        }
-        void TurnOnMusicMode_Bulbs()
-        {
-
         }
         void MusicMode_OFF()
         {
@@ -220,7 +209,8 @@ namespace SmartBulbColor
             {
                 foreach (var bulb in Bulbs)
                 {
-                    string commandMessage = $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
+                    string commandMessage = 
+                    $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
                     sendCommandTo(bulb, commandMessage);
                 }
             }
@@ -252,7 +242,8 @@ namespace SmartBulbColor
                 {
                     foreach (var bulb in Bulbs)
                     {
-                        string commandMessage = $"{{\"id\":{bulb.Id},\"method\":\"set_power\",\"params\":[on, \"smooth\", 500, {value}]}}\r\n";
+                        string commandMessage = 
+                        $"{{\"id\":{bulb.Id},\"method\":\"set_power\",\"params\":[on, \"smooth\", 500, {value}]}}\r\n";
                         sendCommandTo(bulb, commandMessage);
                     }
                 }

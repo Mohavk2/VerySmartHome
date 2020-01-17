@@ -72,7 +72,7 @@ namespace VerySmartHome.Tools
             return AvgColor;
 
         }
-        public HSLColor GetMostCommonColorHSL()
+        public HSBColor GetMostCommonColorHSL()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
             Graphics graphics = Graphics.FromImage(printscreen as Image);
@@ -80,7 +80,7 @@ namespace VerySmartHome.Tools
             graphics.Dispose();
             Bitmap image = new Bitmap(printscreen, 128, 72);
             printscreen.Dispose();
-            HSLColor pixel = GetAvgPixelHSL(image);
+            HSBColor pixel = GetAvgPixelHSL(image);
             return pixel;
         }
         public MColor GetMostCommonColorRGB()
@@ -91,7 +91,7 @@ namespace VerySmartHome.Tools
             graphics.Dispose();
             Bitmap image = new Bitmap(printscreen, 320, 240);
             printscreen.Dispose();
-            HSLColor hslPixel = GetAvgPixelHSL(image);
+            HSBColor hslPixel = GetAvgPixelHSL(image);
             DColor rgbPixel = ColorFromHSL(hslPixel);
             ColorBufer = rgbPixel;
             return DrowingToMediaColor(rgbPixel);
@@ -130,27 +130,25 @@ namespace VerySmartHome.Tools
         //    HSLColor AvgColor = new HSLColor(MostCommonHue, mostCommonHueSatAvg, MostCommonHueBrightAvg);
         //    return AvgColor;
         //}
-        HSLColor GetAvgPixelHSL(Bitmap image)
+        HSBColor GetAvgPixelHSL(Bitmap image)
         {
             int[] HueHistogram = new int[360];
             float[] HueSatSumHistogram = new float[360];
             float[] HueBrightSumHistogram = new float[360];
 
             DColor pixel;
-            //DColor previosPixel = new DColor ();
             for (int i = 0; i < image.Height; i++)
             {
                 for (int j = 0; j < image.Width; j++)
                 {
                     pixel = image.GetPixel(j, i);                   
                     int hue = (int)pixel.GetHue();
-                    if(GetAccurateBrightness(pixel) > 0) //>= previosPixel.GetBrightness())
+                    if(GetAccurateBrightness(pixel) > 0)
                     {
                         HueHistogram[hue]++;
                         HueSatSumHistogram[hue] += pixel.GetSaturation();
                         HueBrightSumHistogram[hue] += GetAccurateBrightness(pixel);
                     }
-                    //previosPixel = pixel;
                 }
             }
             int[] HueSmoothHistogram = new int[360];
@@ -182,10 +180,10 @@ namespace VerySmartHome.Tools
             image.Dispose();
             int mostCommonHueSatAvg = 100 * (int)HueSatSumHistogram[MostCommonHue] / (int)HueSmoothHistogram[MostCommonHue];
             float MostCommonHueBrightAvg = 100 * HueBrightSumHistogram[MostCommonHue] / HueSmoothHistogram[MostCommonHue];
-            HSLColor AvgColor = new HSLColor(MostCommonHue, mostCommonHueSatAvg, MostCommonHueBrightAvg);
+            HSBColor AvgColor = new HSBColor(MostCommonHue, mostCommonHueSatAvg, MostCommonHueBrightAvg);
             return AvgColor;
         }
-        HSLColor GetAvgPixelHSLOptimized(Bitmap image)
+        HSBColor GetAvgPixelHSLOptimized(Bitmap image)
         {
             int[] hueCounts = new int[360];
             float[] saturationSums = new float[360];
@@ -217,7 +215,7 @@ namespace VerySmartHome.Tools
             }
             int hueSaturationAvg = 100 * (int)saturationSums[mostCommonHue] / (int)hueCounts[mostCommonHue];
             int hueBrightAvg = 100 * (int)brightnessSums[mostCommonHue] / (int)hueCounts[mostCommonHue];
-            HSLColor avgColor = new HSLColor(mostCommonHue, hueSaturationAvg, hueBrightAvg);
+            HSBColor avgColor = new HSBColor(mostCommonHue, hueSaturationAvg, hueBrightAvg);
             return avgColor;
         }
         public float GetBrightness()
@@ -239,11 +237,11 @@ namespace VerySmartHome.Tools
             mcolor.A = dcolor.A;
             return mcolor;
         }
-        public static Color ColorFromHSL(HSLColor hSLColor)
+        public static Color ColorFromHSL(HSBColor hSLColor)
         {
             double h = hSLColor.Hue;
             double s = hSLColor.Saturation/100;
-            double l = hSLColor.Lightness/100;
+            double l = hSLColor.Brightness/100;
             double r = 0, g = 0, b = 0;
             if (l != 0)
             {
