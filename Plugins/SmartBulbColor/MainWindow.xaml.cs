@@ -56,7 +56,7 @@ namespace SmartBulbColor
                 timer.Start();
                 IsColorTest = true;
                 ScreenColorTestButton.Foreground = Brushes.Red;
-                MainConsole.Text += "Ambient Light ENABLED.. \n";
+                MainConsole.Text += "Debag mode ENABLED.. \n";
             }
             else
             {
@@ -65,7 +65,7 @@ namespace SmartBulbColor
                 IsColorTest = false;
                 var converter = new System.Windows.Media.BrushConverter();
                 ScreenColorTestButton.Foreground = (Brush)converter.ConvertFromString("#FF00F92D");
-                MainConsole.Text += "Ambient Light DISABLED.. \n";
+                MainConsole.Text += "Debag mode DISABLED.. \n";
             }
         }
         void GetColorTestFrame(object obj, EventArgs e)
