@@ -52,7 +52,7 @@ namespace SmartBulbColor
             if (!IsColorTest)
             {
                 timer.Tick += new EventHandler(GetColorTestFrame);
-                timer.Interval = new TimeSpan(0, 0, 0, 0, 5);
+                timer.Interval = new TimeSpan(0, 0, 0, 0, 10);
                 timer.Start();
                 IsColorTest = true;
                 ScreenColorTestButton.Foreground = Brushes.Red;
@@ -70,7 +70,8 @@ namespace SmartBulbColor
         }
         void GetColorTestFrame(object obj, EventArgs e)
         {
-            ScreenColor.Fill = new SolidColorBrush(SmartBulbController.ColorAnalyzer.GetColorBuffer());
+            Color c = SmartBulbController.ColorAnalyzer.GetColorBuffer();
+            ScreenColor.Fill = new SolidColorBrush(c);
         }
 
         private void AmbientLightButton_Click(object sender, RoutedEventArgs e)

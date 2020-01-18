@@ -166,7 +166,7 @@ namespace SmartBulbColor
                     }
                 }
                 previosHue = color.Hue;
-                Thread.Sleep(10);
+                Thread.Sleep(8);
             }
         }
 
