@@ -24,54 +24,6 @@ namespace VerySmartHome.Tools
             MColor avgColor = DrowingToMediaColor(dAvgColor);
             return avgColor;
         }
-
-        public MColor GetSceneAvgColorRGB()
-        {
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            Graphics graphics = Graphics.FromImage(printscreen as Image);
-            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
-            graphics.Dispose();
-            var width = (printscreen.Width / 15);
-            var hight = (printscreen.Height / 9);
-            Bitmap leftUpSquare = printscreen.Clone(new Rectangle(width * 2, hight * 2, width, hight), printscreen.PixelFormat);
-            Bitmap rightUpSquare = printscreen.Clone(new Rectangle(width * 13, hight * 2, width, hight), printscreen.PixelFormat);
-            Bitmap centerSquare = printscreen.Clone(new Rectangle(width * 7, hight * 4, width, hight), printscreen.PixelFormat);
-            Bitmap leftDownSquare = printscreen.Clone(new Rectangle(width * 2, hight * 7, width, hight), printscreen.PixelFormat);
-            Bitmap rightDownSquare = printscreen.Clone(new Rectangle(width * 13, hight * 7, width, hight), printscreen.PixelFormat);
-            printscreen.Dispose();
-            Bitmap leftUpPixel = new Bitmap(leftUpSquare, 1, 1);
-            Bitmap rightUpPixel = new Bitmap(rightUpSquare, 1, 1);
-            Bitmap centerPixel = new Bitmap(centerSquare, 1, 1);
-            Bitmap leftDownPixel = new Bitmap(leftDownSquare, 1, 1);
-            Bitmap rightDownPixel = new Bitmap(rightDownSquare, 1, 1);
-
-            DColor leftUp = leftUpPixel.GetPixel(0, 0);
-            DColor rightUp = leftUpPixel.GetPixel(0, 0);
-            DColor center = leftUpPixel.GetPixel(0, 0);
-            DColor leftDown = leftUpPixel.GetPixel(0, 0);
-            DColor rightDown = leftUpPixel.GetPixel(0, 0);
-
-            List<DColor> Colors = new List<DColor>();
-            Colors.Add(leftUp);
-            Colors.Add(rightUp);
-            Colors.Add(center);
-            Colors.Add(leftDown);
-            Colors.Add(rightDown);
-            int r = 0, g = 0, b = 0;
-            var count = Colors.Count;
-            foreach (var color in Colors)
-            {
-                r += color.R;
-                g += color.G;
-                b += color.B;
-            }
-            MColor AvgColor = new MColor();
-            AvgColor.R = (byte)(r / count);
-            AvgColor.G = (byte)(g / count);
-            AvgColor.B = (byte)(b / count);
-            return AvgColor;
-
-        }
         public HSBColor GetMostCommonColorHSL()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
@@ -80,8 +32,8 @@ namespace VerySmartHome.Tools
             graphics.Dispose();
             Bitmap image = new Bitmap(printscreen, 128, 72);
             printscreen.Dispose();
-            HSBColor pixel = GetAvgPixelHSL(image);
-            return pixel;
+            HSBColor color = GetMostCommonColorHSV(image);
+            return color;
         }
         public MColor GetMostCommonColorRGB()
         {
@@ -91,14 +43,104 @@ namespace VerySmartHome.Tools
             graphics.Dispose();
             Bitmap image = new Bitmap(printscreen, 320, 240);
             printscreen.Dispose();
-            HSBColor hslPixel = GetAvgPixelHSL(image);
+            HSBColor hslPixel = GetMostCommonColorHSV(image);
             DColor rgbPixel = HsbToDColor(hslPixel);
             return DrowingToMediaColor(rgbPixel);
         }
-        HSBColor GetAvgPixelHSL(Bitmap image)
+        HSBColor GetMostCommonColorHSV(Bitmap image)
         {   
+            //Each number of position in array means Hue            
+            List<DColor>[] hues = new List<DColor>[360];     //values means Hue pixel repeats on a picture
+            int[] hueHistogram = new int[360];
+            DColor pixel;
+            bool isEmpty = true;
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    pixel = image.GetPixel(j, i);
+                    int hue = GetHue(pixel);
+                    if(GetBrightness(pixel) > 0)
+                    {
+                        if (hues[hue] == null)
+                        {
+                            hues[hue] = new List<DColor>();
+                            isEmpty = false;
+                        }
+                        hues[hue].Add(pixel);
+                        hueHistogram[hue]++;
+                    }
+                }
+            }
+            image.Dispose();
+            HSBColor black = new HSBColor(0,0,0);
+            if (isEmpty)
+            {
+                return black;
+            }
+            int[] hueHistogramSmooth = new int[360];
+            for (int i = 0; i < hueHistogram.Length; i++)    //Smoothing histograms
+            {
+                if (hueHistogram[i] == 0)
+                { continue; }
+
+                else if(i == 0)
+                {
+                    hueHistogramSmooth[i] = (hueHistogram[i] + hueHistogram[i + 1]) / 2;
+                }
+                else if (i == hues.Length - 1)
+                {
+                    hueHistogramSmooth[i] = (hueHistogram[i -1] + hueHistogram[i]) / 2;
+                }
+                else
+                {
+                    hueHistogramSmooth[i] = (hueHistogram[i - 1] + hueHistogram[i] + hueHistogram[i + 1]) / 3;
+                }
+            }
+            int temp = 0;
+            int mostCommonHue = 0;
+            for (int i = 0; i < hueHistogramSmooth.Length; i++)
+            {
+                if (hueHistogramSmooth[i] > temp)
+                {
+                    temp = hueHistogramSmooth[i];
+                    mostCommonHue = i;
+                }
+            }
+            int[] saturations = new int[101];
+            int[] brightesses = new int[101];
+            foreach (var color in hues[mostCommonHue])
+            {
+                saturations[GetSaturation(color)]++;
+                brightesses[GetBrightness(color)]++;
+            }
+            int tempSat = 0;
+            int mostCommonSat = 0;
+            for (int i = 0; i < saturations.Length; i++)
+            {
+                if (saturations[i] > tempSat)
+                {
+                    tempSat = saturations[i];
+                    mostCommonSat = i;
+                }
+            }
+            int tempBright = 0;
+            int mostCommonBright = 0;
+            for (int i = 0; i < brightesses.Length; i++)
+            {
+                if (brightesses[i] > tempBright)
+                {
+                    tempBright = brightesses[i];
+                    mostCommonBright = i;
+                }
+            }
+            HSBColor avgColor = new HSBColor(mostCommonHue, mostCommonSat, mostCommonBright);
+            return avgColor;
+        }
+        HSBColor GetAvgPixelHSL(Bitmap image)
+        {
             //Each number of position in array means Hue 
-            
+
             int[] hueHistogram = new int[360];          //values means Hue repeats on a picture
             float[] saturationSums = new float[360];    //values means saturation sums for Hue repeats
             float[] brightessSums = new float[360];     //values means brightness sums for Hue repeats
@@ -110,21 +152,20 @@ namespace VerySmartHome.Tools
                 {
                     pixel = image.GetPixel(j, i);
                     int hue = (int)pixel.GetHue();
-                    if(GetAccurateBrightness(pixel) > 0)
+                    if (GetBrightness(pixel) > 0)
                     {
                         hueHistogram[hue]++;
                         saturationSums[hue] += pixel.GetSaturation();
-                        brightessSums[hue] += GetAccurateBrightness(pixel);
+                        brightessSums[hue] += GetBrightness(pixel);
                     }
                 }
             }
             int[] hueHistogramSmooth = new int[360];
             float[] saturationSumsSmooth = new float[360];
             float[] brightnessSumsSmooth = new float[360];
-
             for (int i = 0; i < hueHistogram.Length; i++)    //Smoothing histograms
             {
-                if(i == 0)
+                if (i == 0)
                 {
                     hueHistogramSmooth[i] = (hueHistogram[i] + hueHistogram[i + 1]) / 2;
                     saturationSumsSmooth[i] = (saturationSums[i] + saturationSums[i + 1]) / 2;
@@ -132,7 +173,7 @@ namespace VerySmartHome.Tools
                 }
                 else if (i == hueHistogram.Length - 1)
                 {
-                    hueHistogramSmooth[i] = (hueHistogram[i -1] + hueHistogram[i]) / 2;
+                    hueHistogramSmooth[i] = (hueHistogram[i - 1] + hueHistogram[i]) / 2;
                     saturationSumsSmooth[i] = (saturationSums[i - 1] + saturationSums[i]) / 2;
                     brightnessSumsSmooth[i] = (brightessSums[i - 1] + brightessSums[i]) / 2;
                 }
@@ -154,7 +195,7 @@ namespace VerySmartHome.Tools
                 }
             }
             image.Dispose();
-            if(hueHistogramSmooth[mostCommonHue] == 0) //to avoid dividing by 0
+            if (hueHistogramSmooth[mostCommonHue] == 0) //to avoid dividing by 0
             {
                 hueHistogramSmooth[mostCommonHue] = 1;
             }
@@ -181,7 +222,7 @@ namespace VerySmartHome.Tools
                     existingHues.Add(hue);
                     hueCounts[hue]++;
                     saturationSums[hue] += pixel.GetSaturation();
-                    brightnessSums[hue] += GetAccurateBrightness(pixel);
+                    brightnessSums[hue] += GetBrightness(pixel);
                 }
             }
             int count = 0;
@@ -199,8 +240,6 @@ namespace VerySmartHome.Tools
             HSBColor avgColor = new HSBColor(mostCommonHue, hueSaturationAvg, hueBrightAvg);
             return avgColor;
         }
-        float GetAccurateBrightness(Color c)
-        { return (c.R * 0.299f + c.G * 0.587f + c.B * 0.114f) / 256f; }
         MColor DrowingToMediaColor (DColor dcolor)
         {
             MColor mcolor = new MColor();
@@ -227,5 +266,30 @@ namespace VerySmartHome.Tools
             int value = ColorHLSToRGB(hue, (int)sat, (int)sat);
             return ColorTranslator.FromWin32(value);
         }
+        int GetHue(DColor color)
+        {
+            float r = (color.R/255f);
+            float g = (color.G/255f);
+            float b = (color.B/255f);
+            float min = (r < g & r < b) ? r : g < b ? g : b;
+            float max = (r > g & r > b) ? r : g > b ? g : b;
+            if (min == max) return 0;
+            else if (max == r & g >= b) return (int)( 60 * ((g - b) / (max - min)));
+            else if (max == r & g < b) return (int)(60 * ((g - b) / (max - min)) + 360) ;
+            else if (max == g) return (int)(60 * ((b - r) / (max - min)) + 120);
+            else return (int)(60 * ((r - g) / (max - min)) + 240);
+        }
+        int GetSaturation(DColor color)
+        {
+            float r = color.R / 255f;
+            float g = color.G / 255f;
+            float b = color.B / 255f;
+            float min = (r < g & r < b) ? r : g < b ? g : b;
+            float max = (r > g & r > b) ? r : g > b ? g : b;
+            if (max == 0) return 0;
+            else return (int)((1 - min / max) * 100);
+        }
+        int GetBrightness(Color c)
+        { return (int)(((c.R * 0.299f + c.G * 0.587f + c.B * 0.114f) / 256f) * 100); }
     }
 }

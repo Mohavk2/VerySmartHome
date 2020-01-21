@@ -137,7 +137,7 @@ namespace SmartBulbColor
                 color = ColorAnalyzer.GetMostCommonColorHSL();
 
                 var bright = color.Brightness;
-                var hue = (bright < 5) ? previosHue : color.Hue;
+                var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
                 
                 if (DisconnectedBulbs.Count != 0)
