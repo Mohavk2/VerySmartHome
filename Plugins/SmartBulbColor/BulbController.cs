@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VerySmartHome.MainController;
 using SmartBulbColor.Tools;
+using System.Collections.ObjectModel;
 
 //MM - MusicMode
 
@@ -22,8 +23,7 @@ namespace SmartBulbColor
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-        public LinkedList<Bulb> Bulbs { get; private set; } = new LinkedList<Bulb>();
-        public LinkedList<Bulb> DisconnectedBulbs { get; private set; } = new LinkedList<Bulb>();
+        public ObservableCollection<Bulb> Bulbs { get; private set; } = new ObservableCollection<Bulb>();
         public override int DeviceCount
         {
             get
@@ -49,6 +49,8 @@ namespace SmartBulbColor
 
         readonly Thread ALThread;
         readonly ManualResetEvent ALTrigger;
+        object Locker = new object();
+        public bool IsMusicModeON { get; private set; } = false;
         public bool IsAmbientLightON { get; private set;} = false;
 
         public BulbController()
@@ -65,7 +67,25 @@ namespace SmartBulbColor
         {
             try
             {
-                Bulbs = ParseBulbs(Discoverer.GetDeviceResponses());
+                var foundBulbs = ParseBulbs(Discoverer.GetDeviceResponses());
+                var lostBulbs = new LinkedList<Bulb>();
+                foreach (var foundBulb in foundBulbs)
+                {
+                    if (!Bulbs.Contains(foundBulb))
+                        Bulbs.Add(foundBulb);
+                }
+                foreach(var bulb in Bulbs)
+                {
+                    if (!foundBulbs.Contains(bulb))
+                        lostBulbs.AddLast(bulb);
+                    else
+                        bulb.IsOnline = true;
+                }
+                foreach (var lostBulb in lostBulbs)
+                {
+                    Bulbs.Remove(lostBulb);
+                }
+
                 MusicMode_ON();
             }
             catch (Exception NoResponseException)
@@ -73,11 +93,63 @@ namespace SmartBulbColor
                 throw NoResponseException;
             }
         }
+        public void MusicMode_ON()
+        {
+            if (Bulbs.Count != 0)
+            {
+                try
+                {
+                    foreach (var bulb in Bulbs)
+                    {
+                        string commandMessage =
+                        $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalUdpPort}]}}\r\n";
+                        sendCommandTo(bulb, commandMessage);
+                    }
+                    if (TcpServer == null)
+                    {
+                        TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
+                        TcpServer.Listen(10);
+                    }
+                    foreach (var bulb in Bulbs)
+                    {
+                        if (bulb.AcceptedClient == null)
+                        {
+                            bulb.AcceptedClient = TcpServer.Accept();
+                        }
+                        if (!bulb.AcceptedClient.Connected)
+                        {
+                            bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
+                        }
+                    }
+                    IsMusicModeON = true;
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Can't turn Music Mode ON becouse of some connection problem");
+                }
+            }
+            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
+        }
+        void MusicMode_OFF()
+        {
+            if (Bulbs.Count != 0)
+            {
+                foreach (var bulb in Bulbs)
+                {
+                    string commandMessage =
+                    $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
+                    sendCommandTo(bulb, commandMessage);
+                }
+                IsMusicModeON = false;
+            }
+            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
+        }
         public void NormalLight_ON()
         {
             AmbientLight_OFF();
             Thread.Sleep(500);
-            if(Bulbs.Count != 0)
+            if (Bulbs.Count != 0)
             {
                 foreach (var bulb in Bulbs)
                 {
@@ -128,6 +200,7 @@ namespace SmartBulbColor
         }
         void StreamAmbientLightHSL()
         {
+            int bulbCounter = Bulbs.Count;
             HSBColor color;
             int previosHue = 0;
             while (true)
@@ -139,83 +212,28 @@ namespace SmartBulbColor
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-                
-                if (DisconnectedBulbs.Count != 0)
-                {
-                    foreach (var bulb in DisconnectedBulbs)
-                    {
-                        Bulbs.Remove(bulb);
-                    }
-                    if (Bulbs.Count == 0)
-                    {
-                        AmbientLight_OFF();
-                    }
-                }
+
                 foreach (var bulb in Bulbs)
                 {
-                    string command = 
+                    string command =
                     $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
                     try
                     {
+                        if (bulb.IsOnline)
                         bulb.AcceptedClient.Send(commandBuffer);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
-                        DisconnectedBulbs.AddLast(bulb);                        
+                        bulb.IsOnline = false;
+                        bulbCounter--;
+                        if (bulbCounter == 0)
+                            AmbientLight_OFF();
                     }
                 }
                 previosHue = color.Hue;
                 Thread.Sleep(8);
             }
-        }
-
-        public void MusicMode_ON()
-        {
-            if (Bulbs.Count != 0)
-            {
-                try
-                {
-                    foreach (var bulb in Bulbs)
-                    {
-                        string commandMessage = 
-                        $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalUdpPort}]}}\r\n";
-                        sendCommandTo(bulb, commandMessage);
-                    }
-                    if(TcpServer == null)
-                    {
-                        TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        TcpServer.Bind(new IPEndPoint(LocalIP, LocalUdpPort));
-                        TcpServer.Listen(10);
-                    }
-                    foreach (var bulb in Bulbs)
-                    {
-                        bulb.AcceptedClient = TcpServer.Accept();
-                        if (!bulb.AcceptedClient.Connected)
-                        {
-                            bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalUdpPort);
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    throw new Exception("Can't turn Music Mode ON becouse of some connection problem");
-                }
-            }
-            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
-        }
-        void MusicMode_OFF()
-        {
-            if (Bulbs.Count != 0)
-            {
-                foreach (var bulb in Bulbs)
-                {
-                    string commandMessage = 
-                    $"{{\"id\":{bulb.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
-                    sendCommandTo(bulb, commandMessage);
-                }
-            }
-            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
         }
         void TurnOffMusicMode_Bulbs()
         {
@@ -258,8 +276,18 @@ namespace SmartBulbColor
             {
                 
                 byte[] buffer = Encoding.UTF8.GetBytes(command);
-                client.Connect(new IPEndPoint(IPAddress.Parse(bulb.Ip), bulb.Port));
-                client.Send(buffer);
+                if(bulb.IsOnline)
+                {
+                    try
+                    {
+                        client.Connect(new IPEndPoint(IPAddress.Parse(bulb.Ip), bulb.Port));
+                        client.Send(buffer);
+                    }
+                    catch (Exception e)
+                    {
+                        bulb.IsOnline = false;
+                    }
+                }
                 client.ReceiveTimeout = 5000;
                 while (client.Available > 0)
                 {
@@ -269,6 +297,7 @@ namespace SmartBulbColor
                     if (!response.Contains("\"result\":[\"ok\"]"))
                         throw new Exception($"Failed to turn on Music Mode for {bulb.Id}");
                 }
+
             }
         }
         public List<String> GetDeviceReports()

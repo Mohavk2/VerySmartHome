@@ -33,7 +33,7 @@ namespace SmartBulbColor
                 BulbList.Items.Clear();
                 foreach (var bulb in SmartBulbController.Bulbs)
                 {
-                    BulbList.Items.Add(bulb.Id);
+                    BulbList.Items.Add(bulb);
                 }
                 MainConsole.Text += SmartBulbController.DeviceCount + " bulbs found\n";
                 ConsoleScrollViewer.ScrollToEnd();
@@ -75,8 +75,8 @@ namespace SmartBulbColor
         private void NormalLightButton_Click(object sender, RoutedEventArgs e)
         {
             SmartBulbController.NormalLight_ON();
+            MainConsole.Text += "Ambient Light is OFF\r\n";
         }
-
         private void BulbList_GotFocus(object sender, RoutedEventArgs e)
         {
 

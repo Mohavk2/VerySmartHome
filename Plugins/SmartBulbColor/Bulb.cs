@@ -28,7 +28,7 @@ namespace SmartBulbColor
         public override string Name { get; set; } = "";
         public override string Ip { get; set; } = "";
         public override int Port { get; set; } = 0;
-        public override bool IsConnected { get; set; } = false;
+        public override bool IsOnline { get; set; } = false;
         public override bool IsPowered { get; set; } = false;
 
         public string Model { get; set; } = "";
@@ -66,7 +66,8 @@ namespace SmartBulbColor
                 bulb.Hue = int.Parse(response[15].Substring(HUE.Length));
                 bulb.Saturation = int.Parse(response[16].Substring(SAT.Length));
                 bulb.Name = response[17].Substring(NAME.Length);
-
+                if (bulb.Name == "")
+                    bulb.Name = "Bulb";
                 if (bulb.Model == "color")
                     return bulb;
                 else return new Bulb();
@@ -91,9 +92,22 @@ namespace SmartBulbColor
                 NAME.ToUpper() + Name + divider;
             return report;
         }
-        ~Bulb()
+        public override string ToString()
         {
-            AcceptedClient?.Dispose();
+            return $"{Name} ID: {Id}";
         }
+        public override int GetHashCode()
+        {
+            return Id;
+        }
+        public override bool Equals(Object obj)
+        {
+            var bulb = obj as Bulb;
+            return this.Id == bulb.Id;
+        }
+        //~Bulb()
+        //{
+        //    AcceptedClient?.Dispose();
+        //}
     }
 }

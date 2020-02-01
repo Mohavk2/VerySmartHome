@@ -18,6 +18,14 @@
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF00F92D"/>
         </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Control.Background" Value="Black"/>
+            <Setter Property="Control.Width" Value="166"/>
+            <Setter Property="Control.Height" Value="44"/>
+            <Setter Property="Control.FontSize" Value="14"/>
+            <Setter Property="Control.FontWeight" Value="Bold"/>
+            <Setter Property="Control.Foreground" Value="#FF0035E8"/>
+        </Style>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="Black"/>
             <Setter Property="Opacity" Value="0.9"/>
@@ -28,7 +36,7 @@
     </Window.Resources>
     <Grid>
         <ScrollViewer Name ="ConsoleScrollViewer"  Margin="0,396,0,10" HorizontalAlignment="Right" Width="679">
-            <TextBox Name="MainConsole" HorizontalAlignment ="Right" Width ="660" Height="292" Padding ="10" VerticalAlignment="Bottom"/>
+            <TextBox Name="MainConsole" IsReadOnly="True" HorizontalAlignment ="Right" Width ="660" Height="292" Padding ="10" VerticalAlignment="Bottom"/>
         </ScrollViewer>
         <Button Style="{StaticResource MainButtonStyle}" 
                 Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" Click="FindDevicesButton_Click"/>
@@ -38,7 +46,7 @@
                 Content="Ambient Light" HorizontalAlignment="Left" Margin="513,10,0,0" VerticalAlignment="Top" Width="166" Click="AmbientLightButton_Click"/>
         <Button x:Name="ClearButton" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="171,10,0,0" Click="ClearButton_Click" />
-        <ListBox x:Name="BulbList" HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" GotFocus="BulbList_GotFocus"/>
+        <ListBox x:Name="BulbList" HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" GotFocus="BulbList_GotFocus" FontSize="16" FontWeight="Bold"/>
         <DataGrid x:Name="PropertyList" HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="498"/>
     </Grid>
 </Window>

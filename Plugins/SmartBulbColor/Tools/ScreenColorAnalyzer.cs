@@ -10,7 +10,6 @@ namespace SmartBulbColor.Tools
     public sealed class ScreenColorAnalyzer
     {
         HSBColor ColorBufer = new HSBColor(0,0,0);
-        object locker = new object();
         public MColor GetAvgScreenColor()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
