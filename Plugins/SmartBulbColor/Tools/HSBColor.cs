@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VerySmartHome.Tools
+namespace SmartBulbColor.Tools
 {
     public class HSBColor
     {

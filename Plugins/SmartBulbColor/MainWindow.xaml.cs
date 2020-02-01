@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using VerySmartHome.MainController;
-using VerySmartHome.Tools;
+using SmartBulbColor.Tools;
 
 namespace SmartBulbColor
 {
@@ -75,6 +75,11 @@ namespace SmartBulbColor
         private void NormalLightButton_Click(object sender, RoutedEventArgs e)
         {
             SmartBulbController.NormalLight_ON();
+        }
+
+        private void BulbList_GotFocus(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

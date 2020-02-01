@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 
-namespace VerySmartHome.Tools
+namespace SmartBulbColor.Tools
 {
     public sealed class ScreenColorAnalyzer
     {

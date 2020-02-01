@@ -38,7 +38,7 @@
                 Content="Ambient Light" HorizontalAlignment="Left" Margin="513,10,0,0" VerticalAlignment="Top" Width="166" Click="AmbientLightButton_Click"/>
         <Button x:Name="ClearButton" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="171,10,0,0" Click="ClearButton_Click" />
-        <ListBox x:Name="BulbList" HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166"/>
-        <DataGrid HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="498"/>
+        <ListBox x:Name="BulbList" HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" GotFocus="BulbList_GotFocus"/>
+        <DataGrid x:Name="PropertyList" HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="498"/>
     </Grid>
 </Window>
