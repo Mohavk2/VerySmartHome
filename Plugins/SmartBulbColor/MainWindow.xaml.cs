@@ -13,7 +13,6 @@ namespace SmartBulbColor
     /// </summary>
     public partial class MainWindow : Window
     {
-        bool IsColorTest = false;
         DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Render);
         BulbController SmartBulbController = new BulbController();
         public MainWindow()
@@ -31,6 +30,11 @@ namespace SmartBulbColor
                 {
                     MainConsole.Text += report + "\n";
                 }
+                BulbList.Items.Clear();
+                foreach (var bulb in SmartBulbController.Bulbs)
+                {
+                    BulbList.Items.Add(bulb.Id);
+                }
                 MainConsole.Text += SmartBulbController.DeviceCount + " bulbs found\n";
                 ConsoleScrollViewer.ScrollToEnd();
             }
@@ -39,41 +43,10 @@ namespace SmartBulbColor
                 MainConsole.Text += NoDeviceException.Message + "\n";
             }
         }
-        private void ScreenColorTestButton_Click(object sender, RoutedEventArgs e)
-        {
-            ToggleColorTest();
-        }
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             MainConsole.Text = string.Empty;
         }
-        void ToggleColorTest()
-        {
-            if (!IsColorTest)
-            {
-                timer.Tick += new EventHandler(GetColorTestFrame);
-                timer.Interval = new TimeSpan(0, 0, 0, 0, 10);
-                timer.Start();
-                IsColorTest = true;
-                ScreenColorTestButton.Foreground = Brushes.Red;
-                MainConsole.Text += "Debag mode ENABLED.. \n";
-            }
-            else
-            {
-                timer.Tick -= GetColorTestFrame;
-                timer.Stop();
-                IsColorTest = false;
-                var converter = new System.Windows.Media.BrushConverter();
-                ScreenColorTestButton.Foreground = (Brush)converter.ConvertFromString("#FF00F92D");
-                MainConsole.Text += "Debag mode DISABLED.. \n";
-            }
-        }
-        void GetColorTestFrame(object obj, EventArgs e)
-        {
-            Color c = SmartBulbController.ColorAnalyzer.GetColorBuffer();
-            ScreenColor.Fill = new SolidColorBrush(c);
-        }
-
         private void AmbientLightButton_Click(object sender, RoutedEventArgs e)
         {
             if (SmartBulbController.DeviceCount != 0)

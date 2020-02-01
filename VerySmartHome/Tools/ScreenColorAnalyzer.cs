@@ -99,13 +99,19 @@ namespace VerySmartHome.Tools
             }
             int temp = 0;
             int mostCommonHue = 0;
+            isEmpty = true;
             for (int i = 0; i < hueHistogramSmooth.Length; i++)
             {
                 if (hueHistogramSmooth[i] > temp)
                 {
                     temp = hueHistogramSmooth[i];
                     mostCommonHue = i;
+                    isEmpty = false;
                 }
+            }
+            if(isEmpty)
+            {
+                return black;
             }
             int[] saturations = new int[101];
             int[] brightesses = new int[101];
