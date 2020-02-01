@@ -274,30 +274,23 @@ namespace SmartBulbColor
         {
             using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
-                
                 byte[] buffer = Encoding.UTF8.GetBytes(command);
-                if(bulb.IsOnline)
+                if (bulb.IsOnline)
                 {
-                    try
+                    IAsyncResult result = client.BeginConnect(bulb.Ip, bulb.Port, null, null);
+
+                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+
+                    if (client.Connected)
                     {
-                        client.Connect(new IPEndPoint(IPAddress.Parse(bulb.Ip), bulb.Port));
+                        client.EndConnect(result);
                         client.Send(buffer);
                     }
-                    catch (Exception e)
+                    else
                     {
                         bulb.IsOnline = false;
                     }
                 }
-                client.ReceiveTimeout = 5000;
-                while (client.Available > 0)
-                {
-                    byte[] recBuffer = new byte[128];
-                    client.Receive(recBuffer);
-                    var response = Encoding.UTF8.GetString(recBuffer);
-                    if (!response.Contains("\"result\":[\"ok\"]"))
-                        throw new Exception($"Failed to turn on Music Mode for {bulb.Id}");
-                }
-
             }
         }
         public List<String> GetDeviceReports()
