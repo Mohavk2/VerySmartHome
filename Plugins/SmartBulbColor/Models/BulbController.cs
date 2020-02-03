@@ -40,7 +40,18 @@ namespace SmartBulbColor
             }
             else return new LinkedList<Device>();
         }
-
+        public ObservableCollection<Bulb> GetBulbs()
+        {
+            if(Bulbs.Count != 0)
+            {
+                return Bulbs;
+            }
+            else
+            {
+                ConnectBulbs_MusicMode();
+                return Bulbs;
+            }
+        }
         public ScreenColorAnalyzer ColorAnalyzer;
         SSDPDiscoverer Discoverer;
         Socket TcpServer;
@@ -126,7 +137,7 @@ namespace SmartBulbColor
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Can't turn Music Mode ON becouse of some connection problem");
+                    throw new Exception(e.Message + "\r\nCan't turn Music Mode ON becouse of some connection problem");
                 }
             }
             else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
@@ -235,11 +246,6 @@ namespace SmartBulbColor
                 Thread.Sleep(8);
             }
         }
-        void TurnOffMusicMode_Bulbs()
-        {
-
-        }
-
         void ChangeColor_Bulb()
         {
 
