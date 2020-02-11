@@ -21,10 +21,6 @@ namespace SmartBulbColor.ViewModels
         {
             get
             {
-                if (_bulbs == null || _bulbs.Count == 0)
-                {
-                    Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
-                }
                 return _bulbs;
             }
             set
