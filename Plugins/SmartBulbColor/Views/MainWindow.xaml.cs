@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-using VerySmartHome.MainController;
+using SmartBulbColor.ViewModels;
 using SmartBulbColor.Tools;
 
 namespace SmartBulbColor
@@ -22,5 +22,6 @@ namespace SmartBulbColor
         {
             MainConsole.ScrollToEnd();
         }
+
     }
 }

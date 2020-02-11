@@ -71,6 +71,7 @@
     <Compile Include="Models\Bulb.cs" />
     <Compile Include="Models\BulbController.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="ViewModels\BulbCollectionUIThreadSafe.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -112,6 +113,9 @@
       <Name>VerySmartHome</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\BulbOFF.png" />
+    <Resource Include="Resources\BulbON.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

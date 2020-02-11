@@ -46,18 +46,33 @@
                 Content="Ambient Light" HorizontalAlignment="Left" Margin="513,10,0,0" VerticalAlignment="Top" Width="166"/>
         <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="171,10,0,0"/>
-        <ListBox x:Name="BulbList" ItemsSource="{Binding Path=Bulbs}" SelectedItem="{Binding SelectedBulb}"
-                 HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" FontSize="16" FontWeight="Bold"/>
-        <StackPanel x:Name="PropertyList" DataContext="{Binding SelectedPhone}"
+        <ListBox x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"                 
+                 HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" FontSize="16" FontWeight="Bold">
+        </ListBox>
+        <Grid x:Name="PropertyList" DataContext="{Binding SelectedBulb}"
                   HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="508">
-            <TextBlock Text="Current Bulb"/>
-            <TextBlock Text="Model"/>
-            <TextBox Text="{Binding SelectedBulb.Model, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="Name"/>
-            <TextBox Text="{Binding SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="Power"/>
-            <TextBox Text="{Binding SelectedBulb.IsPowered, UpdateSourceTrigger=PropertyChanged}"/>
-        </StackPanel>
+            <StackPanel Margin="329,0,10,0">
+                <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Text="ID"/>
+                <TextBox Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="Name"/>
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="Ip"/>
+                <TextBox Text="{Binding Ip, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="Brightness"/>
+                <TextBox Text="{Binding Brightness, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="ColorMode"/>
+                <TextBox Text="{Binding ColorMode, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="RGB"/>
+                <TextBox Text="{Binding Rgb, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="Temperature"/>
+                <TextBox Text="{Binding  ColorTemperature, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBlock Text="Power"/>
+                <TextBox Text="{Binding IsPowered, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
+
+            </StackPanel>
+          
+        </Grid>
         <TextBox Name="MainConsole" Text="{Binding Path=Logs}"  IsReadOnly="True" TextChanged="MainConsole_TextChanged"
                  HorizontalAlignment ="Right" Width ="679" Height="302" Padding ="10" VerticalAlignment="Bottom"/>
     </Grid>

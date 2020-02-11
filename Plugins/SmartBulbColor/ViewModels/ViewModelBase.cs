@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace SmartBulbColor.ViewModels
 {
-    class ViewModelBase : INotifyPropertyChanged, IDisposable
+    class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -18,11 +18,6 @@ namespace SmartBulbColor.ViewModels
             {
                 handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
-        }
-
-        public void Dispose()
-        {
-
         }
     }
 }

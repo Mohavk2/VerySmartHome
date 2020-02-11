@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using VerySmartHome.MainController;
 using SmartBulbColor.Tools;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 //MM - MusicMode
 
-namespace SmartBulbColor
+namespace SmartBulbColor.Models
 {
-    sealed class BulbController : DeviceController
+    sealed class BulbController : DeviceController, IDisposable
     {
         public override string DeviceType { get; } = "MiBulbColor";
         public override string SSDPMessage { get; } = (
@@ -23,7 +24,7 @@ namespace SmartBulbColor
                 "HOST: 239.255.255.250:1982\r\n" +
                 "MAN: \"ssdp:discover\"\r\n" +
                 "ST: wifi_bulb");
-        public ObservableCollection<Bulb> Bulbs { get; private set; } = new ObservableCollection<Bulb>();
+        public LinkedList<Bulb> Bulbs { get; private set; } = new LinkedList<Bulb>();
         public override int DeviceCount
         {
             get
@@ -40,7 +41,7 @@ namespace SmartBulbColor
             }
             else return new LinkedList<Device>();
         }
-        public ObservableCollection<Bulb> GetBulbs()
+        public LinkedList<Bulb> GetBulbs()
         {
             if(Bulbs.Count != 0)
             {
@@ -52,6 +53,8 @@ namespace SmartBulbColor
                 return Bulbs;
             }
         }
+        public delegate void BulbCollectionNotifier();
+        public event BulbCollectionNotifier BulbCollectionChanged;
         public ScreenColorAnalyzer ColorAnalyzer;
         SSDPDiscoverer Discoverer;
         Socket TcpServer;
@@ -60,6 +63,8 @@ namespace SmartBulbColor
 
         readonly Thread ALThread;
         readonly ManualResetEvent ALTrigger;
+        readonly Thread BulbsRefresher;
+        readonly ManualResetEvent BulbsRefresherTrigger;
         object Locker = new object();
         public bool IsMusicModeON { get; private set; } = false;
         public bool IsAmbientLightON { get; private set;} = false;
@@ -73,35 +78,28 @@ namespace SmartBulbColor
             ALThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
             ALThread.IsBackground = true;
             ALTrigger = new ManualResetEvent(true);
+            BulbsRefresher = new Thread(new ThreadStart(RefreshBulbCollection));
+            BulbsRefresher.IsBackground = true;
+            BulbsRefresherTrigger = new ManualResetEvent(true);
         }
         public void ConnectBulbs_MusicMode()
         {
-            try
+            lock(Locker)
             {
-                var foundBulbs = ParseBulbs(Discoverer.GetDeviceResponses());
-                var lostBulbs = new LinkedList<Bulb>();
-                foreach (var foundBulb in foundBulbs)
+                DisconnectBulbs();
+                try
                 {
-                    if (!Bulbs.Contains(foundBulb))
-                        Bulbs.Add(foundBulb);
-                }
-                foreach(var bulb in Bulbs)
-                {
-                    if (!foundBulbs.Contains(bulb))
-                        lostBulbs.AddLast(bulb);
-                    else
+                    Bulbs = ParseBulbs(Discoverer.GetDeviceResponses());
+                    foreach (var bulb in Bulbs)
+                    {
                         bulb.IsOnline = true;
+                    }
+                    MusicMode_ON();
                 }
-                foreach (var lostBulb in lostBulbs)
+                catch (Exception NoResponseException)
                 {
-                    Bulbs.Remove(lostBulb);
+                    throw NoResponseException;
                 }
-
-                MusicMode_ON();
-            }
-            catch (Exception NoResponseException)
-            {
-                throw NoResponseException;
             }
         }
         public void MusicMode_ON()
@@ -211,7 +209,7 @@ namespace SmartBulbColor
         }
         void StreamAmbientLightHSL()
         {
-            int bulbCounter = Bulbs.Count;
+            var lostBulbs = new List<Bulb>();
             HSBColor color;
             int previosHue = 0;
             while (true)
@@ -223,7 +221,6 @@ namespace SmartBulbColor
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-
                 foreach (var bulb in Bulbs)
                 {
                     string command =
@@ -231,15 +228,22 @@ namespace SmartBulbColor
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
                     try
                     {
-                        if (bulb.IsOnline)
                         bulb.AcceptedClient.Send(commandBuffer);
                     }
                     catch (Exception e)
                     {
-                        bulb.IsOnline = false;
-                        bulbCounter--;
-                        if (bulbCounter == 0)
+                        bulb.AcceptedClient.Dispose();
+                        bulb.AcceptedClient = null;
+                        lostBulbs.Add(bulb);
+                        if ((Bulbs.Count - 1) == 0)
                             AmbientLight_OFF();
+                    }
+                }
+                if (lostBulbs.Count != 0)
+                {
+                    foreach (var lostBulb in lostBulbs)
+                    {
+                        Bulbs.Remove(lostBulb);
                     }
                 }
                 previosHue = color.Hue;
@@ -281,21 +285,15 @@ namespace SmartBulbColor
             using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 byte[] buffer = Encoding.UTF8.GetBytes(command);
-                if (bulb.IsOnline)
+
+                IAsyncResult result = client.BeginConnect(bulb.Ip, bulb.Port, null, null);
+
+                bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+
+                if (client.Connected)
                 {
-                    IAsyncResult result = client.BeginConnect(bulb.Ip, bulb.Port, null, null);
-
-                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
-
-                    if (client.Connected)
-                    {
-                        client.EndConnect(result);
-                        client.Send(buffer);
-                    }
-                    else
-                    {
-                        bulb.IsOnline = false;
-                    }
+                    client.EndConnect(result);
+                    client.Send(buffer);
                 }
             }
         }
@@ -328,6 +326,48 @@ namespace SmartBulbColor
                 }
             }
             return bulbs;
+        }
+        private void DisconnectBulbs()
+        { 
+            if(Bulbs != null && Bulbs.Count != 0)
+            {
+                foreach (var bulb in Bulbs)
+                {
+                    if(bulb.AcceptedClient != null)
+                    {
+                        bulb.AcceptedClient.Dispose();
+                    }
+                }
+            }
+        }
+        private void OnBulbConnecionChanged()
+        {
+            BulbCollectionChanged?.Invoke();
+        }
+        public void StartBulbsRefreshing()
+        {
+            if (BulbsRefresher.IsAlive)
+            {
+                BulbsRefresherTrigger.Set();
+            }
+            else
+            {
+                BulbsRefresher.Start();
+            }
+        }
+        void RefreshBulbCollection()
+        {
+            BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
+            while (true)
+            {
+                Thread.Sleep(5000);
+                ConnectBulbs_MusicMode();
+                OnBulbConnecionChanged();
+            }
+        }
+        public void Dispose()
+        {
+            TcpServer.Dispose();
         }
     }
 }

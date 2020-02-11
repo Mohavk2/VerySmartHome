@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VerySmartHome.MainController;
 
-namespace SmartBulbColor
+namespace SmartBulbColor.Models
 {
     internal sealed class Bulb : Device
     {
@@ -96,18 +96,13 @@ namespace SmartBulbColor
         {
             return $"{Name} ID: {Id}";
         }
-        public override int GetHashCode()
-        {
-            return Id;
-        }
-        public override bool Equals(Object obj)
-        {
-            var bulb = obj as Bulb;
-            return this.Id == bulb.Id;
-        }
-        //~Bulb()
+        //public override int GetHashCode()
         //{
-        //    AcceptedClient?.Dispose();
+        //    return Id;
         //}
+        ~Bulb()
+        {
+            AcceptedClient?.Dispose();
+        }
     }
 }

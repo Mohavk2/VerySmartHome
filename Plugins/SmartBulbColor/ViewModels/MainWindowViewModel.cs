@@ -3,51 +3,52 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using SmartBulbColor.Infrastructure;
+using SmartBulbColor.Models;
 
 namespace SmartBulbColor.ViewModels
 {
-    class MainWindowViewModel : ViewModelBase
+    class MainWindowViewModel : ViewModelBase, IDisposable
     {
         BulbController SmartBulbController = new BulbController();
-
-        ObservableCollection<Bulb> bulbs;
+        Thread BulbRefresher;
+        Object RefresherLocker = new Object();
+        BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
         public ObservableCollection<Bulb> Bulbs
         {
             get
-            {
-                if (bulbs == null || bulbs.Count == 0)
+            { 
+                if (_bulbs == null || _bulbs.Count == 0)
                 {
-                    bulbs = SmartBulbController.GetBulbs();
-                    return bulbs;
+                    Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
                 }
-                else
-                {
-                    return bulbs;
-                }
+                return _bulbs;
             }
             set
             {
-                if (value == null || value.GetType() != bulbs.GetType())
+                if (value == null || value.GetType() != _bulbs.GetType())
                 {
                     throw new Exception("Can't add value to ViewModel Bulb collection. Value isn't correct");
                 }
                 else
                 {
-                    bulbs = value;
+                    _bulbs.RefreshSafe(value);
                     OnPropertyChanged("Bulbs");
                 }
+                
             }
         }
-        Bulb selectedBulb;
+        Bulb _selectedBulb;
         public Bulb SelectedBulb
         {
-            get { return selectedBulb; }
+            get { return _selectedBulb; }
             set
             {
-                SelectedBulb = value;
+                _selectedBulb = value;
                 OnPropertyChanged("SelectedBulb");
             }
         }
@@ -75,6 +76,32 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
+        public MainWindowViewModel()
+        {
+            SmartBulbController.BulbCollectionChanged += RefreshBulbs;
+            SmartBulbController.StartBulbsRefreshing();
+            //Dispatcher Refresher = Dispatcher.CurrentDispatcher;
+            //Refresher.BeginInvoke(DispatcherPriority.Normal, new Delegate(RefreshBulbs));
+
+            //ThreadStart startRefresh = new ThreadStart(() =>
+            //{
+            //    while (true)
+            //    {
+            //        try
+            //        {
+            //            RefreshBulbs();
+            //            Thread.Sleep(5000);
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            Thread.Sleep(10000);
+            //        }
+            //    }
+            //});
+            //BulbRefresher = new Thread(startRefresh);
+            //BulbRefresher.IsBackground = true;
+            //BulbRefresher.Start();
+        }
         public ICommand FindBulbs
         {
             get
@@ -87,8 +114,7 @@ namespace SmartBulbColor.ViewModels
             try
             {
                 SmartBulbController.ConnectBulbs_MusicMode();
-                Bulbs = SmartBulbController.GetBulbs();
-                OnPropertyChanged("Bulbs");
+                Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
                 var reports = SmartBulbController.GetDeviceReports();
                 foreach (var report in reports)
                 {
@@ -165,6 +191,22 @@ namespace SmartBulbColor.ViewModels
             SmartBulbController.NormalLight_ON();
             Logs = "Ambient Light is OFF";
             OnPropertyChanged("Logs");
+        }
+        private void RefreshBulbs()
+        {            
+            lock(RefresherLocker)
+            {
+                var bulbsThatAreOnline = SmartBulbController.GetBulbs();
+                if (bulbsThatAreOnline != null && bulbsThatAreOnline.Count != 0)
+                {
+                    Bulbs = new BulbCollectionUIThreadSafe(bulbsThatAreOnline);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            SmartBulbController.Dispose();
         }
     }
 }
