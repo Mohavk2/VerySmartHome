@@ -15,13 +15,12 @@ namespace SmartBulbColor.ViewModels
     class MainWindowViewModel : ViewModelBase, IDisposable
     {
         BulbController SmartBulbController = new BulbController();
-        Thread BulbRefresher;
         Object RefresherLocker = new Object();
         BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
-        public ObservableCollection<Bulb> Bulbs
+        public ObservableCollection<BulbColor> Bulbs
         {
             get
-            { 
+            {
                 if (_bulbs == null || _bulbs.Count == 0)
                 {
                     Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
@@ -42,8 +41,8 @@ namespace SmartBulbColor.ViewModels
                 
             }
         }
-        Bulb _selectedBulb;
-        public Bulb SelectedBulb
+        BulbColor _selectedBulb;
+        public BulbColor SelectedBulb
         {
             get { return _selectedBulb; }
             set
@@ -80,27 +79,6 @@ namespace SmartBulbColor.ViewModels
         {
             SmartBulbController.BulbCollectionChanged += RefreshBulbs;
             SmartBulbController.StartBulbsRefreshing();
-            //Dispatcher Refresher = Dispatcher.CurrentDispatcher;
-            //Refresher.BeginInvoke(DispatcherPriority.Normal, new Delegate(RefreshBulbs));
-
-            //ThreadStart startRefresh = new ThreadStart(() =>
-            //{
-            //    while (true)
-            //    {
-            //        try
-            //        {
-            //            RefreshBulbs();
-            //            Thread.Sleep(5000);
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            Thread.Sleep(10000);
-            //        }
-            //    }
-            //});
-            //BulbRefresher = new Thread(startRefresh);
-            //BulbRefresher.IsBackground = true;
-            //BulbRefresher.Start();
         }
         public ICommand FindBulbs
         {

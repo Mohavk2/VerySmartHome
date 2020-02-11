@@ -11,10 +11,21 @@ namespace VerySmartHome.MainController
 {
     public class SSDPDiscoverer
     {
+        public static IPAddress GetLocalIP()
+        {
+            IPAddress localIP;
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect("8.8.8.8", 65530);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                return localIP = endPoint.Address;
+            }
+        }
+
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
         public int MulticastPort { get; set; } = 1982;
-        private int LocalPort { get; set; } = 65212; //61213;
+        private int LocalPort { get; set; } = 65212;
         public SSDPDiscoverer(string message)
         {
             this.SearchMessage = message;
@@ -57,16 +68,6 @@ namespace VerySmartHome.MainController
             {
                 throw new Exception("Devices no response exception");
             } 
-        }
-        public IPAddress GetLocalIP()
-        {
-            IPAddress localIP;
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
-            {
-                socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                return localIP = endPoint.Address;
-            }
         }
     }
 }

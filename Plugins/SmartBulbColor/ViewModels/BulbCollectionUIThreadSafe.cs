@@ -9,7 +9,7 @@ using SmartBulbColor.Models;
 
 namespace SmartBulbColor.ViewModels
 {
-    class BulbCollectionUIThreadSafe : ObservableCollection<Bulb>
+    class BulbCollectionUIThreadSafe : ObservableCollection<BulbColor>
     {
         static readonly Dispatcher CurrentDispatcher;
         static BulbCollectionUIThreadSafe()
@@ -17,16 +17,16 @@ namespace SmartBulbColor.ViewModels
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
         public BulbCollectionUIThreadSafe() : base() { }
-        public BulbCollectionUIThreadSafe(IEnumerable<Bulb> bulbs) : base(bulbs) { }
-        public void AddSafe(Bulb newItem)
+        public BulbCollectionUIThreadSafe(IEnumerable<BulbColor> bulbs) : base(bulbs) { }
+        public void AddSafe(BulbColor newItem)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { this.Add(newItem); }));
         }
-        public void RemoveSafe(Bulb newItem)
+        public void RemoveSafe(BulbColor newItem)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { this.Remove(newItem); }));
         }
-        public void RefreshSafe(ObservableCollection<Bulb> collection)
+        public void RefreshSafe(ObservableCollection<BulbColor> collection)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {

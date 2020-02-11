@@ -68,7 +68,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Models\Bulb.cs" />
+    <Compile Include="Models\BulbColor.cs" />
     <Compile Include="Models\BulbController.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\BulbCollectionUIThreadSafe.cs" />
