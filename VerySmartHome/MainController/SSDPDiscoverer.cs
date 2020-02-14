@@ -48,7 +48,7 @@ namespace VerySmartHome.MainController
             searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
 
             Thread.Sleep(1000); //to give a time to devices for responding
-            searcher.ReceiveTimeout = 5000;
+            searcher.ReceiveTimeout = 2000;
             while (searcher.Available > 0)
             {
                 searcher.ReceiveFrom(response, ref responder);
@@ -60,14 +60,7 @@ namespace VerySmartHome.MainController
                 }
             }
             searcher.Dispose();
-            if (responses.Count != 0)
-            {
-                return responses;
-            }
-            else
-            {
-                throw new Exception("Devices no response exception");
-            } 
+            return responses;
         }
     }
 }

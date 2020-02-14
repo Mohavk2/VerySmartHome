@@ -30,7 +30,6 @@ namespace SmartBulbColor.Models
         {
             return ParseBulbs(Discoverer.GetDeviceResponses());
         }
-
         private static SSDPDiscoverer Discoverer = new SSDPDiscoverer(SSDPMessage);
         private static LinkedList<BulbColor> ParseBulbs(List<string> responses)
         {

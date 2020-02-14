@@ -305,14 +305,48 @@ namespace SmartBulbColor.Models
                 BulbsRefresher.Start();
             }
         }
-        void RefreshBulbCollection()
+        private void RefreshBulbCollection()
         {
             BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
             while (true)
             {
-                Thread.Sleep(5000);
-                ConnectBulbs_MusicMode();
-                OnBulbConnecionChanged();
+                Thread.Sleep(3000);
+                if(CheckBulbsOnlineChanged())
+                {
+                    ConnectBulbs_MusicMode();
+                    OnBulbConnecionChanged();
+                }
+            }
+        }
+        private bool CheckBulbsOnlineChanged()
+        {
+            var foundBulbs = BulbColor.DiscoverBulbs();
+
+            if (foundBulbs.Count == 0 && Bulbs.Count == 0)
+            {
+                return false;
+            }
+            else if(foundBulbs.Count != Bulbs.Count)
+            {
+                return true;
+            }
+            else
+            {
+                var bulbsIdSum = 0; 
+                var foundBulbsIdSum = 0;
+                foreach(var bulb in Bulbs)
+                {
+                    bulbsIdSum += bulb.Id;
+                }
+                foreach(var bulb in foundBulbs)
+                {
+                    foundBulbsIdSum += bulb.Id;
+                }
+                if (bulbsIdSum == foundBulbsIdSum)
+                {
+                    return false;
+                }
+                else return true;
             }
         }
         public void Dispose()
