@@ -26,37 +26,18 @@ namespace SmartBulbColor.Models
                 return Bulbs.Count;
             }
         }
-        public override LinkedList<Device> GetDevices()
-        {
-            if (Bulbs.Count != 0)
-            {
-                LinkedList<Device> devices = new LinkedList<Device>(Bulbs);
-                return devices;
-            }
-            else return new LinkedList<Device>();
-        }
-        public LinkedList<BulbColor> GetBulbs()
-        {
-            if(Bulbs.Count != 0)
-            {
-                return Bulbs;
-            }
-            else
-            {
-                ConnectBulbs_MusicMode();
-                return Bulbs;
-            }
-        }
+
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
         public ScreenColorAnalyzer ColorAnalyzer;
-        Socket TcpServer;
-
+        
+        private Socket TcpServer;
         readonly IPAddress LocalIP;
         readonly int LocalPort;
-        readonly Thread ALThread;
-        readonly ManualResetEvent ALTrigger;
-        readonly Thread BulbsRefresher;
+
+        readonly Thread AmbilightThread;
+        readonly ManualResetEvent AmbilightTrigger;
+        readonly Thread BulbsRefreshThread;
         readonly ManualResetEvent BulbsRefresherTrigger;
         object Locker = new object();
 
@@ -68,13 +49,35 @@ namespace SmartBulbColor.Models
             ColorAnalyzer = new ScreenColorAnalyzer();
             LocalIP = SSDPDiscoverer.GetLocalIP();
             LocalPort = 19446;
-            ALThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
-            ALThread.IsBackground = true;
-            ALTrigger = new ManualResetEvent(true);
-            BulbsRefresher = new Thread(new ThreadStart(RefreshBulbCollection));
-            BulbsRefresher.IsBackground = true;
+            AmbilightThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
+            AmbilightThread.IsBackground = true;
+            AmbilightTrigger = new ManualResetEvent(true);
+            BulbsRefreshThread = new Thread(new ThreadStart(RefreshBulbs));
+            BulbsRefreshThread.IsBackground = true;
             BulbsRefresherTrigger = new ManualResetEvent(true);
         }
+        public override LinkedList<Device> GetDevices()
+        {
+            if (Bulbs.Count != 0)
+            {
+                LinkedList<Device> devices = new LinkedList<Device>(Bulbs);
+                return devices;
+            }
+            else return new LinkedList<Device>();
+        }
+        public LinkedList<BulbColor> GetBulbs()
+        {
+            if (Bulbs.Count != 0)
+            {
+                return Bulbs;
+            }
+            else
+            {
+                ConnectBulbs_MusicMode();
+                return Bulbs;
+            }
+        }
+
         public void ConnectBulbs_MusicMode()
         {
             lock(Locker)
@@ -167,13 +170,15 @@ namespace SmartBulbColor.Models
             try
             {
                 SetColorMode(2);
-                if (ALThread.IsAlive)
-                {
-                    ALTrigger.Set();
+                StopBulbsRefreshing();
+
+                if (AmbilightThread.IsAlive)
+                {                    
+                    AmbilightTrigger.Set();
                 }
                 else
                 {
-                    ALThread.Start();
+                    AmbilightThread.Start();
                 }
                 IsAmbientLightON = true;
             }
@@ -186,8 +191,9 @@ namespace SmartBulbColor.Models
         {
             if(IsAmbientLightON)
             {
-                ALTrigger.Reset();
+                AmbilightTrigger.Reset();
                 IsAmbientLightON = false;
+                StartBulbsRefreshing();
             }
         }
         void StreamAmbientLightHSL()
@@ -197,7 +203,7 @@ namespace SmartBulbColor.Models
             int previosHue = 0;
             while (true)
             {
-                ALTrigger.WaitOne(Timeout.Infinite);
+                AmbilightTrigger.WaitOne(Timeout.Infinite);
 
                 color = ColorAnalyzer.GetMostCommonColorHSL();
 
@@ -228,6 +234,7 @@ namespace SmartBulbColor.Models
                     {
                         Bulbs.Remove(lostBulb);
                     }
+                    OnBulbConnecionChanged();
                 }
                 previosHue = color.Hue;
                 Thread.Sleep(8);
@@ -296,20 +303,24 @@ namespace SmartBulbColor.Models
         }
         public void StartBulbsRefreshing()
         {
-            if (BulbsRefresher.IsAlive)
+            if (BulbsRefreshThread.IsAlive)
             {
                 BulbsRefresherTrigger.Set();
             }
             else
             {
-                BulbsRefresher.Start();
+                BulbsRefreshThread.Start();
             }
         }
-        private void RefreshBulbCollection()
+        public void StopBulbsRefreshing()
         {
-            BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
+            BulbsRefresherTrigger.Reset();
+        }
+        private void RefreshBulbs()
+        {
             while (true)
             {
+                BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
                 Thread.Sleep(3000);
                 if(CheckBulbsOnlineChanged())
                 {
