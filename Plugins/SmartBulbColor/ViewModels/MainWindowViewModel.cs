@@ -25,7 +25,7 @@ namespace SmartBulbColor.ViewModels
             }
             set
             {
-                if (value == null || value.GetType() != _bulbs.GetType())
+                if (value == null)
                 {
                     throw new Exception("Can't add value to ViewModel Bulb collection. Value isn't correct");
                 }
@@ -131,14 +131,20 @@ namespace SmartBulbColor.ViewModels
                     if (SmartBulbController.IsAmbientLightON)
                     {
                         SmartBulbController.AmbientLight_OFF();
-                        Logs = "Ambient Light is OFF";
-                        OnPropertyChanged("Logs");
+                        if(SmartBulbController.IsAmbientLightON == false)
+                        {
+                            Logs = "Ambient Light is OFF";
+                            OnPropertyChanged("Logs");
+                        }
                     }
                     else
                     {
                         SmartBulbController.AmbientLight_ON();
-                        Logs = "Ambient Light is ON";
-                        OnPropertyChanged("Logs");
+                        if(SmartBulbController.IsAmbientLightON == true)
+                        {
+                            Logs = "Ambient Light is ON";
+                            OnPropertyChanged("Logs");
+                        }
                     }
                 }
                 catch (Exception MusicModeFailedException)
@@ -163,17 +169,40 @@ namespace SmartBulbColor.ViewModels
         private void ExecuteTurnNormalLightONCommand(Object parametr)
         {
             SmartBulbController.NormalLight_ON();
-            Logs = "Ambient Light is OFF";
-            OnPropertyChanged("Logs");
+            if(SmartBulbController.IsAmbientLightON == false)
+            {
+                Logs = "Ambient Light is OFF";
+                OnPropertyChanged("Logs");
+            }
+        }
+        public ICommand TogglePower
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteTogglePower, CanExecuteTogglePower);
+            }
+        }
+        private void ExecuteTogglePower(Object parametr)
+        {
+            SmartBulbController.TogglePower(SelectedBulb);
+            OnPropertyChanged("SelectedBulb");
+        }
+        private bool CanExecuteTogglePower(Object parametr)
+        {
+            if(Bulbs == null || Bulbs.Count == 0 || SelectedBulb == null || SmartBulbController.IsAmbientLightON)
+            {
+                return false;
+            }
+            return true;
         }
         private void RefreshBulbs()
         {            
             lock(RefresherLocker)
             {
-                var bulbsThatAreOnline = SmartBulbController.GetBulbs();
+                var bulbsThatAreOnline = new ObservableCollection<BulbColor>(SmartBulbController.GetBulbs());
                 if (bulbsThatAreOnline != null && bulbsThatAreOnline.Count != 0)
                 {
-                    Bulbs = new BulbCollectionUIThreadSafe(bulbsThatAreOnline);
+                    Bulbs = bulbsThatAreOnline;
                 }
             }
         }

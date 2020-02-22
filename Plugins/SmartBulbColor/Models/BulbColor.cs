@@ -69,8 +69,8 @@ namespace SmartBulbColor.Models
                 bulb.Hue = int.Parse(response[15].Substring(HUE.Length));
                 bulb.Saturation = int.Parse(response[16].Substring(SAT.Length));
                 bulb.Name = response[17].Substring(NAME.Length);
-                if (bulb.Name == "")
-                    bulb.Name = "Bulb";
+                //if (bulb.Name == "")
+                    //bulb.Name = "Bulb";
                 if (bulb.Model == "color")
                     return bulb;
                 else return new BulbColor();
@@ -78,12 +78,31 @@ namespace SmartBulbColor.Models
             return bulb;
         }
 
+        private string _name = "";
+        public override string Name 
+        {
+            get { return _name; } 
+            set 
+            {
+                if(_name != value && value != "")
+                {
+                    var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{value}\"]}}\r\n";
+                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+                    if (IsMusicModeOn)
+                    {
+                        AcceptedClient.Send(commandBuffer);
+                    }
+                    sendCommand(commandBuffer);
+                    _name = value;
+                }
+            } 
+        }
         public override int Id { get; set; } = 0;
-        public override string Name { get; set; } = "";
         public override string Ip { get; set; } = "";
         public override int Port { get; set; } = 0;
         public override bool IsOnline { get; set; } = false;
         public override bool IsPowered { get; set; } = false;
+        public bool IsMusicModeOn { get; set; } = false;
 
         public string Model { get; set; } = "";
         public int FwVer { get; set; } = 0;
@@ -116,26 +135,69 @@ namespace SmartBulbColor.Models
 
         public void TurnMusicModeON(IPAddress localIP, int localPort)
         {
-            sendCommand($"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[1, \"{localIP}\", {localPort}]}}\r\n");
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[1, \"{localIP}\", {localPort}]}}\r\n";
+            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+            sendCommand(commandBuffer);           
         }
+        //public void SetClientForMusicMode(Socket acceptedClient, int localPort)
+        //{
+        //    if( ! IsMusicModeOn)
+        //    {
+        //        AcceptedClient = acceptedClient;
+        //        AcceptedClient.Connect(IPAddress.Parse(Ip), localPort);
+        //        IsMusicModeOn = true;
+        //    }
+        //}
         public void TurnMusicModeOFF()
         {
-            sendCommand($"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n");
+            if(IsMusicModeOn)
+            {
+                var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
+                byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+                sendCommand(commandBuffer);
+                IsMusicModeOn = false;
+            }
         }
         public void SetColorMode(int value)
         {
-            sendCommand($"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[on, \"smooth\", 500, {value}]}}\r\n");
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[on, \"smooth\", 500, {value}]}}\r\n";
+            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+            if (IsMusicModeOn)
+            {
+                AcceptedClient.Send(commandBuffer);
+            }
+            sendCommand(commandBuffer);
+        }
+        public void TogglePower()
+        {
+            var command = $"{{\"id\":{this.Id},\"method\":\"toggle\",\"params\":[]}}\r\n";
+            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+            if (IsMusicModeOn)
+            {
+                AcceptedClient.Send(commandBuffer);
+            }
+            sendCommand(commandBuffer);
+            IsPowered = !IsPowered;
+            IsMusicModeOn = false;
         }
         public void SetNormalLight(int colorTemperature, int brightness)
         {
-            sendCommand($"{{\"id\":{this.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {colorTemperature}, {brightness}]}}\r\n");
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {colorTemperature}, {brightness}]}}\r\n";
+            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+            if (IsMusicModeOn)
+            {
+                AcceptedClient.Send(commandBuffer);
+            }
+            sendCommand(commandBuffer);
         }
-        private void sendCommand(string command)
+        public void SetScene()
+        {
+
+        }
+        private void sendCommand(byte[] buffer)
         {
             using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(command);
-
                 IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
 
                 bool success = result.AsyncWaitHandle.WaitOne(1000, true);

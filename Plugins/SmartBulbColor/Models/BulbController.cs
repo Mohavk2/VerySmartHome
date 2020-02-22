@@ -112,6 +112,7 @@ namespace SmartBulbColor.Models
                     }
                     foreach (var bulb in Bulbs)
                     {
+                        //bulb.SetClientForMusicMode(TcpServer.Accept(), LocalPort);
                         if (bulb.AcceptedClient == null)
                         {
                             bulb.AcceptedClient = TcpServer.Accept();
@@ -119,6 +120,7 @@ namespace SmartBulbColor.Models
                         if (!bulb.AcceptedClient.Connected)
                         {
                             bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalPort);
+                            bulb.IsMusicModeOn = true;
                         }
                     }
                     IsMusicModeON = true;
@@ -141,6 +143,10 @@ namespace SmartBulbColor.Models
                 IsMusicModeON = false;
             }
             else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
+        }
+        public void TogglePower(BulbColor bulb)
+        {
+            bulb.TogglePower();
         }
         public void NormalLight_ON()
         {
@@ -223,6 +229,7 @@ namespace SmartBulbColor.Models
                     {
                         bulb.AcceptedClient.Dispose();
                         bulb.AcceptedClient = null;
+                        bulb.IsMusicModeOn = false;
                         lostBulbs.Add(bulb);
                         if ((Bulbs.Count - 1) == 0)
                             AmbientLight_OFF();

@@ -21,7 +21,7 @@ namespace VerySmartHome.MainController
                 return localIP = endPoint.Address;
             }
         }
-
+        Object Locker = new Object();
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
         public int MulticastPort { get; set; } = 1982;
@@ -37,30 +37,33 @@ namespace VerySmartHome.MainController
         }
         public List<string> GetDeviceResponses()
         {
-            var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
-            var responder = (EndPoint) new IPEndPoint(IPAddress.Any, 0);
-            var responders = new List<EndPoint>();
-            var response = new byte[1024];
-            var responses = new List<string>();
-
-            searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
-            searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
-
-            Thread.Sleep(1000); //to give a time to devices for responding
-            searcher.ReceiveTimeout = 2000;
-            while (searcher.Available > 0)
+            lock (Locker)
             {
-                searcher.ReceiveFrom(response, ref responder);
+                var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
+                var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+                var responders = new List<EndPoint>();
+                var response = new byte[1024];
+                var responses = new List<string>();
 
-                if (responders.Count == 0 | !(responders.Contains(responder)))
+                searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
+                searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
+
+                Thread.Sleep(1000); //to give a time to devices for responding
+                searcher.ReceiveTimeout = 2000;
+                while (searcher.Available > 0)
                 {
-                    responders.Add(responder);
-                    responses.Add(Encoding.UTF8.GetString(response));
+                    searcher.ReceiveFrom(response, ref responder);
+
+                    if (responders.Count == 0 | !(responders.Contains(responder)))
+                    {
+                        responders.Add(responder);
+                        responses.Add(Encoding.UTF8.GetString(response));
+                    }
                 }
+                searcher.Dispose();
+                return responses;
             }
-            searcher.Dispose();
-            return responses;
         }
     }
 }
