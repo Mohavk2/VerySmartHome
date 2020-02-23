@@ -46,18 +46,26 @@
                 Content="Ambient Light" HorizontalAlignment="Left" Margin="513,10,0,0" VerticalAlignment="Top" Width="166"/>
         <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="171,10,0,0"/>
-        <ListBox x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"                 
-                 HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="200" FontSize="16" FontWeight="Bold">
+        <ListBox x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"               
+                 HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" FontSize="16" FontWeight="Bold">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical" Width="150">
+                        <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
+                        <TextBlock Text="{Binding}" TextAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
         </ListBox>
         <Grid x:Name="PropertyList"
                   HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="508">
-            <StackPanel Margin="33,0,184,0" Background="Black" Opacity="0.9">
+            <StackPanel Margin="0,0,172,0" Background="Black" Opacity="0.9">
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
                             Content="ON/OFF" Width="85"/>
                 </StackPanel>
             </StackPanel>
-            <StackPanel Margin="329,0,10,0">
+            <StackPanel Margin="341,0,0,0">
                 <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
                 <TextBlock Text="Name"/>
                 <TextBox Text="{Binding  SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"  Foreground="Black" Background="#FF1B5A8F"/>

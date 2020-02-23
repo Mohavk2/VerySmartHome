@@ -102,7 +102,7 @@ namespace SmartBulbColor.Models
                 {
                     foreach (var bulb in Bulbs)
                     {
-                        bulb.TurnMusicModeON(LocalIP, LocalPort);
+                        bulb.SendRequestForMusicMode(LocalIP, LocalPort);
                     }
                     if (TcpServer == null)
                     {
@@ -112,15 +112,13 @@ namespace SmartBulbColor.Models
                     }
                     foreach (var bulb in Bulbs)
                     {
-                        //bulb.SetClientForMusicMode(TcpServer.Accept(), LocalPort);
                         if (bulb.AcceptedClient == null)
                         {
-                            bulb.AcceptedClient = TcpServer.Accept();
+                            bulb.SetMusicModeClient(TcpServer.Accept());
                         }
                         if (!bulb.AcceptedClient.Connected)
                         {
-                            bulb.AcceptedClient.Connect(IPAddress.Parse(bulb.Ip), LocalPort);
-                            bulb.IsMusicModeOn = true;
+                            bulb.ConnectMusicModeClient(LocalPort);
                         }
                     }
                     IsMusicModeON = true;
@@ -150,7 +148,10 @@ namespace SmartBulbColor.Models
         }
         public void NormalLight_ON()
         {
-            AmbientLight_OFF();
+            if(IsAmbientLightON)
+            {
+                AmbientLight_OFF();
+            }
             Thread.Sleep(500);
             if (Bulbs.Count != 0)
             {
@@ -218,8 +219,7 @@ namespace SmartBulbColor.Models
                 var sat = color.Saturation;
                 foreach (var bulb in Bulbs)
                 {
-                    string command =
-                    $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
+                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
                     byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
                     try
                     {
@@ -244,7 +244,7 @@ namespace SmartBulbColor.Models
                     OnBulbConnecionChanged();
                 }
                 previosHue = color.Hue;
-                Thread.Sleep(8);
+                Thread.Sleep(60);
             }
         }
         void ChangeColor_Bulb()
@@ -328,12 +328,12 @@ namespace SmartBulbColor.Models
             while (true)
             {
                 BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
-                Thread.Sleep(3000);
                 if(CheckBulbsOnlineChanged())
                 {
                     ConnectBulbs_MusicMode();
                     OnBulbConnecionChanged();
                 }
+                Thread.Sleep(3000);
             }
         }
         private bool CheckBulbsOnlineChanged()

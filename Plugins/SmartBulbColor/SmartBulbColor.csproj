@@ -114,8 +114,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\BulbOFF.png" />
-    <Resource Include="Resources\BulbON.png" />
+    <Resource Include="Models\LightOFF.png" />
+    <Resource Include="Models\LightON.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
