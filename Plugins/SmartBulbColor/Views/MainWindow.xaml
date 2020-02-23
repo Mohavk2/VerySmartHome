@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Height="736" Width="685">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="736" Width="685">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
