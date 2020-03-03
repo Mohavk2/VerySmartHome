@@ -58,6 +58,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Infrastructure\ControllerCommand.cs" />
+    <Compile Include="Tools\AmbientLightStreamer.cs" />
     <Compile Include="Tools\HSBColor.cs" />
     <Compile Include="Tools\ScreenColorAnalyzer.cs" />
     <Page Include="Views\MainWindow.xaml">

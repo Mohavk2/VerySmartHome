@@ -347,8 +347,11 @@ namespace SmartBulbColor.Models
                 AcceptedClient.Send(commandBuffer);
                 IsPowered = true;
             }
-            SendCommand(commandBuffer);
-            IsPowered = true;
+            else
+            {
+                SendCommand(commandBuffer);
+                IsPowered = true;
+            }
         }
         public bool SetPower(bool power, Effect effect, int duration )
         {
@@ -412,8 +415,11 @@ namespace SmartBulbColor.Models
                 AcceptedClient.Send(commandBuffer);
                 IsPowered = true;
             }
-            SendCommand(commandBuffer);
-            IsPowered = true;
+            else
+            {
+                SendCommand(commandBuffer);
+                IsPowered = true;
+            }
         }
         public void SetScene()
         {

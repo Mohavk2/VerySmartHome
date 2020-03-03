@@ -29,29 +29,25 @@ namespace SmartBulbColor.Models
 
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
-        public ScreenColorAnalyzer ColorAnalyzer;
         
         private Socket TcpServer;
         readonly IPAddress LocalIP;
         readonly int LocalPort;
 
-        readonly Thread AmbilightThread;
-        readonly ManualResetEvent AmbilightTrigger;
         readonly Thread BulbsRefreshThread;
         readonly ManualResetEvent BulbsRefresherTrigger;
         object Locker = new object();
 
         public bool IsMusicModeON { get; private set; } = false;
+
+        private readonly AmbientLightStreamer AmbientLight;
         public bool IsAmbientLightON { get; private set;} = false;
 
         public BulbController()
         {
-            ColorAnalyzer = new ScreenColorAnalyzer();
+            AmbientLight = new AmbientLightStreamer();
             LocalIP = SSDPDiscoverer.GetLocalIP();
             LocalPort = 19446;
-            AmbilightThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
-            AmbilightThread.IsBackground = true;
-            AmbilightTrigger = new ManualResetEvent(true);
             BulbsRefreshThread = new Thread(new ThreadStart(RefreshBulbs));
             BulbsRefreshThread.IsBackground = true;
             BulbsRefresherTrigger = new ManualResetEvent(true);
@@ -145,6 +141,10 @@ namespace SmartBulbColor.Models
         public void TogglePower(BulbColor bulb)
         {
             bulb.TogglePower();
+            if(bulb.IsPowered)
+            {
+                MusicMode_ON();
+            }
         }
         public void NormalLight_ON()
         {
@@ -178,15 +178,8 @@ namespace SmartBulbColor.Models
             {
                 SetColorMode(2);
                 StopBulbsRefreshing();
-
-                if (AmbilightThread.IsAlive)
-                {                    
-                    AmbilightTrigger.Set();
-                }
-                else
-                {
-                    AmbilightThread.Start();
-                }
+                AmbientLight.SetBulbsForStreaming(Bulbs);
+                AmbientLight.StartSreaming();
                 IsAmbientLightON = true;
             }
             catch (Exception MusicModeFailedException)
@@ -198,53 +191,9 @@ namespace SmartBulbColor.Models
         {
             if(IsAmbientLightON)
             {
-                AmbilightTrigger.Reset();
+                AmbientLight.StopStreaming();
                 IsAmbientLightON = false;
                 StartBulbsRefreshing();
-            }
-        }
-        void StreamAmbientLightHSL()
-        {
-            var lostBulbs = new List<BulbColor>();
-            HSBColor color;
-            int previosHue = 0;
-            while (true)
-            {
-                AmbilightTrigger.WaitOne(Timeout.Infinite);
-
-                color = ColorAnalyzer.GetMostCommonColorHSL();
-
-                var bright = color.Brightness;
-                var hue = (bright < 1) ? previosHue : color.Hue;
-                var sat = color.Saturation;
-                foreach (var bulb in Bulbs)
-                {
-                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
-                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-                    try
-                    {
-                        bulb.AcceptedClient.Send(commandBuffer);
-                    }
-                    catch (Exception e)
-                    {
-                        bulb.AcceptedClient.Dispose();
-                        bulb.AcceptedClient = null;
-                        bulb.IsMusicModeOn = false;
-                        lostBulbs.Add(bulb);
-                        if ((Bulbs.Count - 1) == 0)
-                            AmbientLight_OFF();
-                    }
-                }
-                if (lostBulbs.Count != 0)
-                {
-                    foreach (var lostBulb in lostBulbs)
-                    {
-                        Bulbs.Remove(lostBulb);
-                    }
-                    OnBulbConnecionChanged();
-                }
-                previosHue = color.Hue;
-                Thread.Sleep(60);
             }
         }
         void ChangeColor_Bulb()
