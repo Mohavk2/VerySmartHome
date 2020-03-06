@@ -12,7 +12,7 @@ using System.ComponentModel;
 namespace SmartBulbColor.Models
 {
     enum Effect { Sudden = 0, Smooth = 1 }
-    internal sealed class BulbColor : Device
+    internal sealed class BulbColor : Device, IDisposable
     {
         private const string DeviceType = "MiBulbColor";
         private const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n"+"HOST: 239.255.255.250:1982\r\n"+"MAN: \"ssdp:discover\"\r\n"+"ST: wifi_bulb");
@@ -29,14 +29,24 @@ namespace SmartBulbColor.Models
         private const string SAT = "sat: ";
         private const string NAME = "name: ";
 
-        private static string LightOnImgPath = "/Models/LightON.png";
-        private static string LightOffImgPath = "/Models/LightOFF.png";
+        private const string LightOnImgPath = "/Models/LightON.png";
+        private const string LightOffImgPath = "/Models/LightOFF.png";
+
+        readonly static SSDPDiscoverer Discoverer = new SSDPDiscoverer(SSDPMessage);
+        readonly static IPAddress LocalIP = SSDPDiscoverer.GetLocalIP();
+        readonly static int LocalPort = 19446;
+        readonly static Socket TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        private Socket MusicModeClient;
+
+        static BulbColor()
+        {
+            TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
+        }
 
         public static LinkedList<BulbColor> DiscoverBulbs()
         {
             return ParseBulbs(Discoverer.GetDeviceResponses());
         }
-        private static SSDPDiscoverer Discoverer = new SSDPDiscoverer(SSDPMessage);
         private static LinkedList<BulbColor> ParseBulbs(List<string> responses)
         {
             LinkedList<BulbColor> bulbs = new LinkedList<BulbColor>();
@@ -76,8 +86,6 @@ namespace SmartBulbColor.Models
                 bulb.Hue = int.Parse(response[15].Substring(HUE.Length));
                 bulb.Saturation = int.Parse(response[16].Substring(SAT.Length));
                 bulb.Name = response[17].Substring(NAME.Length);
-                //if (bulb.Name == "")
-                    //bulb.Name = "Bulb";
                 if (bulb.Model == "color")
                     return bulb;
                 else return new BulbColor();
@@ -94,12 +102,7 @@ namespace SmartBulbColor.Models
                 if(_name != value && value != "")
                 {
                     var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{value}\"]}}\r\n";
-                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-                    if (IsMusicModeOn)
-                    {
-                        AcceptedClient.Send(commandBuffer);
-                    }
-                    SendCommand(commandBuffer);
+                    SendCommand(command);
                     _name = value;
                     OnPropertyChanged("Name");
                 }
@@ -181,14 +184,22 @@ namespace SmartBulbColor.Models
             }
         }
 
-        private bool _isMusicModeOn = false;
-        public bool IsMusicModeOn
+        private bool _isMusicModeEnabled = false;
+        public bool IsMusicModeEnabled
         {
-            get { return _isMusicModeOn; }
+            get { return _isMusicModeEnabled; }
             set
             {
-                _isMusicModeOn = value;
-                OnPropertyChanged("IsMusicModeOn");
+                if(value)
+                {
+                    ConnectMusicMode();
+                }
+                else
+                {
+                    DisconnectMusicMode();
+                }
+                _isMusicModeEnabled = value;
+                OnPropertyChanged("IsMusicModeEnabled");
             }
         }
 
@@ -299,65 +310,30 @@ namespace SmartBulbColor.Models
             return report;
         }
 
-        public Socket AcceptedClient;
-
-        public void SendRequestForMusicMode(IPAddress localIP, int localPort)
+        public void TogglePower()
         {
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[1, \"{localIP}\", {localPort}]}}\r\n";
-            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-
-            SendCommand(commandBuffer);
-            IsPowered = true;
-        }
-        public void SetMusicModeClient(Socket acceptedClient)
-        {
-            if(acceptedClient != null)
+            if (IsPowered)
             {
-                AcceptedClient = acceptedClient;
-            }
-        }
-        public void ConnectMusicModeClient(int localPort)
-        {
-            try
-            {
-                AcceptedClient.Connect(IPAddress.Parse(Ip), localPort);
-                IsMusicModeOn = true;
-            }
-            catch(Exception e)
-            {
-                throw new Exception($"MusicMode Client can't connect to a remote device ID:{Id}");
-            }
-        }
-        public void TurnMusicModeOFF()
-        {
-            if(IsMusicModeOn)
-            {
-                var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
-                byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-                SendCommand(commandBuffer);
-                IsMusicModeOn = false;
-            }
-        }
-        public void SetColorMode(int value)
-        {
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"on\", \"smooth\", 30, {value}]}}\r\n";
-            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-            if (IsMusicModeOn)
-            {
-                AcceptedClient.Send(commandBuffer);
-                IsPowered = true;
+                SetPower(false, Effect.Smooth, 500);
+                IsMusicModeEnabled = false;
             }
             else
             {
-                SendCommand(commandBuffer);
-                IsPowered = true;
+                SetPower(true, Effect.Smooth, 500);
+                IsMusicModeEnabled = true;
             }
         }
-        public bool SetPower(bool power, Effect effect, int duration )
+        public void TogglePowerNotSafe()
+        {
+            var command = $"{{\"id\":{this.Id},\"method\":\"toggle\",\"params\":[]}}\r\n";
+            SendCommand(command);
+            IsPowered = !IsPowered;
+        }
+        public bool SetPower(bool power, Effect effect, int duration)
         {
             var pow = power ? "on" : "off";
 
-            if(duration < 30)
+            if (duration < 30)
             {
                 duration = 30;
             }
@@ -372,9 +348,8 @@ namespace SmartBulbColor.Models
                 eff = "sudden";
             }
             var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"{pow}\", \"{eff}\", {duration}]}}\r\n";
-            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
 
-            if(SendCommandAndConfirm(commandBuffer))
+            if (SendStraightCommandAndConfirm(command))
             {
                 IsPowered = !IsPowered;
                 return true;
@@ -384,49 +359,82 @@ namespace SmartBulbColor.Models
                 return false;
             }
         }
-        public void TogglePower()
+        private void SendRequestForMusicMode()
         {
-            if(IsPowered)
-            {
-                SetPower(false, Effect.Smooth, 500);
-            }
-            else
-            {
-                SetPower(true, Effect.Smooth, 500);
-            }
+            var command = $"{{\"id\":{Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalPort}]}}\r\n";
+            SendStraightCommand(command);
         }
-        public void TogglePowerNotSafe()
+
+        public void SetColorMode(int value)
         {
-            var command = $"{{\"id\":{this.Id},\"method\":\"toggle\",\"params\":[]}}\r\n";
-            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-            if (IsMusicModeOn)
-            {
-                AcceptedClient.Send(commandBuffer);
-            }
-            SendCommand(commandBuffer);
-            IsPowered = !IsPowered;
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"on\", \"smooth\", 30, {value}]}}\r\n";
+            SendCommand(command);
+            IsPowered = true;
+        }
+        public void SetSceneHSV(int hue, float saturation, float value)
+        {
+            string command = $"{{\"id\":{Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {saturation}, {value}]}}\r\n";
+            SendCommand(command);
         }
         public void SetNormalLight(int colorTemperature, int brightness)
         {
             var command = $"{{\"id\":{this.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {colorTemperature}, {brightness}]}}\r\n";
-            byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
-            if (IsMusicModeOn)
+            SendCommand(command);
+            IsPowered = true;
+        }
+        private void ConnectMusicMode()
+        {
+            try
             {
-                AcceptedClient.Send(commandBuffer);
-                IsPowered = true;
+                if (MusicModeClient == null)
+                {
+                    SendRequestForMusicMode();
+                    TcpServer.Listen(10);
+                    MusicModeClient = TcpServer.Accept();
+                    if (!MusicModeClient.Connected)
+                    {
+                        MusicModeClient.Connect(IPAddress.Parse(Ip), LocalPort);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message + $"IsMusicModeEnabled Client can't connect to a remote device ID:{Id}");
+            }
+        }
+        private void DisconnectMusicMode()
+        {
+            if (IsMusicModeEnabled)
+            {
+                var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
+                SendCommand(command);
+                MusicModeClient?.Dispose();
+                MusicModeClient = null;
+            }
+        }
+        private void SendCommand(string command)
+        {
+            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+            if(IsMusicModeEnabled)
+            {
+                try
+                {
+                    MusicModeClient.Send(comandBuffer);
+                }
+                catch(Exception e)
+                {
+                    ConnectMusicMode();
+                    MusicModeClient.Send(comandBuffer);
+                }
             }
             else
             {
-                SendCommand(commandBuffer);
-                IsPowered = true;
+                SendStraightCommand(command);
             }
         }
-        public void SetScene()
+        private void SendStraightCommand(string command)
         {
-
-        }
-        private void SendCommand(byte[] buffer)
-        {
+            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
             using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
@@ -436,12 +444,13 @@ namespace SmartBulbColor.Models
                 if (client.Connected)
                 {
                     client.EndConnect(result);
-                    client.Send(buffer);
+                    client.Send(comandBuffer);
                 }
             }
         }
-        private bool SendCommandAndConfirm(byte[] buffer)
+        private bool SendStraightCommandAndConfirm(string command)
         {
+            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
             using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
@@ -451,7 +460,7 @@ namespace SmartBulbColor.Models
                 if (client.Connected)
                 {
                     client.EndConnect(result);
-                    client.Send(buffer);
+                    client.Send(comandBuffer);
 
                     byte[] recBuffer = new byte[100];
                     client.Receive(recBuffer);
@@ -472,9 +481,9 @@ namespace SmartBulbColor.Models
             else
                 return Name;
         }
-        ~BulbColor()
+        public void Dispose()
         {
-            AcceptedClient?.Dispose();
+            IsMusicModeEnabled = false;
         }
     }
 }

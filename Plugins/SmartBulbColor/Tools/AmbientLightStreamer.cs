@@ -63,18 +63,14 @@ namespace SmartBulbColor.Tools
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
                 foreach (var bulb in BulbsForStreaming)
-                {
-                    string command = $"{{\"id\":{bulb.Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {sat}, {bright}]}}\r\n";
-                    byte[] commandBuffer = Encoding.UTF8.GetBytes(command);
+                {                    
                     try
                     {
-                        bulb.AcceptedClient.Send(commandBuffer);
+                        bulb.SetSceneHSV(hue, sat, bright);
                     }
                     catch (Exception e)
                     {
-                        bulb.AcceptedClient.Dispose();
-                        bulb.AcceptedClient = null;
-                        bulb.IsMusicModeOn = false;
+                        bulb.IsMusicModeEnabled = false;
                         LostBulbs.Add(bulb);
                         if ((BulbsForStreaming.Count - 1) == 0)
                             StopStreaming();

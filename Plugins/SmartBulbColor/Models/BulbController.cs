@@ -29,10 +29,6 @@ namespace SmartBulbColor.Models
 
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
-        
-        private Socket TcpServer;
-        readonly IPAddress LocalIP;
-        readonly int LocalPort;
 
         readonly Thread BulbsRefreshThread;
         readonly ManualResetEvent BulbsRefresherTrigger;
@@ -46,9 +42,7 @@ namespace SmartBulbColor.Models
         public BulbController()
         {
             AmbientLight = new AmbientLightStreamer();
-            LocalIP = SSDPDiscoverer.GetLocalIP();
-            LocalPort = 19446;
-            BulbsRefreshThread = new Thread(new ThreadStart(RefreshBulbs));
+            BulbsRefreshThread = new Thread(new ThreadStart(RefreshingBulbs));
             BulbsRefreshThread.IsBackground = true;
             BulbsRefresherTrigger = new ManualResetEvent(true);
         }
@@ -73,12 +67,10 @@ namespace SmartBulbColor.Models
                 return Bulbs;
             }
         }
-
         public void ConnectBulbs_MusicMode()
         {
             lock(Locker)
             {
-                DisconnectBulbs();
                 try
                 {
                     Bulbs = BulbColor.DiscoverBulbs();
@@ -98,24 +90,7 @@ namespace SmartBulbColor.Models
                 {
                     foreach (var bulb in Bulbs)
                     {
-                        bulb.SendRequestForMusicMode(LocalIP, LocalPort);
-                    }
-                    if (TcpServer == null)
-                    {
-                        TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                        TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
-                        TcpServer.Listen(10);
-                    }
-                    foreach (var bulb in Bulbs)
-                    {
-                        if (bulb.AcceptedClient == null)
-                        {
-                            bulb.SetMusicModeClient(TcpServer.Accept());
-                        }
-                        if (!bulb.AcceptedClient.Connected)
-                        {
-                            bulb.ConnectMusicModeClient(LocalPort);
-                        }
+                        bulb.IsMusicModeEnabled = true;
                     }
                     IsMusicModeON = true;
                 }
@@ -132,19 +107,15 @@ namespace SmartBulbColor.Models
             {
                 foreach (var bulb in Bulbs)
                 {
-                    bulb.TurnMusicModeOFF();
+                    bulb.IsMusicModeEnabled = false;
                 }
                 IsMusicModeON = false;
             }
-            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
+            else throw new Exception("Can't turn Music Mode OFF becouse there is no found bulbs yet");
         }
         public void TogglePower(BulbColor bulb)
         {
             bulb.TogglePower();
-            if(bulb.IsPowered)
-            {
-                MusicMode_ON();
-            }
         }
         public void NormalLight_ON()
         {
@@ -177,6 +148,7 @@ namespace SmartBulbColor.Models
             try
             {
                 SetColorMode(2);
+                MusicMode_ON();
                 StopBulbsRefreshing();
                 AmbientLight.SetBulbsForStreaming(Bulbs);
                 AmbientLight.StartSreaming();
@@ -200,11 +172,7 @@ namespace SmartBulbColor.Models
         {
 
         }
-        int RGBToDecimal(Color rgbColor)
-        {
-            int color = (rgbColor.R * 65536) + (rgbColor.G * 256) + rgbColor.B;
-            return color;
-        }
+
         /// <summary>
         /// Sets color mode
         /// </summary>
@@ -240,19 +208,6 @@ namespace SmartBulbColor.Models
                 return reports;
             }
         }
-        private void DisconnectBulbs()
-        { 
-            if(Bulbs != null && Bulbs.Count != 0)
-            {
-                foreach (var bulb in Bulbs)
-                {
-                    if(bulb.AcceptedClient != null)
-                    {
-                        bulb.AcceptedClient.Dispose();
-                    }
-                }
-            }
-        }
         private void OnBulbConnecionChanged()
         {
             BulbCollectionChanged?.Invoke();
@@ -272,7 +227,7 @@ namespace SmartBulbColor.Models
         {
             BulbsRefresherTrigger.Reset();
         }
-        private void RefreshBulbs()
+        private void RefreshingBulbs()
         {
             while (true)
             {
@@ -318,7 +273,7 @@ namespace SmartBulbColor.Models
         }
         public void Dispose()
         {
-            TcpServer.Dispose();
+
         }
     }
 }
