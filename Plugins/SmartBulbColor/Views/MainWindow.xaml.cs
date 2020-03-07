@@ -24,5 +24,10 @@ namespace SmartBulbColor
             MainConsole.ScrollToEnd();
         }
 
+        private void ColorPicker_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var position = e.GetPosition(ColorPicker);
+
+        }
     }
 }

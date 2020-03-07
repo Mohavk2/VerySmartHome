@@ -15,7 +15,7 @@
     <Window.Resources>
         <Style x:Key="MainButtonStyle">
             <Setter Property="Control.Background" Value="Black"/>
-            <Setter Property="Control.Width" Value="166"/>
+            <Setter Property="Control.MinWidth" Value="120"/>
             <Setter Property="Control.Height" Value="44"/>
             <Setter Property="Control.FontSize" Value="16"/>
             <Setter Property="Control.FontWeight" Value="Bold"/>
@@ -23,8 +23,6 @@
         </Style>
         <Style TargetType="ListBox">
             <Setter Property="Control.Background" Value="Black"/>
-            <Setter Property="Control.Width" Value="166"/>
-            <Setter Property="Control.Height" Value="44"/>
             <Setter Property="Control.FontSize" Value="14"/>
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
@@ -36,36 +34,44 @@
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
+        <Style TargetType="ToolBar">
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
     </Window.Resources>
-    <Grid>
-        <Button x:Name="FindBulbs"  Command="{Binding FindBulbs}" Style="{StaticResource MainButtonStyle}" 
-                Content="Find Devices" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0"/>
-        <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
-                Content="Normal Light" HorizontalAlignment="Left" Margin="342,10,0,0" VerticalAlignment="Top" Width="166"/>
-        <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
-                Content="Ambient Light" HorizontalAlignment="Left" Margin="513,10,0,0" VerticalAlignment="Top" Width="166"/>
-        <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
-                Content="Clear Console" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="171,10,0,0"/>
-        <ListBox x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"               
-                 HorizontalAlignment="Left" Height="332" Margin="0,59,0,0" VerticalAlignment="Top" Width="166" FontSize="16" FontWeight="Bold">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical" Width="150">
-                        <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
-                        <TextBlock Text="{Binding}" TextAlignment="Center"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        <Grid x:Name="PropertyList"
-                  HorizontalAlignment="Left" Height="332" Margin="171,59,0,0" VerticalAlignment="Top" Width="508">
-            <StackPanel Margin="0,0,172,0" Background="Black" Opacity="0.9">
-                <StackPanel Orientation="Horizontal">
-                    <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
-                            Content="ON/OFF" Width="85"/>
-                </StackPanel>
+    <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ToolBar DockPanel.Dock="Top" HorizontalAlignment="Stretch">
+            <Button x:Name="FindBulbs"  Command="{Binding FindBulbs}" Style="{StaticResource MainButtonStyle}" 
+                Content="Find Devices"/>
+            <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
+                Content="Normal Light"/>
+            <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
+                Content="Ambient Light"/>
+            <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
+                Content="Clear Console"/>
+        </ToolBar>
+        <TextBox DockPanel.Dock="Bottom" Name="MainConsole" Text="{Binding Path=Logs}" IsReadOnly="True" TextChanged="MainConsole_TextChanged"
+                 MinWidth ="679" MinHeight="302"/>
+
+        <Grid DockPanel.Dock="Right" MinWidth="500" VerticalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="323"></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition Height="240"></RowDefinition>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
+                <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
+                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
             </StackPanel>
-            <StackPanel Margin="341,0,0,0">
+            <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Bottom" Margin="3" Height="240">
+                <Image x:Name="ColorPicker" Source="/SmartBulbColor;component/Resources/ColorPicker.jpg" 
+                       Stretch="Uniform" VerticalAlignment="Bottom"
+                       MouseLeftButtonDown="ColorPicker_MouseLeftButtonDown" Height="240"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Margin="3">
                 <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
                 <TextBlock Text="Name"/>
                 <TextBox Text="{Binding  SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"  Foreground="Black" Background="#FF1B5A8F"/>
@@ -84,9 +90,22 @@
                 <TextBlock Text="Power"/>
                 <TextBox Text="{Binding SelectedBulb.IsPowered, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
             </StackPanel>
-
         </Grid>
-        <TextBox Name="MainConsole" Text="{Binding Path=Logs}"  IsReadOnly="True" TextChanged="MainConsole_TextChanged"
-                 HorizontalAlignment ="Right" Width ="679" Height="302" Padding ="10" VerticalAlignment="Bottom"/>
-    </Grid>
+        <ListBox DockPanel.Dock="Left" MinWidth="150" x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"               
+                 FontSize="16" FontWeight="Bold" Height="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical" MinWidth="150">
+                        <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
+                        <TextBlock Text="{Binding}" TextAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
 </Window>
