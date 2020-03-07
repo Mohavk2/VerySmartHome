@@ -10,20 +10,7 @@ namespace SmartBulbColor.Tools
     public sealed class ScreenColorAnalyzer
     {
         HSBColor ColorBufer = new HSBColor(0,0,0);
-        public MColor GetAvgScreenColor()
-        {
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            Graphics graphics = Graphics.FromImage(printscreen as Image);
-            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
-            graphics.Dispose();
-            Bitmap avgPixel = new Bitmap(printscreen, 1, 1);
-            printscreen.Dispose();
-            DColor dAvgColor = avgPixel.GetPixel(0, 0);
-            avgPixel.Dispose();
-            MColor avgColor = DrowingToMediaColor(dAvgColor);
-            return avgColor;
-        }
-        public HSBColor GetMostCommonColorHSL()
+        public HSBColor GetMostCommonColorHSB()
         {
             Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
             Graphics graphics = Graphics.FromImage(printscreen as Image);
@@ -31,22 +18,10 @@ namespace SmartBulbColor.Tools
             graphics.Dispose();
             Bitmap image = new Bitmap(printscreen, 128, 72);
             printscreen.Dispose();
-            HSBColor color = GetMostCommonColorHSV(image);
+            HSBColor color = GetMostCommonColorHSB(image);
             return color;
         }
-        public MColor GetMostCommonColorRGB()
-        {
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            Graphics graphics = Graphics.FromImage(printscreen as Image);
-            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
-            graphics.Dispose();
-            Bitmap image = new Bitmap(printscreen, 320, 240);
-            printscreen.Dispose();
-            HSBColor hslPixel = GetMostCommonColorHSV(image);
-            DColor rgbPixel = HsbToDColor(hslPixel);
-            return DrowingToMediaColor(rgbPixel);
-        }
-        HSBColor GetMostCommonColorHSV(Bitmap image)
+        HSBColor GetMostCommonColorHSB(Bitmap image)
         {   
             //Each number of position in array means Hue            
             List<DColor>[] hues = new List<DColor>[360];     //values means Hue pixel repeats on a picture
@@ -58,8 +33,8 @@ namespace SmartBulbColor.Tools
                 for (int j = 0; j < image.Width; j++)
                 {
                     pixel = image.GetPixel(j, i);
-                    int hue = GetHue(pixel);
-                    if(GetBrightness(pixel) > 0)
+                    int hue = HSBColor.GetHue(pixel);
+                    if(HSBColor.GetBrightness(pixel) > 0)
                     {
                         if (hues[hue] == null)
                         {
@@ -116,8 +91,8 @@ namespace SmartBulbColor.Tools
             int[] brightesses = new int[101];
             foreach (var color in hues[mostCommonHue])
             {
-                saturations[GetSaturation(color)]++;
-                brightesses[GetBrightness(color)]++;
+                saturations[HSBColor.GetSaturation(color)]++;
+                brightesses[HSBColor.GetBrightness(color)]++;
             }
             int tempSat = 0;
             int mostCommonSat = 0;
@@ -157,11 +132,11 @@ namespace SmartBulbColor.Tools
                 {
                     pixel = image.GetPixel(j, i);
                     int hue = (int)pixel.GetHue();
-                    if (GetBrightness(pixel) > 0)
+                    if (HSBColor.GetBrightness(pixel) > 0)
                     {
                         hueHistogram[hue]++;
                         saturationSums[hue] += pixel.GetSaturation();
-                        brightessSums[hue] += GetBrightness(pixel);
+                        brightessSums[hue] += HSBColor.GetBrightness(pixel);
                     }
                 }
             }
@@ -227,7 +202,7 @@ namespace SmartBulbColor.Tools
                     existingHues.Add(hue);
                     hueCounts[hue]++;
                     saturationSums[hue] += pixel.GetSaturation();
-                    brightnessSums[hue] += GetBrightness(pixel);
+                    brightnessSums[hue] += HSBColor.GetBrightness(pixel);
                 }
             }
             int count = 0;
@@ -245,56 +220,5 @@ namespace SmartBulbColor.Tools
             HSBColor avgColor = new HSBColor(mostCommonHue, hueSaturationAvg, hueBrightAvg);
             return avgColor;
         }
-        MColor DrowingToMediaColor (DColor dcolor)
-        {
-            MColor mcolor = new MColor();
-            mcolor.R = dcolor.R;
-            mcolor.G = dcolor.G;
-            mcolor.B = dcolor.B;
-            mcolor.A = dcolor.A;
-            return mcolor;
-        }
-        [DllImport("shlwapi.dll")]
-        public static extern int ColorHLSToRGB(int H, int L, int S);
-        public MColor GetColorBuffer()
-        {
-
-            var color = HsbToDColor(ColorBufer);
-            return DrowingToMediaColor(color);
-
-        }
-        private DColor HsbToDColor(HSBColor hsbColor)
-        {
-            int hue = (hsbColor.Hue / 360) * 240;
-            float brt = (hsbColor.Brightness / 360) * 240;
-            float sat = (hsbColor.Saturation / 360) * 240;
-            int value = ColorHLSToRGB(hue, (int)sat, (int)sat);
-            return ColorTranslator.FromWin32(value);
-        }
-        int GetHue(DColor color)
-        {
-            float r = (color.R/255f);
-            float g = (color.G/255f);
-            float b = (color.B/255f);
-            float min = (r < g & r < b) ? r : g < b ? g : b;
-            float max = (r > g & r > b) ? r : g > b ? g : b;
-            if (min == max) return 0;
-            else if (max == r & g >= b) return (int)( 60 * ((g - b) / (max - min)));
-            else if (max == r & g < b) return (int)(60 * ((g - b) / (max - min)) + 360) ;
-            else if (max == g) return (int)(60 * ((b - r) / (max - min)) + 120);
-            else return (int)(60 * ((r - g) / (max - min)) + 240);
-        }
-        int GetSaturation(DColor color)
-        {
-            float r = color.R / 255f;
-            float g = color.G / 255f;
-            float b = color.B / 255f;
-            float min = (r < g & r < b) ? r : g < b ? g : b;
-            float max = (r > g & r > b) ? r : g > b ? g : b;
-            if (max == 0) return 0;
-            else return (int)((1 - min / max) * 100);
-        }
-        int GetBrightness(Color c)
-        { return (int)(((c.R * 0.299f + c.G * 0.587f + c.B * 0.114f) / 256f) * 100); }
     }
 }

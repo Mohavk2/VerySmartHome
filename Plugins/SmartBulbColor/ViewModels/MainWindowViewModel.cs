@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+//using System.Drawing;
 using System.Windows.Input;
-using System.Windows.Threading;
+using System.Windows.Media;
 using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using SmartBulbColor.Tools;
 
 namespace SmartBulbColor.ViewModels
 {
     class MainWindowViewModel : ViewModelBase, IDisposable
     {
         BulbController SmartBulbController = new BulbController();
+        
         Object RefresherLocker = new Object();
         BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
         public ObservableCollection<BulbColor> Bulbs
@@ -45,6 +43,19 @@ namespace SmartBulbColor.ViewModels
             {
                 _selectedBulb = value;
                 OnPropertyChanged("SelectedBulb");
+            }
+        }
+        private SolidColorBrush _pickerBrush = Brushes.Black;
+        public SolidColorBrush PickerBrush
+        {
+            get { return _pickerBrush; }
+            set
+            {
+                _pickerBrush = value;
+                if(SetColorByColorPickerPoint.CanExecute(value))
+                {
+                    SetColorByColorPickerPoint.Execute(value);
+                }
             }
         }
 
@@ -195,6 +206,29 @@ namespace SmartBulbColor.ViewModels
             }
             return true;
         }
+        public ICommand SetColorByColorPickerPoint
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteSetColorByColorPickerPoint, CanExecuteSetColorByColorPickerPoint);
+            }
+        }
+        private void ExecuteSetColorByColorPickerPoint(Object parametr)
+        {
+
+            var brush = (SolidColorBrush)parametr;
+            Color color = brush.Color;
+            SmartBulbController.SetSceneHSV(SelectedBulb, new HSBColor(color));
+        }
+        private bool CanExecuteSetColorByColorPickerPoint(Object parametr)
+        {
+            if (Bulbs == null || SelectedBulb == null || SmartBulbController.IsAmbientLightON)
+            {
+                return false;
+            }
+            return true;
+        }
+
         private void RefreshBulbs()
         {            
             lock(RefresherLocker)
@@ -206,7 +240,6 @@ namespace SmartBulbColor.ViewModels
                 }
             }
         }
-
         public void Dispose()
         {
             SmartBulbController.Dispose();

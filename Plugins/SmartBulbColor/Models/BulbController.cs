@@ -271,6 +271,11 @@ namespace SmartBulbColor.Models
                 else return true;
             }
         }
+
+        public void SetSceneHSV(BulbColor bulb, HSBColor color)
+        {
+            bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
+        }
         public void Dispose()
         {
 

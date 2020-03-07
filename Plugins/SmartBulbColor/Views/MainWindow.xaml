@@ -60,21 +60,23 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
-                <RowDefinition Height="240"></RowDefinition>
+                <RowDefinition Height="270"></RowDefinition>
             </Grid.RowDefinitions>
             <StackPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
                 <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
                             Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
             </StackPanel>
-            <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Bottom" Margin="3" Height="240">
+            <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Top" Margin="3,0" Height="267">
+                <Rectangle x:Name="PickedColor" MinHeight="30" Stroke="Black" 
+                           Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <Image x:Name="ColorPicker" Source="/SmartBulbColor;component/Resources/ColorPicker.jpg" 
-                       Stretch="Uniform" VerticalAlignment="Bottom"
-                       MouseLeftButtonDown="ColorPicker_MouseLeftButtonDown" Height="240"/>
+                       Stretch="Uniform" VerticalAlignment="Bottom" Height="235" MouseMove="ColorPicker_MouseMove"
+                       />
             </StackPanel>
             <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Margin="3">
                 <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
                 <TextBlock Text="Name"/>
-                <TextBox Text="{Binding  SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"  Foreground="Black" Background="#FF1B5A8F"/>
+                <TextBox Text="{Binding SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"  Foreground="Black" Background="#FF1B5A8F"/>
                 <TextBlock Text="ID"/>
                 <TextBox Text="{Binding SelectedBulb.Id, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
                 <TextBlock Text="Ip"/>

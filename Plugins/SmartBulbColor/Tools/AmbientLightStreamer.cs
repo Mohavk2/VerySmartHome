@@ -57,7 +57,7 @@ namespace SmartBulbColor.Tools
             {
                 AmbilightTrigger.WaitOne(Timeout.Infinite);
 
-                color = ColorAnalyzer.GetMostCommonColorHSL();
+                color = ColorAnalyzer.GetMostCommonColorHSB();
 
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
