@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="736" Width="685">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="736" Width="698">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -45,8 +45,6 @@
                 Content="Find Devices"/>
             <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
                 Content="Normal Light"/>
-            <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
-                Content="Ambient Light"/>
             <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console"/>
         </ToolBar>
@@ -62,10 +60,12 @@
                 <RowDefinition></RowDefinition>
                 <RowDefinition Height="270"></RowDefinition>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
+            <WrapPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
                 <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
                             Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
-            </StackPanel>
+                <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
+                Content="Ambient Light" Width="85"/>
+            </WrapPanel>
             <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Top" Margin="3,0" Height="267">
                 <Rectangle x:Name="PickedColor" MinHeight="30" Stroke="Black" 
                            Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
@@ -93,21 +93,45 @@
                 <TextBox Text="{Binding SelectedBulb.IsPowered, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
             </StackPanel>
         </Grid>
-        <ListBox DockPanel.Dock="Left" MinWidth="150" x:Name="BulbList" ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"               
-                 FontSize="16" FontWeight="Bold" Height="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel/>
-                </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical" MinWidth="150">
-                        <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
-                        <TextBlock Text="{Binding}" TextAlignment="Center"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <StackPanel DockPanel.Dock="Left" Width="193">
+            <ListBox  MinWidth="150" x:Name="BulbList" 
+                 ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"              
+                 FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Width="193" Height="353">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical" MinWidth="150">
+                            <!--<StackPanel.InputBindings>
+                                <MouseBinding Gesture="LeftDoubleClick" Command="MoveToCurrentBulbs"/>
+                            </StackPanel.InputBindings>-->
+                            <Image Source="{Binding StateIconPath}" Width="120" Height="120"/>
+                            <TextBlock Text="{Binding}" TextAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <!--<ListBox DockPanel.Dock="Left" MinWidth="150" x:Name="CurrentBulbList"                                     
+                 FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Width="183"
+                     ItemsSource="{Binding CurrentBulbs}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical" MinWidth="150">
+                            <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
+                            <TextBlock Text="{Binding}" TextAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>-->
+            <!--</ListBox>-->
+        </StackPanel>
+
     </DockPanel>
 </Window>

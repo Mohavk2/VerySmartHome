@@ -58,10 +58,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Infrastructure\ControllerCommand.cs" />
-    <Compile Include="Tools\AmbientLightStreamer.cs" />
+    <Compile Include="Models\AmbientLightStreamer.cs" />
+    <Compile Include="Models\BulbDiscoverer.cs" />
     <Compile Include="Views\ImagePixelColorPicker.cs" />
-    <Compile Include="Tools\HSBColor.cs" />
-    <Compile Include="Tools\ScreenColorAnalyzer.cs" />
+    <Compile Include="Models\HSBColor.cs" />
+    <Compile Include="Models\ScreenColorAnalyzer.cs" />
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -68,7 +68,7 @@ namespace SmartBulbColor.Tools
                     {
                         bulb.SetSceneHSV(hue, sat, bright);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         bulb.IsMusicModeEnabled = false;
                         LostBulbs.Add(bulb);

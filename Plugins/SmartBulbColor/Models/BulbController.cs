@@ -18,7 +18,10 @@ namespace SmartBulbColor.Models
 {
     sealed class BulbController : DeviceController, IDisposable
     {
+        public delegate void BulbCollectionNotifier();
+        public event BulbCollectionNotifier BulbCollectionChanged;
         public LinkedList<BulbColor> Bulbs { get; private set; } = new LinkedList<BulbColor>();
+        public LinkedList<BulbColor> BulbsForAmbientLight { get; private set; } = new LinkedList<BulbColor>();
         public override int DeviceCount
         {
             get
@@ -26,9 +29,6 @@ namespace SmartBulbColor.Models
                 return Bulbs.Count;
             }
         }
-
-        public delegate void BulbCollectionNotifier();
-        public event BulbCollectionNotifier BulbCollectionChanged;
 
         readonly Thread BulbsRefreshThread;
         readonly ManualResetEvent BulbsRefresherTrigger;
@@ -63,43 +63,23 @@ namespace SmartBulbColor.Models
             }
             else
             {
-                ConnectBulbs_MusicMode();
+                DiscoverBulbs();
                 return Bulbs;
             }
         }
-        public void ConnectBulbs_MusicMode()
+        public void DiscoverBulbs()
         {
             lock(Locker)
             {
                 try
                 {
                     Bulbs = BulbColor.DiscoverBulbs();
-                    MusicMode_ON();
                 }
                 catch (Exception NoResponseException)
                 {
                     throw NoResponseException;
                 }
             }
-        }
-        public void MusicMode_ON()
-        {
-            if (Bulbs.Count != 0)
-            {
-                try
-                {
-                    foreach (var bulb in Bulbs)
-                    {
-                        bulb.IsMusicModeEnabled = true;
-                    }
-                    IsMusicModeON = true;
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(e.Message + "\r\nCan't turn Music Mode ON becouse of some connection problem");
-                }
-            }
-            else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
         }
         void MusicMode_OFF()
         {
@@ -135,7 +115,7 @@ namespace SmartBulbColor.Models
             {
                 try
                 {
-                    ConnectBulbs_MusicMode();
+                    DiscoverBulbs();
                 }
                 catch (Exception NoResponseException)
                 {
@@ -148,7 +128,6 @@ namespace SmartBulbColor.Models
             try
             {
                 SetColorMode(2);
-                MusicMode_ON();
                 StopBulbsRefreshing();
                 AmbientLight.SetBulbsForStreaming(Bulbs);
                 AmbientLight.StartSreaming();
@@ -168,11 +147,6 @@ namespace SmartBulbColor.Models
                 StartBulbsRefreshing();
             }
         }
-        void ChangeColor_Bulb()
-        {
-
-        }
-
         /// <summary>
         /// Sets color mode
         /// </summary>
@@ -191,6 +165,8 @@ namespace SmartBulbColor.Models
                 else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
             }
         }
+
+
         public List<String> GetDeviceReports()
         {
             List<String> reports = new List<string>();
@@ -234,7 +210,7 @@ namespace SmartBulbColor.Models
                 BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
                 if(CheckBulbsOnlineChanged())
                 {
-                    ConnectBulbs_MusicMode();
+                    DiscoverBulbs();
                     OnBulbConnecionChanged();
                 }
                 Thread.Sleep(3000);

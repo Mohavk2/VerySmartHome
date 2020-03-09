@@ -14,6 +14,7 @@ namespace SmartBulbColor.ViewModels
         BulbController SmartBulbController = new BulbController();
         
         Object RefresherLocker = new Object();
+
         BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
         public ObservableCollection<BulbColor> Bulbs
         {
@@ -43,6 +44,28 @@ namespace SmartBulbColor.ViewModels
             {
                 _selectedBulb = value;
                 OnPropertyChanged("SelectedBulb");
+            }
+        }
+
+        BulbCollectionUIThreadSafe _currentBulbs = new BulbCollectionUIThreadSafe();
+        public ObservableCollection<BulbColor> CurrentBulbs
+        {
+            get
+            {
+                return _currentBulbs;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new Exception("Can't add value to ViewModel Bulb collection. Value isn't correct");
+                }
+                else
+                {
+                    _currentBulbs.RefreshSafe(value);
+                    OnPropertyChanged("CurrentBulbs");
+                }
+
             }
         }
         private SolidColorBrush _pickerBrush = Brushes.Black;
@@ -84,33 +107,8 @@ namespace SmartBulbColor.ViewModels
 
         public MainWindowViewModel()
         {
-            SmartBulbController.BulbCollectionChanged += RefreshBulbs;
+            SmartBulbController.BulbCollectionChanged += RefreshBulbCollection;
             SmartBulbController.StartBulbsRefreshing();
-        }
-        public ICommand FindBulbs
-        {
-            get
-            {
-                return new ControllerCommand(ExecuteFindBulbsCommand);
-            }
-        }
-        public void ExecuteFindBulbsCommand(Object parametr)
-        {
-            try
-            {
-                SmartBulbController.ConnectBulbs_MusicMode();
-                Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
-                var reports = SmartBulbController.GetDeviceReports();
-                foreach (var report in reports)
-                {
-                    Logs = report;
-                }
-                Logs = SmartBulbController.DeviceCount + " bulbs found";
-            }
-            catch (Exception NoDeviceException)
-            {
-                Logs = NoDeviceException.Message;
-            }
         }
 
         public ICommand ClearConsole
@@ -125,7 +123,56 @@ namespace SmartBulbColor.ViewModels
             Logs = string.Empty;
             OnPropertyChanged("Logs");
         }
+        public ICommand MoveToCurrentBulbs
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteMoveToCurrentBulbs, CanExecuteMoveToCurrentBulbs);
+            }
+        }
+        private void ExecuteMoveToCurrentBulbs(Object parametr)
+        {
+            CurrentBulbs.Add(SelectedBulb);
+            Bulbs.Remove(SelectedBulb);
+        }
+        private bool CanExecuteMoveToCurrentBulbs(Object parametr)
+        {
+            if(Bulbs == null || SelectedBulb == null || SmartBulbController.IsAmbientLightON)
+            {
+                return false;
+            }
+            return true;
+        }
 
+
+        //////////////////// 
+        /// Bulb Commands///
+        ////////////////////
+        public ICommand FindBulbs
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteFindBulbsCommand);
+            }
+        }
+        public void ExecuteFindBulbsCommand(Object parametr)
+        {
+            try
+            {
+                SmartBulbController.DiscoverBulbs();
+                Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
+                var reports = SmartBulbController.GetDeviceReports();
+                foreach (var report in reports)
+                {
+                    Logs = report;
+                }
+                Logs = SmartBulbController.DeviceCount + " bulbs found";
+            }
+            catch (Exception NoDeviceException)
+            {
+                Logs = NoDeviceException.Message;
+            }
+        }
         public ICommand ToggleAmbientLight
         {
             get
@@ -142,7 +189,7 @@ namespace SmartBulbColor.ViewModels
                     if (SmartBulbController.IsAmbientLightON)
                     {
                         SmartBulbController.AmbientLight_OFF();
-                        if(SmartBulbController.IsAmbientLightON == false)
+                        if (SmartBulbController.IsAmbientLightON == false)
                         {
                             Logs = "Ambient Light is OFF";
                             OnPropertyChanged("Logs");
@@ -151,7 +198,7 @@ namespace SmartBulbColor.ViewModels
                     else
                     {
                         SmartBulbController.AmbientLight_ON();
-                        if(SmartBulbController.IsAmbientLightON == true)
+                        if (SmartBulbController.IsAmbientLightON == true)
                         {
                             Logs = "Ambient Light is ON";
                             OnPropertyChanged("Logs");
@@ -169,7 +216,6 @@ namespace SmartBulbColor.ViewModels
                 Logs = "There is no found bulbs yet, please use \"Find Devices\" first";
             }
         }
-
         public ICommand TurnNormalLightON
         {
             get
@@ -229,7 +275,7 @@ namespace SmartBulbColor.ViewModels
             return true;
         }
 
-        private void RefreshBulbs()
+        private void RefreshBulbCollection()
         {            
             lock(RefresherLocker)
             {

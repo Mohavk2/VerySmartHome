@@ -55,7 +55,6 @@ namespace SmartBulbColor.Models
                 BulbColor bulb = Parse(responses[i]);
                 if (bulb.Model == "color")
                 {
-                    bulb.IsOnline = true;
                     bulbs.AddLast(bulb);
                 }
             }
@@ -86,9 +85,9 @@ namespace SmartBulbColor.Models
                 bulb.Hue = int.Parse(response[15].Substring(HUE.Length));
                 bulb.Saturation = int.Parse(response[16].Substring(SAT.Length));
                 bulb.Name = response[17].Substring(NAME.Length);
-                if (bulb.Model == "color")
-                    return bulb;
-                else return new BulbColor();
+
+                return bulb;
+
             }
             return bulb;
         }
@@ -99,10 +98,12 @@ namespace SmartBulbColor.Models
             get { return _name; } 
             set 
             {
-                if(_name != value && value != "")
+                if(value == "")
                 {
-                    var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{value}\"]}}\r\n";
-                    SendCommand(command);
+                    value = "Bulb";
+                }
+                if(_name != value)
+                {
                     _name = value;
                     OnPropertyChanged("Name");
                 }
@@ -139,17 +140,6 @@ namespace SmartBulbColor.Models
             {
                 _port = value;
                 OnPropertyChanged("Port");
-            }
-        }
-
-        private bool _isOnline = false;
-        public override bool IsOnline
-        {
-            get { return _isOnline; }
-            set
-            {
-                _isOnline = value;
-                OnPropertyChanged("IsOnline");
             }
         }
 
@@ -310,6 +300,12 @@ namespace SmartBulbColor.Models
             return report;
         }
 
+        public void SetName(string name)
+        {
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{name}\"]}}\r\n";
+            SendCommand(command);
+            Name = name;
+        }
         public void TogglePower()
         {
             if (IsPowered)
@@ -415,21 +411,16 @@ namespace SmartBulbColor.Models
         private void SendCommand(string command)
         {
             byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
-            if(IsMusicModeEnabled)
             {
                 try
                 {
                     MusicModeClient.Send(comandBuffer);
                 }
-                catch(Exception e)
+                catch (Exception)
                 {
-                    ConnectMusicMode();
+                    IsMusicModeEnabled = true;
                     MusicModeClient.Send(comandBuffer);
                 }
-            }
-            else
-            {
-                SendStraightCommand(command);
             }
         }
         private void SendStraightCommand(string command)
