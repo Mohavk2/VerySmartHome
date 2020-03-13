@@ -71,10 +71,12 @@
             </WrapPanel>
             <Rectangle Grid.Row="1" Height="30" x:Name="PickedColor" Stroke="Black" 
                            Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Canvas Grid.Column="0" Grid.Row="2" VerticalAlignment="Top" Margin="3,0" Height="Auto">
-                <Image Grid.Row="1" x:Name="ColorPicker" Source="/SmartBulbColor;component/Resources/ColorPicker.jpg" 
-                       Stretch="Uniform" VerticalAlignment="Bottom" Height="235" MouseMove="ColorPicker_MouseMove"/>
-                <Ellipse Grid.Row="1" x:Name="PickerMarker" Panel.ZIndex="1" Height="20" Width="20" Stroke="Black" />
+            <Canvas Grid.Row="2" x:Name="Palette" Height="235" ClipToBounds="True" MouseMove="Palette_MouseMove"
+                 Grid.Column="0" VerticalAlignment="Top" Margin="3,0" MouseDown="Palette_MouseDown">
+                <Canvas.Background>
+                    <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
+                </Canvas.Background>
+                <Ellipse Grid.Row="1" x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
             </Canvas>
             <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Margin="3">
                 <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>

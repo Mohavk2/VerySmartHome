@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 //using System.Drawing;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -261,7 +262,6 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteSetColorByColorPickerPoint(Object parametr)
         {
-
             var brush = (SolidColorBrush)parametr;
             Color color = brush.Color;
             SmartBulbController.SetSceneHSV(SelectedBulb, new HSBColor(color));
