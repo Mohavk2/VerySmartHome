@@ -319,7 +319,7 @@ namespace SmartBulbColor.Models
 
             } while (!success);
 
-            IsConnected = true;
+            IsConnected = success;
         }
         private void SendCommand(string command)
         {
@@ -444,7 +444,6 @@ namespace SmartBulbColor.Models
             if (SendStraightCommandAndConfirm(command))
             {
                 IsPowered = true;
-                Reconnect();
             }
         }
         public void SetSceneHSV(int hue, float saturation, float value)
@@ -458,7 +457,6 @@ namespace SmartBulbColor.Models
             if(SendStraightCommandAndConfirm(command))
             {
                 IsPowered = true;
-                Reconnect();
             }
         }
         public override string ToString()
