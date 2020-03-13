@@ -11,6 +11,6 @@ namespace VerySmartHome.MainController
     public abstract class DeviceController
     {
         public abstract int DeviceCount { get;}
-        public abstract LinkedList<Device> GetDevices();
+        public abstract List<IDevice> GetDevices();
     }
 }

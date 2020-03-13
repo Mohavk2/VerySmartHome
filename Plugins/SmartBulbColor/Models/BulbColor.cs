@@ -8,14 +8,15 @@ using System.Threading.Tasks;
 using VerySmartHome.MainController;
 using System.Windows.Media.Imaging;
 using System.ComponentModel;
+using System.Threading;
 
 namespace SmartBulbColor.Models
 {
     enum Effect { Sudden = 0, Smooth = 1 }
-    internal sealed class BulbColor : Device, IDisposable
+    internal sealed class BulbColor : IDevice
     {
-        private const string DeviceType = "MiBulbColor";
-        private const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n"+"HOST: 239.255.255.250:1982\r\n"+"MAN: \"ssdp:discover\"\r\n"+"ST: wifi_bulb");
+        public const string DeviceType = "MiBulbColor";
+        public const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n"+"HOST: 239.255.255.250:1982\r\n"+"MAN: \"ssdp:discover\"\r\n"+"ST: wifi_bulb");
         private const string LOCATION = "Location: yeelight://";
         private const string ID = "id: ";
         private const string MODEL = "model: ";
@@ -29,71 +30,85 @@ namespace SmartBulbColor.Models
         private const string SAT = "sat: ";
         private const string NAME = "name: ";
 
+        private const int ReconnectDelay = 160;
+
         private const string LightOnImgPath = "/Models/LightON.png";
         private const string LightOffImgPath = "/Models/LightOFF.png";
 
-        readonly static SSDPDiscoverer Discoverer = new SSDPDiscoverer(SSDPMessage);
-        readonly static IPAddress LocalIP = SSDPDiscoverer.GetLocalIP();
+        readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
         readonly static Socket TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        private Socket MusicModeClient;
+        private Socket Client = null;
+
+        Object CommandLocker = new Object();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = this.PropertyChanged;
+            if (handler != null)
+            {
+                handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
         static BulbColor()
         {
             TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
+            TcpServer.Listen(10);
         }
 
-        public static LinkedList<BulbColor> DiscoverBulbs()
+        public BulbColor(string BulbResponse)
         {
-            return ParseBulbs(Discoverer.GetDeviceResponses());
+            Parse(BulbResponse);
         }
-        private static LinkedList<BulbColor> ParseBulbs(List<string> responses)
+        private void Parse(string BulbResponse)
         {
-            LinkedList<BulbColor> bulbs = new LinkedList<BulbColor>();
-            for (int i = 0; i < responses.Count; i++)
+            if (BulbResponse.Length != 0)
             {
-                BulbColor bulb = Parse(responses[i]);
-                if (bulb.Model == "color")
-                {
-                    bulbs.AddLast(bulb);
-                }
-            }
-            return bulbs;
-        }
-        private static BulbColor Parse(string bulbResponse)
-        {
-            var bulb = new BulbColor();
-
-            if (bulbResponse.Length != 0)
-            {
-                var response = bulbResponse.Split(new[] { "\r\n" }, StringSplitOptions.None);
+                var response = BulbResponse.Split(new[] { "\r\n" }, StringSplitOptions.None);
 
                 var ipPort = response[4].Substring(LOCATION.Length);
                 var temp = ipPort.Split(':');
-                bulb.Ip = temp[0];
-                bulb.Port = int.Parse(temp[1]);
+                Ip = temp[0];
+                Port = int.Parse(temp[1]);
 
-                bulb.Id = Convert.ToInt32(response[6].Substring(ID.Length), 16);
-                bulb.Model = response[7].Substring(MODEL.Length);
-                bulb.FwVer = int.Parse(response[8].Substring(FW_VER.Length));
-                bulb.IsPowered = response[10].Substring(POWER.Length) == "on" ? true : false;
-                bulb.StateIconPath = bulb.IsPowered ? LightOnImgPath : LightOffImgPath;
-                bulb.Brightness = int.Parse(response[11].Substring(BRIGHT.Length));
-                bulb.ColorMode = int.Parse(response[12].Substring(COLOR_MODE.Length));
-                bulb.ColorTemperature = int.Parse(response[13].Substring(CT.Length));
-                bulb.Rgb = int.Parse(response[14].Substring(RGB.Length));
-                bulb.Hue = int.Parse(response[15].Substring(HUE.Length));
-                bulb.Saturation = int.Parse(response[16].Substring(SAT.Length));
-                bulb.Name = response[17].Substring(NAME.Length);
-
-                return bulb;
-
+                Id = Convert.ToInt32(response[6].Substring(ID.Length), 16);
+                Model = response[7].Substring(MODEL.Length);
+                FwVer = int.Parse(response[8].Substring(FW_VER.Length));
+                IsPowered = response[10].Substring(POWER.Length) == "on" ? true : false;
+                StateIconPath = IsPowered ? LightOnImgPath : LightOffImgPath;
+                Brightness = int.Parse(response[11].Substring(BRIGHT.Length));
+                ColorMode = int.Parse(response[12].Substring(COLOR_MODE.Length));
+                ColorTemperature = int.Parse(response[13].Substring(CT.Length));
+                Rgb = int.Parse(response[14].Substring(RGB.Length));
+                Hue = int.Parse(response[15].Substring(HUE.Length));
+                Saturation = int.Parse(response[16].Substring(SAT.Length));
+                Name = response[17].Substring(NAME.Length);
             }
-            return bulb;
+        }
+        public int GetId()
+        {
+            return Id;
         }
 
+        public string GetName()
+        {
+            return Name;
+        }
+
+        public string GetIP()
+        {
+            return Ip;
+        }
+
+        public int GetPort()
+        {
+            return Port;
+        }
         private string _name = "";
-        public override string Name 
+        public string Name 
         {
             get { return _name; } 
             set 
@@ -109,9 +124,8 @@ namespace SmartBulbColor.Models
                 }
             } 
         }
-
         private int _id = 0;
-        public override int Id 
+        public int Id 
         {
             get { return _id; } 
             set 
@@ -120,9 +134,8 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Id");
             } 
         }
-
         private string _ip = "";
-        public override string Ip
+        public string Ip
         {
             get { return _ip; }
             set
@@ -131,9 +144,8 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Ip");
             }
         }
-
         private int _port = 0;
-        public override int Port
+        public int Port
         {
             get { return _port; }
             set
@@ -142,9 +154,8 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Port");
             }
         }
-
         private bool _isPowered = false;
-        public override bool IsPowered 
+        public bool IsPowered 
         {
             get { return _isPowered; }
             set
@@ -162,7 +173,6 @@ namespace SmartBulbColor.Models
                 }
             }
         }
-
         private string _stateIconPath = "";
         public string StateIconPath
         {
@@ -173,26 +183,16 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("StateIconPath");
             }
         }
-
         private bool _isMusicModeEnabled = false;
-        public bool IsMusicModeEnabled
+        public bool IsConnected
         {
             get { return _isMusicModeEnabled; }
-            set
+            private set
             {
-                if(value)
-                {
-                    ConnectMusicMode();
-                }
-                else
-                {
-                    DisconnectMusicMode();
-                }
                 _isMusicModeEnabled = value;
                 OnPropertyChanged("IsMusicModeEnabled");
             }
         }
-
         private string _model = "";
         public string Model
         {
@@ -203,7 +203,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Model");
             }
         }
-
         private int _fwVer = 0;
         public int FwVer
         {
@@ -299,7 +298,102 @@ namespace SmartBulbColor.Models
                 NAME.ToUpper() + Name + divider;
             return report;
         }
+        public void Reconnect()
+        {
+            Client?.Dispose();
 
+            bool success;
+            do
+            {
+                try
+                {
+                    success = SendRequestForConnection();
+                    Client = TcpServer.Accept();
+                    success = true;
+                }
+                catch (Exception)
+                {
+                    success = false;
+                }
+                Thread.Sleep(ReconnectDelay);
+
+            } while (!success);
+
+            IsConnected = true;
+        }
+        private void SendCommand(string command)
+        {
+            lock (CommandLocker)
+            {
+                byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+
+                var connectionLost = Client == null ? true : false;
+                do
+                {
+                    try
+                    {
+                        if (connectionLost)
+                        {
+                            Reconnect();
+                            connectionLost = false;
+                        }
+                        Client.Send(comandBuffer);
+                    }
+                    catch (Exception)
+                    {
+                        connectionLost = true;
+                    }
+                } while (connectionLost);
+            }
+        }
+        private void SendStraightCommand(string command)
+        {
+            lock (CommandLocker)
+            {
+                byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+                using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                {
+                    IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
+
+                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+
+                    if (client.Connected)
+                    {
+                        client.EndConnect(result);
+                        client.Send(comandBuffer);
+                    }
+                }
+            }
+        }
+        private bool SendStraightCommandAndConfirm(string command)
+        {
+            lock (CommandLocker)
+            {
+                byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+                using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                {
+                    IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
+
+                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+
+                    if (client.Connected)
+                    {
+                        client.EndConnect(result);
+                        client.Send(comandBuffer);
+
+                        byte[] recBuffer = new byte[100];
+                        client.Receive(recBuffer);
+                        string responce = Encoding.UTF8.GetString(recBuffer);
+
+                        if (responce.Contains("\"ok\""))
+                            return true;
+                        else
+                            return false;
+                    }
+                    throw new Exception($"the device id: {this.Id} doesn't respond");
+                }
+            }
+        }
         public void SetName(string name)
         {
             var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{name}\"]}}\r\n";
@@ -311,39 +405,22 @@ namespace SmartBulbColor.Models
             if (IsPowered)
             {
                 SetPower(false, Effect.Smooth, 500);
-                IsMusicModeEnabled = false;
             }
             else
             {
                 SetPower(true, Effect.Smooth, 500);
-                IsMusicModeEnabled = true;
+                Reconnect();
             }
-        }
-        public void TogglePowerNotSafe()
-        {
-            var command = $"{{\"id\":{this.Id},\"method\":\"toggle\",\"params\":[]}}\r\n";
-            SendCommand(command);
-            IsPowered = !IsPowered;
         }
         public bool SetPower(bool power, Effect effect, int duration)
         {
             var pow = power ? "on" : "off";
 
-            if (duration < 30)
-            {
-                duration = 30;
-            }
-            string eff = "";
+            var dur = (duration < 30) ? 30 : duration;
 
-            if (effect == Effect.Smooth)
-            {
-                eff = "smooth";
-            }
-            if (effect == Effect.Sudden)
-            {
-                eff = "sudden";
-            }
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"{pow}\", \"{eff}\", {duration}]}}\r\n";
+            string eff = (effect == Effect.Smooth) ? "smooth" : "sudden";
+
+            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"{pow}\", \"{eff}\", {dur}]}}\r\n";
 
             if (SendStraightCommandAndConfirm(command))
             {
@@ -355,17 +432,20 @@ namespace SmartBulbColor.Models
                 return false;
             }
         }
-        private void SendRequestForMusicMode()
+        private bool SendRequestForConnection()
         {
             var command = $"{{\"id\":{Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalPort}]}}\r\n";
-            SendStraightCommand(command);
+            return SendStraightCommandAndConfirm(command);
         }
 
         public void SetColorMode(int value)
         {
             var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"on\", \"smooth\", 30, {value}]}}\r\n";
-            SendCommand(command);
-            IsPowered = true;
+            if (SendStraightCommandAndConfirm(command))
+            {
+                IsPowered = true;
+                Reconnect();
+            }
         }
         public void SetSceneHSV(int hue, float saturation, float value)
         {
@@ -375,94 +455,10 @@ namespace SmartBulbColor.Models
         public void SetNormalLight(int colorTemperature, int brightness)
         {
             var command = $"{{\"id\":{this.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {colorTemperature}, {brightness}]}}\r\n";
-            SendCommand(command);
-            IsPowered = true;
-        }
-        private void ConnectMusicMode()
-        {
-            try
+            if(SendStraightCommandAndConfirm(command))
             {
-                if (MusicModeClient == null)
-                {
-                    SendRequestForMusicMode();
-                    TcpServer.Listen(10);
-                    MusicModeClient = TcpServer.Accept();
-                    if (!MusicModeClient.Connected)
-                    {
-                        MusicModeClient.Connect(IPAddress.Parse(Ip), LocalPort);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message + $"IsMusicModeEnabled Client can't connect to a remote device ID:{Id}");
-            }
-        }
-        private void DisconnectMusicMode()
-        {
-            if (IsMusicModeEnabled)
-            {
-                var command = $"{{\"id\":{this.Id},\"method\":\"set_music\",\"params\":[0]}}\r\n";
-                SendCommand(command);
-                MusicModeClient?.Dispose();
-                MusicModeClient = null;
-            }
-        }
-        private void SendCommand(string command)
-        {
-            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
-            {
-                try
-                {
-                    MusicModeClient.Send(comandBuffer);
-                }
-                catch (Exception)
-                {
-                    IsMusicModeEnabled = true;
-                    MusicModeClient.Send(comandBuffer);
-                }
-            }
-        }
-        private void SendStraightCommand(string command)
-        {
-            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
-            using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            {
-                IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
-
-                bool success = result.AsyncWaitHandle.WaitOne(1000, true);
-
-                if (client.Connected)
-                {
-                    client.EndConnect(result);
-                    client.Send(comandBuffer);
-                }
-            }
-        }
-        private bool SendStraightCommandAndConfirm(string command)
-        {
-            byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
-            using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            {
-                IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
-
-                bool success = result.AsyncWaitHandle.WaitOne(1000, true);
-
-                if (client.Connected)
-                {
-                    client.EndConnect(result);
-                    client.Send(comandBuffer);
-
-                    byte[] recBuffer = new byte[100];
-                    client.Receive(recBuffer);
-                    string responce = Encoding.UTF8.GetString(recBuffer);
-
-                    if (responce.Contains("\"ok\""))
-                        return true;
-                    else
-                        return false;
-                }
-                throw new Exception($"the device id: {this.Id} doesn't respond");
+                IsPowered = true;
+                Reconnect();
             }
         }
         public override string ToString()
@@ -474,7 +470,7 @@ namespace SmartBulbColor.Models
         }
         public void Dispose()
         {
-            IsMusicModeEnabled = false;
+            Client?.Dispose();
         }
     }
 }

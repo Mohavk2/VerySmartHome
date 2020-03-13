@@ -20,8 +20,21 @@ namespace SmartBulbColor.Models
     {
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
-        public LinkedList<BulbColor> Bulbs { get; private set; } = new LinkedList<BulbColor>();
-        public LinkedList<BulbColor> BulbsForAmbientLight { get; private set; } = new LinkedList<BulbColor>();
+
+        public List<BulbColor> _bulbs = new List<BulbColor>();
+        public List<BulbColor> Bulbs 
+        {
+            get 
+            {
+                return _bulbs;
+            }
+            private set
+            {
+                _bulbs = value;
+                OnBulbCollectionChanged();
+            } 
+        }
+        public List<BulbColor> BulbsForAmbientLight { get; private set; } = new List<BulbColor>();
         public override int DeviceCount
         {
             get
@@ -30,32 +43,28 @@ namespace SmartBulbColor.Models
             }
         }
 
-        readonly Thread BulbsRefreshThread;
-        readonly ManualResetEvent BulbsRefresherTrigger;
-        object Locker = new object();
+        readonly static BulbDiscoverer Discoverer = new BulbDiscoverer(BulbColor.SSDPMessage);
+        private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        private readonly AmbientLightStreamer AmbientLight;
         public bool IsAmbientLightON { get; private set;} = false;
 
         public BulbController()
         {
-            AmbientLight = new AmbientLightStreamer();
-            BulbsRefreshThread = new Thread(new ThreadStart(RefreshingBulbs));
-            BulbsRefreshThread.IsBackground = true;
-            BulbsRefresherTrigger = new ManualResetEvent(true);
+            Discoverer.DeviceCollectionChenged += RefreshBulbCollection;
+            Discoverer.StartDiscover();
         }
-        public override LinkedList<Device> GetDevices()
+        public override List<IDevice> GetDevices()
         {
             if (Bulbs.Count != 0)
             {
-                LinkedList<Device> devices = new LinkedList<Device>(Bulbs);
+                List<IDevice> devices = new List<IDevice>(Bulbs);
                 return devices;
             }
-            else return new LinkedList<Device>();
+            else return new List<IDevice>();
         }
-        public LinkedList<BulbColor> GetBulbs()
+        public List<BulbColor> GetBulbs()
         {
             if (Bulbs.Count != 0)
             {
@@ -69,29 +78,18 @@ namespace SmartBulbColor.Models
         }
         public void DiscoverBulbs()
         {
-            lock(Locker)
+            try
             {
-                try
-                {
-                    Bulbs = BulbColor.DiscoverBulbs();
-                }
-                catch (Exception NoResponseException)
-                {
-                    throw NoResponseException;
-                }
+                Bulbs = Discoverer.DiscoverDevices().Cast<BulbColor>().ToList();
+            }
+            catch (Exception NoResponseException)
+            {
+                throw NoResponseException;
             }
         }
-        void MusicMode_OFF()
+        public void StartBulbsRefreshing()
         {
-            if (Bulbs.Count != 0)
-            {
-                foreach (var bulb in Bulbs)
-                {
-                    bulb.IsMusicModeEnabled = false;
-                }
-                IsMusicModeON = false;
-            }
-            else throw new Exception("Can't turn Music Mode OFF becouse there is no found bulbs yet");
+            Discoverer.StartDiscover();
         }
         public void TogglePower(BulbColor bulb)
         {
@@ -99,27 +97,16 @@ namespace SmartBulbColor.Models
         }
         public void NormalLight_ON()
         {
-            if(IsAmbientLightON)
-            {
-                AmbientLight_OFF();
-            }
+
+            AmbientLight_OFF();
+
             Thread.Sleep(500);
             if (Bulbs.Count != 0)
             {
                 foreach (var bulb in Bulbs)
                 {
                     bulb.SetNormalLight(5400, 100);
-                }
-            }
-            else
-            {
-                try
-                {
-                    DiscoverBulbs();
-                }
-                catch (Exception NoResponseException)
-                {
-                    throw NoResponseException;
+                    Console.WriteLine("Norm Light is On");
                 }
             }
         }
@@ -128,7 +115,7 @@ namespace SmartBulbColor.Models
             try
             {
                 SetColorMode(2);
-                StopBulbsRefreshing();
+                Discoverer.StopDiscover();
                 AmbientLight.SetBulbsForStreaming(Bulbs);
                 AmbientLight.StartSreaming();
                 IsAmbientLightON = true;
@@ -140,12 +127,9 @@ namespace SmartBulbColor.Models
         }
         public void AmbientLight_OFF()
         {
-            if(IsAmbientLightON)
-            {
-                AmbientLight.StopStreaming();
-                IsAmbientLightON = false;
-                StartBulbsRefreshing();
-            }
+            AmbientLight.StopStreaming();
+            IsAmbientLightON = false;
+            Discoverer.StartDiscover();
         }
         /// <summary>
         /// Sets color mode
@@ -165,8 +149,6 @@ namespace SmartBulbColor.Models
                 else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
             }
         }
-
-
         public List<String> GetDeviceReports()
         {
             List<String> reports = new List<string>();
@@ -184,70 +166,14 @@ namespace SmartBulbColor.Models
                 return reports;
             }
         }
-        private void OnBulbConnecionChanged()
+        void RefreshBulbCollection(List<IDevice> foundBulbs)
+        {
+            Bulbs = foundBulbs.Cast<BulbColor>().ToList();
+        }
+        private void OnBulbCollectionChanged()
         {
             BulbCollectionChanged?.Invoke();
         }
-        public void StartBulbsRefreshing()
-        {
-            if (BulbsRefreshThread.IsAlive)
-            {
-                BulbsRefresherTrigger.Set();
-            }
-            else
-            {
-                BulbsRefreshThread.Start();
-            }
-        }
-        public void StopBulbsRefreshing()
-        {
-            BulbsRefresherTrigger.Reset();
-        }
-        private void RefreshingBulbs()
-        {
-            while (true)
-            {
-                BulbsRefresherTrigger.WaitOne(Timeout.Infinite);
-                if(CheckBulbsOnlineChanged())
-                {
-                    DiscoverBulbs();
-                    OnBulbConnecionChanged();
-                }
-                Thread.Sleep(3000);
-            }
-        }
-        private bool CheckBulbsOnlineChanged()
-        {
-            var foundBulbs = BulbColor.DiscoverBulbs();
-
-            if (foundBulbs.Count == 0 && Bulbs.Count == 0)
-            {
-                return false;
-            }
-            else if(foundBulbs.Count != Bulbs.Count)
-            {
-                return true;
-            }
-            else
-            {
-                var bulbsIdSum = 0; 
-                var foundBulbsIdSum = 0;
-                foreach(var bulb in Bulbs)
-                {
-                    bulbsIdSum += bulb.Id;
-                }
-                foreach(var bulb in foundBulbs)
-                {
-                    foundBulbsIdSum += bulb.Id;
-                }
-                if (bulbsIdSum == foundBulbsIdSum)
-                {
-                    return false;
-                }
-                else return true;
-            }
-        }
-
         public void SetSceneHSV(BulbColor bulb, HSBColor color)
         {
             bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);

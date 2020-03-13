@@ -8,10 +8,13 @@ using VerySmartHome.MainController;
 
 namespace SmartBulbColor.Models
 {
-    class BulbDiscoverer : SSDPDiscoverer
+    sealed class BulbDiscoverer : DeviceDiscoverer
     {
-        BulbDiscoverer(string message) : base(message) { }
-        BulbDiscoverer(string message, string ip, int port) : base(message, ip, port) { }
-
+        public BulbDiscoverer(string message) : base(message) { }
+        public BulbDiscoverer(string message, string ip, int port) : base(message, ip, port) { }
+        protected override IDevice CreateDevice(string response)
+        {
+            return new BulbColor(response);
+        }
     }
 }

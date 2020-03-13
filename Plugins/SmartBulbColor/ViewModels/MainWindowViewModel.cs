@@ -228,8 +228,8 @@ namespace SmartBulbColor.ViewModels
             SmartBulbController.NormalLight_ON();
             if(SmartBulbController.IsAmbientLightON == false)
             {
-                //Logs = "Ambient Light is OFF";
-                //OnPropertyChanged("Logs");
+                Logs = "Ambient Light is OFF";
+                OnPropertyChanged("Logs");
             }
         }
         public ICommand TogglePower

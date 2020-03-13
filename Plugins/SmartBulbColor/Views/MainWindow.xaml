@@ -47,6 +47,8 @@
                 Content="Normal Light"/>
             <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
                 Content="Clear Console"/>
+            <Button x:Name="HideConsole" Style="{StaticResource MainButtonStyle}"
+                Content="Hide Console" Click="HideConsole_Click"/>
         </ToolBar>
         <TextBox DockPanel.Dock="Bottom" Name="MainConsole" Text="{Binding Path=Logs}" IsReadOnly="True" TextChanged="MainConsole_TextChanged"
                  MinWidth ="679" MinHeight="302"/>
@@ -57,7 +59,8 @@
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
+                <RowDefinition MinHeight="88"></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
                 <RowDefinition Height="270"></RowDefinition>
             </Grid.RowDefinitions>
             <WrapPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
@@ -66,13 +69,13 @@
                 <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
                 Content="Ambient Light" Width="85"/>
             </WrapPanel>
-            <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Top" Margin="3,0" Height="267">
-                <Rectangle x:Name="PickedColor" MinHeight="30" Stroke="Black" 
+            <Rectangle Grid.Row="1" Height="30" x:Name="PickedColor" Stroke="Black" 
                            Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Image x:Name="ColorPicker" Source="/SmartBulbColor;component/Resources/ColorPicker.jpg" 
-                       Stretch="Uniform" VerticalAlignment="Bottom" Height="235" MouseMove="ColorPicker_MouseMove"
-                       />
-            </StackPanel>
+            <Canvas Grid.Column="0" Grid.Row="2" VerticalAlignment="Top" Margin="3,0" Height="Auto">
+                <Image Grid.Row="1" x:Name="ColorPicker" Source="/SmartBulbColor;component/Resources/ColorPicker.jpg" 
+                       Stretch="Uniform" VerticalAlignment="Bottom" Height="235" MouseMove="ColorPicker_MouseMove"/>
+                <Ellipse Grid.Row="1" x:Name="PickerMarker" Panel.ZIndex="1" Height="20" Width="20" Stroke="Black" />
+            </Canvas>
             <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Margin="3">
                 <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
                 <TextBlock Text="Name"/>
@@ -105,33 +108,12 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical" MinWidth="150">
-                            <!--<StackPanel.InputBindings>
-                                <MouseBinding Gesture="LeftDoubleClick" Command="MoveToCurrentBulbs"/>
-                            </StackPanel.InputBindings>-->
                             <Image Source="{Binding StateIconPath}" Width="120" Height="120"/>
                             <TextBlock Text="{Binding}" TextAlignment="Center"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <!--<ListBox DockPanel.Dock="Left" MinWidth="150" x:Name="CurrentBulbList"                                     
-                 FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Width="183"
-                     ItemsSource="{Binding CurrentBulbs}">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical" MinWidth="150">
-                            <Image Source="{Binding Path=StateIconPath}" Width="120" Height="120"/>
-                            <TextBlock Text="{Binding}" TextAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>-->
-            <!--</ListBox>-->
         </StackPanel>
-
     </DockPanel>
 </Window>

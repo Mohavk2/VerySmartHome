@@ -49,5 +49,13 @@ namespace SmartBulbColor
                 Thread.Sleep(100);
             }
         }
+
+        private void HideConsole_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainConsole.Visibility == Visibility.Visible)
+                MainConsole.Visibility = Visibility.Collapsed;
+            else
+                MainConsole.Visibility = Visibility.Visible;
+        }
     }
 }

@@ -30,21 +30,6 @@ namespace SmartBulbColor.ViewModels
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                //Add new found bulbs in the collection
-                if (collection != null && collection.Count != 0)
-                {
-                    for (int i = 0; i < collection.Count; i++)
-                    {
-                        bool alreadyExists = false;
-                        for (int j = 0; j < this.Count; j++)
-                        {
-                            if (collection[i].Id == this[j].Id)
-                                alreadyExists = true;
-                        }
-                        if (alreadyExists == false)
-                            this.Add(collection[i]);
-                    }
-                }
                 //Remove forbiden bulbs from the collection
                 if (this != null && this.Count != 0)
                 {
@@ -58,6 +43,21 @@ namespace SmartBulbColor.ViewModels
                         }
                         if (conteinsForbiden)
                             this.Remove(this[i]);
+                    }
+                }
+                //Add new found bulbs in the collection
+                if (collection != null && collection.Count != 0)
+                {
+                    for (int i = 0; i < collection.Count; i++)
+                    {
+                        bool alreadyExists = false;
+                        for (int j = 0; j < this.Count; j++)
+                        {
+                            if (collection[i].Id == this[j].Id)
+                                alreadyExists = true;
+                        }
+                        if (alreadyExists == false)
+                            this.Add(collection[i]);
                     }
                 }
             }));

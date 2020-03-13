@@ -10,7 +10,7 @@ namespace SmartBulbColor.Tools
 {
     class AmbientLightStreamer
     {
-        LinkedList<BulbColor> BulbsForStreaming;
+        List<BulbColor> BulbsForStreaming;
         List<BulbColor> LostBulbs;
 
         readonly Thread AmbilightThread;
@@ -28,7 +28,7 @@ namespace SmartBulbColor.Tools
             LostBulbs = new List<BulbColor>();
         }
 
-        public void SetBulbsForStreaming(LinkedList<BulbColor> bulbs)
+        public void SetBulbsForStreaming(List<BulbColor> bulbs)
         {
             BulbsForStreaming = bulbs;
         }
@@ -70,7 +70,7 @@ namespace SmartBulbColor.Tools
                     }
                     catch (Exception)
                     {
-                        bulb.IsMusicModeEnabled = false;
+                        bulb.Dispose();
                         LostBulbs.Add(bulb);
                         if ((BulbsForStreaming.Count - 1) == 0)
                             StopStreaming();
