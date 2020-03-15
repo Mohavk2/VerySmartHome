@@ -80,7 +80,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainController\IDevice.cs" />
+    <Compile Include="MainController\Device.cs" />
+    <Compile Include="Interfaces\IDevice.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
     <Compile Include="MainController\DeviceDiscoverer.cs" />

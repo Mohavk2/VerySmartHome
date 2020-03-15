@@ -4,11 +4,11 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SmartBulbColor.ViewModels;
-using SmartBulbColor.Tools;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Threading;
 using System.Windows.Controls;
+using SmartBulbColor.Models;
 
 namespace SmartBulbColor
 {

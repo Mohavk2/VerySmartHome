@@ -59,7 +59,7 @@
     </ApplicationDefinition>
     <Compile Include="Infrastructure\ControllerCommand.cs" />
     <Compile Include="Models\AmbientLightStreamer.cs" />
-    <Compile Include="Models\BulbColor.cs" />
+    <Compile Include="Models\ColorBulb.cs" />
     <Compile Include="Models\BulbController.cs" />
     <Compile Include="Models\BulbDiscoverer.cs" />
     <Compile Include="Views\ImagePixelColorPicker.cs" />

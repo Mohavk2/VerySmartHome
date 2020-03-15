@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartBulbColor.Models;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 
-namespace SmartBulbColor.Tools
+namespace SmartBulbColor.Models
 {
     class ImagePixelColorPicker
     {

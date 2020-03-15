@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 
-namespace SmartBulbColor.Tools
+namespace SmartBulbColor.Models
 {
     public sealed class ScreenColorAnalyzer
     {

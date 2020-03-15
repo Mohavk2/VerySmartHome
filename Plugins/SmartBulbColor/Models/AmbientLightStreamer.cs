@@ -1,34 +1,35 @@
-﻿using SmartBulbColor.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using VerySmartHome.Interfaces;
+using VerySmartHome.MainController;
 
-namespace SmartBulbColor.Tools
+namespace SmartBulbColor.Models
 {
     class AmbientLightStreamer
     {
-        List<BulbColor> BulbsForStreaming;
-        List<BulbColor> LostBulbs;
+        List<ColorBulb> BulbsForStreaming;
 
         readonly Thread AmbilightThread;
         readonly ManualResetEvent AmbilightTrigger;
         public ScreenColorAnalyzer ColorAnalyzer;
+        private Object Locker = new Object();
 
         public AmbientLightStreamer()
         {
+            DeviceDiscoverer.DeviceFound += OnDeviceFound;
+            DeviceDiscoverer.DeviceLost += OnDeviceLost;
+
+            List<ColorBulb> BulbsForStreaming = new List<ColorBulb>();
+
             ColorAnalyzer = new ScreenColorAnalyzer();
 
             AmbilightThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
             AmbilightThread.IsBackground = true;
             AmbilightTrigger = new ManualResetEvent(true);
-
-            LostBulbs = new List<BulbColor>();
         }
 
-        public void SetBulbsForStreaming(List<BulbColor> bulbs)
+        public void SetBulbsForStreaming(List<ColorBulb> bulbs)
         {
             BulbsForStreaming = bulbs;
         }
@@ -47,7 +48,6 @@ namespace SmartBulbColor.Tools
         public void StopStreaming()
         {
             AmbilightTrigger.Reset();
-            LostBulbs.Clear();
         }
         void StreamAmbientLightHSL()
         {
@@ -62,29 +62,42 @@ namespace SmartBulbColor.Tools
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-                foreach (var bulb in BulbsForStreaming)
-                {                    
-                    try
-                    {
-                        bulb.SetSceneHSV(hue, sat, bright);
-                    }
-                    catch (Exception)
-                    {
-                        bulb.Dispose();
-                        LostBulbs.Add(bulb);
-                        if ((BulbsForStreaming.Count - 1) == 0)
-                            StopStreaming();
-                    }
-                }
-                if (LostBulbs.Count != 0)
+
+                if (BulbsForStreaming != null && BulbsForStreaming.Count != 0)
                 {
-                    foreach (var lostBulb in LostBulbs)
+                    lock (Locker)
                     {
-                        BulbsForStreaming.Remove(lostBulb);
+                        foreach (var bulb in BulbsForStreaming)
+                        {
+                            bulb.SetSceneHSV(hue, sat, bright);
+                        }
                     }
                 }
+                else StopStreaming();
+
                 previosHue = color.Hue;
                 Thread.Sleep(60);
+            }
+        }
+        private void OnDeviceFound(IDevice foundDevice)
+        {
+            lock(Locker)
+            {
+                if(BulbsForStreaming == null)
+                {
+                    BulbsForStreaming = new List<ColorBulb>();
+                }
+                BulbsForStreaming.Add((ColorBulb)foundDevice);
+            }
+        }
+        private void OnDeviceLost(IDevice foundDevice)
+        {
+            lock (Locker)
+            {
+                if(BulbsForStreaming != null && BulbsForStreaming.Count != 0)
+                {
+                    BulbsForStreaming.Remove((ColorBulb)foundDevice);
+                }
             }
         }
     }

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace VerySmartHome.MainController
+
+namespace VerySmartHome.Interfaces
 {
     public interface IDevice : INotifyPropertyChanged, IDisposable
     {
@@ -13,5 +10,6 @@ namespace VerySmartHome.MainController
         string GetName();
         string GetIP();
         int GetPort();
+        void OnNoResponseFromDevice();
     }
 }

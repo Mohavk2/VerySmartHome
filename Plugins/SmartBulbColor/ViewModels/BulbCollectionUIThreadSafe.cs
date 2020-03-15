@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using SmartBulbColor.Models;
 
 namespace SmartBulbColor.ViewModels
 {
-    class BulbCollectionUIThreadSafe : ObservableCollection<BulbColor>
+    class BulbCollectionUIThreadSafe : ObservableCollection<ColorBulb>
     {
         static readonly Dispatcher CurrentDispatcher;
         static BulbCollectionUIThreadSafe()
@@ -17,16 +14,16 @@ namespace SmartBulbColor.ViewModels
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
         public BulbCollectionUIThreadSafe() : base() { }
-        public BulbCollectionUIThreadSafe(IEnumerable<BulbColor> bulbs) : base(bulbs) { }
-        public void AddSafe(BulbColor newItem)
+        public BulbCollectionUIThreadSafe(IEnumerable<ColorBulb> bulbs) : base(bulbs) { }
+        public void AddSafe(ColorBulb newItem)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { this.Add(newItem); }));
         }
-        public void RemoveSafe(BulbColor newItem)
+        public void RemoveSafe(ColorBulb newItem)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { this.Remove(newItem); }));
         }
-        public void RefreshSafe(ObservableCollection<BulbColor> collection)
+        public void RefreshSafe(ObservableCollection<ColorBulb> collection)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {

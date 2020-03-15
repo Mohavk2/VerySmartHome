@@ -6,18 +6,19 @@ using System.Windows.Input;
 using System.Windows.Media;
 using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
-using SmartBulbColor.Tools;
+using VerySmartHome.MainController;
 
 namespace SmartBulbColor.ViewModels
 {
     class MainWindowViewModel : ViewModelBase, IDisposable
     {
+
         BulbController SmartBulbController = new BulbController();
         
         Object RefresherLocker = new Object();
 
         BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
-        public ObservableCollection<BulbColor> Bulbs
+        public ObservableCollection<ColorBulb> Bulbs
         {
             get
             {
@@ -37,8 +38,8 @@ namespace SmartBulbColor.ViewModels
                 
             }
         }
-        BulbColor _selectedBulb;
-        public BulbColor SelectedBulb
+        ColorBulb _selectedBulb;
+        public ColorBulb SelectedBulb
         {
             get { return _selectedBulb; }
             set
@@ -49,7 +50,7 @@ namespace SmartBulbColor.ViewModels
         }
 
         BulbCollectionUIThreadSafe _currentBulbs = new BulbCollectionUIThreadSafe();
-        public ObservableCollection<BulbColor> CurrentBulbs
+        public ObservableCollection<ColorBulb> CurrentBulbs
         {
             get
             {
@@ -279,7 +280,7 @@ namespace SmartBulbColor.ViewModels
         {            
             lock(RefresherLocker)
             {
-                var bulbsThatAreOnline = new ObservableCollection<BulbColor>(SmartBulbController.GetBulbs());
+                var bulbsThatAreOnline = new ObservableCollection<ColorBulb>(SmartBulbController.GetBulbs());
                 if (bulbsThatAreOnline != null && bulbsThatAreOnline.Count != 0)
                 {
                     Bulbs = bulbsThatAreOnline;

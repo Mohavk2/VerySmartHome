@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using VerySmartHome.MainController;
-using System.Windows.Media.Imaging;
-using System.ComponentModel;
 using System.Threading;
 
 namespace SmartBulbColor.Models
 {
     enum Effect { Sudden = 0, Smooth = 1 }
-    internal sealed class BulbColor : IDevice
+    internal sealed class ColorBulb : Device
     {
         public const string DeviceType = "MiBulbColor";
         public const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n"+"HOST: 239.255.255.250:1982\r\n"+"MAN: \"ssdp:discover\"\r\n"+"ST: wifi_bulb");
@@ -42,24 +37,13 @@ namespace SmartBulbColor.Models
 
         Object CommandLocker = new Object();
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = this.PropertyChanged;
-            if (handler != null)
-            {
-                handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        static BulbColor()
+        static ColorBulb()
         {
             TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
             TcpServer.Listen(10);
         }
 
-        public BulbColor(string BulbResponse)
+        public ColorBulb(string BulbResponse)
         {
             Parse(BulbResponse);
         }
@@ -88,22 +72,22 @@ namespace SmartBulbColor.Models
                 Name = response[17].Substring(NAME.Length);
             }
         }
-        public int GetId()
+        public override int GetId()
         {
             return Id;
         }
 
-        public string GetName()
+        public override string GetName()
         {
             return Name;
         }
 
-        public string GetIP()
+        public override string GetIP()
         {
             return Ip;
         }
 
-        public int GetPort()
+        public override int GetPort()
         {
             return Port;
         }
@@ -302,24 +286,25 @@ namespace SmartBulbColor.Models
         {
             Client?.Dispose();
 
-            bool success;
+            int attempts = 0;
             do
             {
                 try
                 {
-                    success = SendRequestForConnection();
+                    SendRequestForConnection();
                     Client = TcpServer.Accept();
-                    success = true;
+                    IsConnected = true;
+                    return;
                 }
                 catch (Exception)
                 {
-                    success = false;
+                    attempts++;
                 }
                 Thread.Sleep(ReconnectDelay);
 
-            } while (!success);
+            } while (attempts <= 10);
 
-            IsConnected = success;
+            OnNoResponseFromDevice();
         }
         private void SendCommand(string command)
         {
@@ -327,40 +312,26 @@ namespace SmartBulbColor.Models
             {
                 byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
 
-                var connectionLost = Client == null ? true : false;
-                do
+                var connectionLost = false;
+
+                for (int i = 0; i < 2; i++)
                 {
                     try
                     {
-                        if (connectionLost)
+                        if (Client == null || connectionLost)
                         {
                             Reconnect();
-                            connectionLost = false;
                         }
                         Client.Send(comandBuffer);
+
+                        if (connectionLost == false)
+                        {
+                            return;
+                        }
                     }
                     catch (Exception)
                     {
                         connectionLost = true;
-                    }
-                } while (connectionLost);
-            }
-        }
-        private void SendStraightCommand(string command)
-        {
-            lock (CommandLocker)
-            {
-                byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
-                using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-                {
-                    IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
-
-                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
-
-                    if (client.Connected)
-                    {
-                        client.EndConnect(result);
-                        client.Send(comandBuffer);
                     }
                 }
             }
@@ -424,7 +395,7 @@ namespace SmartBulbColor.Models
 
             if (SendStraightCommandAndConfirm(command))
             {
-                IsPowered = !IsPowered;
+                IsPowered = power;
                 return true;
             }
             else
@@ -466,7 +437,7 @@ namespace SmartBulbColor.Models
             else
                 return Name;
         }
-        public void Dispose()
+        public override void Dispose()
         {
             Client?.Dispose();
         }

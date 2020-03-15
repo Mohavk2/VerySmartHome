@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Collections.Generic;
-using System.Windows.Media;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using VerySmartHome.MainController;
-using SmartBulbColor.Tools;
-using System.Collections.ObjectModel;
-using System.Windows.Threading;
+using VerySmartHome.Interfaces;
 
 //MM - MusicMode
 
@@ -21,8 +14,10 @@ namespace SmartBulbColor.Models
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
 
-        public List<BulbColor> _bulbs = new List<BulbColor>();
-        public List<BulbColor> Bulbs 
+        private Object Locker = new Object();
+
+        public List<ColorBulb> _bulbs = new List<ColorBulb>();
+        public List<ColorBulb> Bulbs 
         {
             get 
             {
@@ -34,7 +29,7 @@ namespace SmartBulbColor.Models
                 OnBulbCollectionChanged();
             } 
         }
-        public List<BulbColor> BulbsForAmbientLight { get; private set; } = new List<BulbColor>();
+        public List<ColorBulb> BulbsForAmbientLight { get; private set; } = new List<ColorBulb>();
         public override int DeviceCount
         {
             get
@@ -43,7 +38,7 @@ namespace SmartBulbColor.Models
             }
         }
 
-        readonly static BulbDiscoverer Discoverer = new BulbDiscoverer(BulbColor.SSDPMessage);
+        readonly static BulbDiscoverer Discoverer = new BulbDiscoverer(ColorBulb.SSDPMessage);
         private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
         public bool IsMusicModeON { get; private set; } = false;
@@ -52,7 +47,8 @@ namespace SmartBulbColor.Models
 
         public BulbController()
         {
-            Discoverer.DeviceCollectionChenged += RefreshBulbCollection;
+            DeviceDiscoverer.DeviceFound += OnDeviceFound;
+            DeviceDiscoverer.DeviceLost += OnDeviceLost;
             Discoverer.StartDiscover();
         }
         public override List<IDevice> GetDevices()
@@ -64,7 +60,7 @@ namespace SmartBulbColor.Models
             }
             else return new List<IDevice>();
         }
-        public List<BulbColor> GetBulbs()
+        public List<ColorBulb> GetBulbs()
         {
             if (Bulbs.Count != 0)
             {
@@ -80,7 +76,7 @@ namespace SmartBulbColor.Models
         {
             try
             {
-                Bulbs = Discoverer.DiscoverDevices().Cast<BulbColor>().ToList();
+                Bulbs = Discoverer.DiscoverDevices().Cast<ColorBulb>().ToList();
             }
             catch (Exception NoResponseException)
             {
@@ -91,7 +87,7 @@ namespace SmartBulbColor.Models
         {
             Discoverer.StartDiscover();
         }
-        public void TogglePower(BulbColor bulb)
+        public void TogglePower(ColorBulb bulb)
         {
             bulb.TogglePower();
         }
@@ -154,7 +150,7 @@ namespace SmartBulbColor.Models
             List<String> reports = new List<string>();
             if (Bulbs.Count != 0)
             {
-                foreach (BulbColor bulb in Bulbs)
+                foreach (ColorBulb bulb in Bulbs)
                 {
                     reports.Add(bulb.GetReport());
                 }
@@ -168,15 +164,32 @@ namespace SmartBulbColor.Models
         }
         void RefreshBulbCollection(List<IDevice> foundBulbs)
         {
-            Bulbs = foundBulbs.Cast<BulbColor>().ToList();
+            Bulbs = foundBulbs.Cast<ColorBulb>().ToList();
         }
         private void OnBulbCollectionChanged()
         {
             BulbCollectionChanged?.Invoke();
         }
-        public void SetSceneHSV(BulbColor bulb, HSBColor color)
+        public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
             bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
+        }
+
+        private void OnDeviceFound(IDevice foundDevice)
+        {
+            lock(Locker)
+            {
+                Bulbs.Add((ColorBulb)foundDevice);
+                OnBulbCollectionChanged();
+            }
+        }
+        private void OnDeviceLost(IDevice foundDevice)
+        {
+            lock (Locker)
+            {
+                Bulbs.Remove((ColorBulb)foundDevice);
+                OnBulbCollectionChanged();
+            }
         }
         public void Dispose()
         {
