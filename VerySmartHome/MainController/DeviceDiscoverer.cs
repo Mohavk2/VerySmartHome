@@ -110,7 +110,7 @@ namespace VerySmartHome.MainController
             {
                 searcher.ReceiveFrom(response, ref responder);
 
-                if (responders.Count == 0 | !(responders.Contains(responder)))
+                if (responders.Count == 0 || !(responders.Contains(responder)))
                 {
                     responders.Add(responder);
                     responses.Add(Encoding.UTF8.GetString(response));
@@ -152,7 +152,7 @@ namespace VerySmartHome.MainController
                     lost.Add(device);
                 }
             }
-            if (Relevant.Count != 0)
+            else if (Relevant.Count != 0)
             {
                 for (int i = 0; i < Relevant.Count; i++)
                 {
@@ -193,7 +193,7 @@ namespace VerySmartHome.MainController
             return found;
         }
         void RemoveLost(List<IDevice> lost)
-        {
+        {            
             foreach (var device in lost)
             {
                 Relevant.Remove(device);
@@ -226,7 +226,6 @@ namespace VerySmartHome.MainController
             lock(Locker)
             {
                 DeviceFound?.Invoke(foundDevice);
-                Relevant.Add(foundDevice);
             }
         }
         private void OnDeviceLost(IDevice lostDevice)

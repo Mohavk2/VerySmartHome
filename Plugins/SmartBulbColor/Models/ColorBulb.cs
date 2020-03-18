@@ -335,7 +335,7 @@ namespace SmartBulbColor.Models
                     }
                     catch (Exception)
                     {
-                        connectionLost = true;
+                        connectionLost = true;                       
                     }
                 }
             }

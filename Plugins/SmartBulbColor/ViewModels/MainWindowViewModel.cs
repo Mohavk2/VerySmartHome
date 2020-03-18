@@ -281,7 +281,7 @@ namespace SmartBulbColor.ViewModels
             lock(RefresherLocker)
             {
                 var bulbsThatAreOnline = new ObservableCollection<ColorBulb>(SmartBulbController.GetBulbs());
-                if (bulbsThatAreOnline != null && bulbsThatAreOnline.Count != 0)
+                if (bulbsThatAreOnline != null)
                 {
                     Bulbs = bulbsThatAreOnline;
                 }
