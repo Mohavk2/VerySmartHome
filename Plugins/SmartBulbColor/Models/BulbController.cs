@@ -68,7 +68,7 @@ namespace SmartBulbColor.Models
             }
             else
             {
-                DiscoverBulbs();
+                //DiscoverBulbs();
                 return Bulbs;
             }
         }
@@ -76,7 +76,7 @@ namespace SmartBulbColor.Models
         {
             try
             {
-                Bulbs = Discoverer.DiscoverDevices().Cast<ColorBulb>().ToList();
+                Bulbs = Discoverer.FindDevices().Cast<ColorBulb>().ToList();
             }
             catch (Exception NoResponseException)
             {

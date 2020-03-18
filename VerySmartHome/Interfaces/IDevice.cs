@@ -10,6 +10,8 @@ namespace VerySmartHome.Interfaces
         string GetName();
         string GetIP();
         int GetPort();
+        void Disconnect();
+        bool GetOnlineStatus();
         void OnNoResponseFromDevice();
     }
 }

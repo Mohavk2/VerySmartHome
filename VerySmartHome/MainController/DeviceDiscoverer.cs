@@ -15,7 +15,8 @@ namespace VerySmartHome.MainController
 
     public abstract class DeviceDiscoverer
     {
-        protected List<IDevice> RelevantDevices = new List<IDevice>();
+        private List<IDevice> Relevant = new List<IDevice>();
+        private List<IDevice> LostByReport = new List<IDevice>();
 
         int RefreshTimeout = 3000;
         readonly Thread RefreshingThread;
@@ -45,7 +46,7 @@ namespace VerySmartHome.MainController
         {
             this.SearchMessage = message;
 
-            RefreshingThread = new Thread(new ThreadStart(DiscoveringDevices));
+            RefreshingThread = new Thread(new ThreadStart(Discovering));
             RefreshingThread.IsBackground = true;
             RefreshingTrigger = new ManualResetEvent(true);
 
@@ -55,63 +56,6 @@ namespace VerySmartHome.MainController
         {
             this.MulticastIP = ip;
             this.MulticastPort = port;
-        }
-        public List<IDevice> DiscoverDevices()
-        {
-            var responses = GetDeviceResponses();
-            return CreateDevices(responses);
-        }
-        public virtual List<string> GetDeviceResponses()
-        {
-            lock (Locker)
-            {
-                var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
-                var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
-                var responders = new List<EndPoint>();
-                var response = new byte[1024];
-                var responses = new List<string>();
-
-                searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
-                searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
-
-                Thread.Sleep(1000); //to give a time to devices for responding
-                searcher.ReceiveTimeout = 2000;
-                while (searcher.Available > 0)
-                {
-                    searcher.ReceiveFrom(response, ref responder);
-
-                    if (responders.Count == 0 | !(responders.Contains(responder)))
-                    {
-                        responders.Add(responder);
-                        responses.Add(Encoding.UTF8.GetString(response));
-                    }
-                }
-                searcher.Dispose();
-                return responses;
-            }
-        }
-        protected virtual List<IDevice> CreateDevices(List<string> responses)
-        {
-            List<IDevice> devices = new List<IDevice>();
-            for (int i = 0; i < responses.Count; i++)
-            {
-                IDevice device = CreateDevice(responses[i]);
-                devices.Add(device);
-            }
-            return devices;
-        }
-        protected abstract IDevice CreateDevice(string response);
-        private void DiscoveringDevices()
-        {
-            while (true)
-            {
-                RefreshingTrigger.WaitOne(Timeout.Infinite);
-
-                var foundDevices = DiscoverDevices();
-                RefreshDevicesOnline(foundDevices);
-                Thread.Sleep(RefreshTimeout);
-            }
         }
         public void StartDiscover()
         {
@@ -124,59 +68,155 @@ namespace VerySmartHome.MainController
                 RefreshingThread.Start();
             }
         }
+        private void Discovering()
+        {
+            while (true)
+            {
+                RefreshingTrigger.WaitOne(Timeout.Infinite);
+                RefreshDevices();
+                Thread.Sleep(RefreshTimeout);
+            }
+        }
+        public void RefreshDevices()
+        {
+            lock(Locker)
+            {
+                RemoveLostByReport();
+                var responses = GetResponses();
+                var foundDevices = CreateDevices(responses);
+                RefreshRelevant(foundDevices);
+            }
+        }
+        public List<IDevice> FindDevices()
+        {
+            RefreshDevices();
+            return new List<IDevice>(Relevant);
+        }
+        public virtual List<string> GetResponses()
+        {
+            var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
+            var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+            var responders = new List<EndPoint>();
+            var response = new byte[1024];
+            var responses = new List<string>();
+
+            searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
+            searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
+
+            Thread.Sleep(1000); //to give a time to devices for responding
+            searcher.ReceiveTimeout = 2000;
+            while (searcher.Available > 0)
+            {
+                searcher.ReceiveFrom(response, ref responder);
+
+                if (responders.Count == 0 | !(responders.Contains(responder)))
+                {
+                    responders.Add(responder);
+                    responses.Add(Encoding.UTF8.GetString(response));
+                }
+            }
+            searcher.Dispose();
+            return responses;
+        }
+        protected virtual List<IDevice> CreateDevices(List<string> responses)
+        {
+            List<IDevice> devices = new List<IDevice>();
+            for (int i = 0; i < responses.Count; i++)
+            {
+                IDevice device = CreateDevice(responses[i]);
+                devices.Add(device);
+            }
+            return devices;
+        }
+        protected abstract IDevice CreateDevice(string response);
         public void StopDiscover()
         {
             RefreshingTrigger.Reset();
         }
-        private void RefreshDevicesOnline(List<IDevice> foundDevices)
+        private void RefreshRelevant(List<IDevice> discovered)
         {
-            RemoveLostDevices(foundDevices);
-            AddNewDevices(foundDevices);
+            var lost = PickLost(discovered);
+            RemoveLost(lost);
+            var found = PickFound(discovered);
+            AddFound(found);
         }
-        private void RemoveLostDevices(List<IDevice> foundDevices)
+        private List<IDevice> PickLost(List<IDevice> discovered)
         {
-            if(foundDevices == null || foundDevices.Count == 0)
+            List<IDevice> lost = new List<IDevice>();
+
+            if (discovered.Count == 0)
             {
-                foreach(var device in RelevantDevices)
+                foreach(var device in Relevant)
                 {
-                    OnDeviceLost(device);
+                    lost.Add(device);
                 }
-                RelevantDevices.Clear();
             }
-            if (RelevantDevices != null && RelevantDevices.Count != 0)
+            if (Relevant.Count != 0)
             {
-                for (int i = 0; i < RelevantDevices.Count; i++)
+                for (int i = 0; i < Relevant.Count; i++)
                 {
                     bool containsLost = true;
-                    for (int j = 0; j < foundDevices.Count; j++)
+                    for (int j = 0; j < discovered.Count; j++)
                     {
-                        if (foundDevices[j].GetId() == RelevantDevices[i].GetId())
+                        if (discovered[j].GetId() == Relevant[i].GetId())
                             containsLost = false;
                     }
                     if (containsLost)
                     {
-                        var lostDevice = RelevantDevices[i];
-                        OnDeviceLost(lostDevice);
+                        lost.Add(Relevant[i]);
                     }
                 }
             }
+            return lost;
         }
-        private void AddNewDevices(List<IDevice> foundDevices)
+        private List<IDevice> PickFound(List<IDevice> discovered)
         {
-            if (foundDevices != null && foundDevices.Count != 0)
+            List<IDevice> found = new List<IDevice>();
+
+            if (discovered.Count != 0)
             {
-                for (int i = 0; i < foundDevices.Count; i++)
+                for (int i = 0; i < discovered.Count; i++)
                 {
                     bool alreadyExists = false;
-                    for (int j = 0; j < RelevantDevices.Count; j++)
+                    for (int j = 0; j < Relevant.Count; j++)
                     {
-                        if (foundDevices[i].GetId() == RelevantDevices[j].GetId())
+                        if (discovered[i].GetId() == Relevant[j].GetId())
                             alreadyExists = true;
                     }
                     if (alreadyExists == false)
                     {
-                        var foundDevice = foundDevices[i];
-                        OnDeviceFound(foundDevice);
+                        found.Add(discovered[i]);
+                    }
+                }
+            }
+            return found;
+        }
+        void RemoveLost(List<IDevice> lost)
+        {
+            foreach (var device in lost)
+            {
+                Relevant.Remove(device);
+                OnDeviceLost(device);
+            }
+        }
+        void AddFound(List<IDevice> found)
+        {
+            foreach (var device in found)
+            {
+                Relevant.Add(device);
+                OnDeviceFound(device);
+            }
+        }
+        void RemoveLostByReport()
+        {
+            lock(Locker)
+            {
+                if (LostByReport.Count != 0 && Relevant.Count != 0)
+                {
+                    foreach(var device in LostByReport)
+                    {
+                        Relevant.Remove(device);
                     }
                 }
             }
@@ -186,7 +226,7 @@ namespace VerySmartHome.MainController
             lock(Locker)
             {
                 DeviceFound?.Invoke(foundDevice);
-                RelevantDevices.Add(foundDevice);
+                Relevant.Add(foundDevice);
             }
         }
         private void OnDeviceLost(IDevice lostDevice)
@@ -194,12 +234,12 @@ namespace VerySmartHome.MainController
             lock(Locker)
             {
                 DeviceLost?.Invoke(lostDevice);
-                RelevantDevices.Remove(lostDevice);
-                lostDevice?.Dispose();
+                lostDevice.Disconnect();
             }
         }
         private void OnNoResponseFromDevice(IDevice device)
         {
+            LostByReport.Add(device);
             OnDeviceLost(device);
         }
     }

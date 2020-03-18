@@ -33,6 +33,8 @@ namespace VerySmartHome.MainController
         public abstract string GetName();
         public abstract string GetIP();
         public abstract int GetPort();
+        public abstract bool GetOnlineStatus();
+        public abstract void Disconnect();
         public abstract void Dispose();
     }
 }

@@ -306,6 +306,10 @@ namespace SmartBulbColor.Models
 
             OnNoResponseFromDevice();
         }
+        public override void Disconnect()
+        {
+            if (Client != null) Client.Dispose();
+        }
         private void SendCommand(string command)
         {
             lock (CommandLocker)

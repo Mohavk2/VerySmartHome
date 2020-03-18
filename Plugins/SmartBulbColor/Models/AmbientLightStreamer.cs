@@ -15,12 +15,11 @@ namespace SmartBulbColor.Models
         public ScreenColorAnalyzer ColorAnalyzer;
         private Object Locker = new Object();
 
+        Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
+
         public AmbientLightStreamer()
         {
-            DeviceDiscoverer.DeviceFound += OnDeviceFound;
             DeviceDiscoverer.DeviceLost += OnDeviceLost;
-
-            List<ColorBulb> BulbsForStreaming = new List<ColorBulb>();
 
             ColorAnalyzer = new ScreenColorAnalyzer();
 
@@ -31,7 +30,7 @@ namespace SmartBulbColor.Models
 
         public void SetBulbsForStreaming(List<ColorBulb> bulbs)
         {
-            BulbsForStreaming = bulbs;
+            BulbsForStreaming = new List<ColorBulb>(bulbs);
         }
 
         public void StartSreaming()
@@ -65,12 +64,13 @@ namespace SmartBulbColor.Models
 
                 if (BulbsForStreaming != null && BulbsForStreaming.Count != 0)
                 {
-                    lock (Locker)
+                    if(BulbsToRemove.Count != 0)
                     {
-                        foreach (var bulb in BulbsForStreaming)
-                        {
-                            bulb.SetSceneHSV(hue, sat, bright);
-                        }
+                        BulbsForStreaming.Remove(BulbsToRemove.Dequeue());
+                    }
+                    foreach (var bulb in BulbsForStreaming)
+                    {
+                        bulb.SetSceneHSV(hue, sat, bright);
                     }
                 }
                 else StopStreaming();
@@ -79,26 +79,9 @@ namespace SmartBulbColor.Models
                 Thread.Sleep(60);
             }
         }
-        private void OnDeviceFound(IDevice foundDevice)
-        {
-            lock(Locker)
-            {
-                if(BulbsForStreaming == null)
-                {
-                    BulbsForStreaming = new List<ColorBulb>();
-                }
-                BulbsForStreaming.Add((ColorBulb)foundDevice);
-            }
-        }
         private void OnDeviceLost(IDevice foundDevice)
         {
-            lock (Locker)
-            {
-                if(BulbsForStreaming != null && BulbsForStreaming.Count != 0)
-                {
-                    BulbsForStreaming.Remove((ColorBulb)foundDevice);
-                }
-            }
+            BulbsToRemove.Enqueue((ColorBulb)foundDevice);
         }
     }
 }
