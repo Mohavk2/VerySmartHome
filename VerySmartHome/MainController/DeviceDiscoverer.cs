@@ -13,6 +13,7 @@ namespace VerySmartHome.MainController
     public delegate void DeviceFoundEventHandler(IDevice foundDevice);
     public delegate void DeviceLostEventHandler(IDevice lostDevice);
 
+    //TO DO add passive listening of Multicast EndPoint to recognize if device is steel online
     public abstract class DeviceDiscoverer
     {
         private List<IDevice> Relevant = new List<IDevice>();
@@ -41,7 +42,6 @@ namespace VerySmartHome.MainController
                 return localIP = endPoint.Address;
             }
         }
-
         public DeviceDiscoverer(string message)
         {
             this.SearchMessage = message;

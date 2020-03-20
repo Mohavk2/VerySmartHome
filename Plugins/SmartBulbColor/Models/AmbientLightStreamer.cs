@@ -10,12 +10,12 @@ namespace SmartBulbColor.Models
     {
         List<ColorBulb> BulbsForStreaming;
 
+        Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
+
         readonly Thread AmbilightThread;
         readonly ManualResetEvent AmbilightTrigger;
         public ScreenColorAnalyzer ColorAnalyzer;
         private Object Locker = new Object();
-
-        Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
 
         public AmbientLightStreamer()
         {
