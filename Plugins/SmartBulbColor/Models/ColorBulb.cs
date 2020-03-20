@@ -26,6 +26,7 @@ namespace SmartBulbColor.Models
         private const string NAME = "name: ";
 
         private const int ReconnectDelay = 160;
+        private const int ReconnectionAttemptsCount = 3;
 
         private const string LightOnImgPath = "/Models/LightON.png";
         private const string LightOffImgPath = "/Models/LightOFF.png";
@@ -197,7 +198,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("FwVer");
             }
         }
-
         private int _brightness = 0;
         public int Brightness
         {
@@ -208,7 +208,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Brightness");
             }
         }
-
         private int _colorMode = 0;
         public int ColorMode 
         {
@@ -219,7 +218,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("ColorMode");
             }
         }
-
         private int _colorTemperature = 0;
         public int ColorTemperature
         {
@@ -230,7 +228,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("ColorTemperature");
             }
         }
-
         private int _rgb = 0;
         public int Rgb
         {
@@ -241,7 +238,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("Rgb");
             }
         }
-
         private int _hue = 0;
         public int Hue
         {
@@ -252,7 +248,6 @@ namespace SmartBulbColor.Models
                 OnPropertyChanged("_hue");
             }
         }
-
         private int _saturation = 0;
         public int Saturation
         {
@@ -302,7 +297,7 @@ namespace SmartBulbColor.Models
                 }
                 Thread.Sleep(ReconnectDelay);
 
-            } while (attempts <= 10);
+            } while (attempts <= ReconnectionAttemptsCount);
 
             OnNoResponseFromDevice();
         }
@@ -342,6 +337,24 @@ namespace SmartBulbColor.Models
         }
         private bool SendStraightCommandAndConfirm(string command)
         {
+            var attemts = 0;
+            do
+            {
+                try
+                {
+                    var result = TrySendStraightCommand(command);
+                    return result;
+                }
+                catch
+                {
+                    attemts++;
+                }
+            } while (attemts <= ReconnectionAttemptsCount);
+            OnNoResponseFromDevice();
+            return false;
+        }
+        private bool TrySendStraightCommand(string command)
+        {
             lock (CommandLocker)
             {
                 byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
@@ -368,6 +381,11 @@ namespace SmartBulbColor.Models
                     throw new Exception($"the device id: {this.Id} doesn't respond");
                 }
             }
+        }
+        private bool SendRequestForConnection()
+        {
+            var command = $"{{\"id\":{Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalPort}]}}\r\n";
+            return TrySendStraightCommand(command);
         }
         public void SetName(string name)
         {
@@ -407,12 +425,6 @@ namespace SmartBulbColor.Models
                 return false;
             }
         }
-        private bool SendRequestForConnection()
-        {
-            var command = $"{{\"id\":{Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalPort}]}}\r\n";
-            return SendStraightCommandAndConfirm(command);
-        }
-
         public void SetColorMode(int value)
         {
             var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"on\", \"smooth\", 30, {value}]}}\r\n";
