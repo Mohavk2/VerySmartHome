@@ -162,10 +162,6 @@ namespace SmartBulbColor.Models
                 return reports;
             }
         }
-        void RefreshBulbCollection(List<IDevice> foundBulbs)
-        {
-            Bulbs = foundBulbs.Cast<ColorBulb>().ToList();
-        }
         private void OnBulbCollectionChanged()
         {
             BulbCollectionChanged?.Invoke();
@@ -183,11 +179,11 @@ namespace SmartBulbColor.Models
                 OnBulbCollectionChanged();
             }
         }
-        private void OnDeviceLost(IDevice foundDevice)
+        private void OnDeviceLost(IDevice lostDevice)
         {
             lock (Locker)
             {
-                Bulbs.Remove((ColorBulb)foundDevice);
+                Bulbs.Remove((ColorBulb)lostDevice);
                 OnBulbCollectionChanged();
             }
         }
