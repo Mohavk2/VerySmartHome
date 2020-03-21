@@ -18,7 +18,7 @@ namespace VerySmartHome.MainController
         /// <returns></returns>
         public bool ContainsId(Device device)
         {
-            if(device != null)
+            if (device != null)
             {
                 for (int i = 0; i < Items.Count; i++)
                 {
@@ -36,7 +36,7 @@ namespace VerySmartHome.MainController
         /// <param name="device">Item to remove</param>
         public void RemoveById(Device device)
         {
-            if(device != null)
+            if (device != null)
             {
                 for (int i = 0; i < Items.Count; i++)
                 {
@@ -48,7 +48,7 @@ namespace VerySmartHome.MainController
         /// <summary>
         /// Adds only new items in the collection from a given list. Compares by Id. Returns added items.
         /// </summary>
-        /// <param name="devices">List of devices to compare</param>
+        /// <param name="devices">Items to compare</param>
         /// <returns>Added items</returns>
         public List<Device> AddNewAndReturn(List<Device> devices)
         {
@@ -68,22 +68,65 @@ namespace VerySmartHome.MainController
         /// <summary>
         /// Remove obsolete items in compare to a given list. Compares by Id. Returns removed items.
         /// </summary>
-        /// <param name="devices"></param>
+        /// <param name="devices">Items to compare</param>
         /// <returns>Removed items</returns>
         public List<Device> RemoveObsoleteAndReturn(List<Device> devices)
         {
             var obsolete = new List<Device>();
             if (devices == null)
                 return (List<Device>)Items;
-            for(int i = 0; i < Items.Count; i++)
+            for (int i = 0; i < Items.Count; i++)
             {
-                if(!devices.Contains(Items[i]))
+                if (!devices.Contains(Items[i]))
                 {
                     obsolete.Add(Items[i]);
                     Items.RemoveAt(i);
                 }
             }
             return obsolete;
+        }
+        /// <summary>
+        /// Adds only new items in the collection from a given list. Compares by Id.
+        /// </summary>
+        /// <param name="devices">Items to compare</param>
+        public void AddNew(List<Device> devices)
+        {
+            if (devices != null)
+            {
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    if (!Items.Contains(devices[i]))
+                    {
+                        Items.Add(devices[i]);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Remove obsolete items in compare to a given list. Compares by Id.
+        /// </summary>
+        /// <param name="devices">Items to compare</param>
+        public void RemoveObsolete(List<Device> devices)
+        {
+            if (devices != null)
+            {
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    if (!devices.Contains(Items[i]))
+                    {
+                        Items.RemoveAt(i);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// A items and adds new based on given list
+        /// </summary>
+        /// <param name="devices">Items to compare</param>
+        public void Refresh(List<Device> devices)
+        {
+            RemoveObsolete(devices);
+            AddNew(devices);
         }
     }
 }
