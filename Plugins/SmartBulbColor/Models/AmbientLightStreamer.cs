@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using VerySmartHome.Interfaces;
 using VerySmartHome.MainController;
 
 namespace SmartBulbColor.Models
@@ -79,7 +78,7 @@ namespace SmartBulbColor.Models
                 Thread.Sleep(60);
             }
         }
-        private void OnDeviceLost(IDevice foundDevice)
+        private void OnDeviceLost(Device foundDevice)
         {
             BulbsToRemove.Enqueue((ColorBulb)foundDevice);
         }

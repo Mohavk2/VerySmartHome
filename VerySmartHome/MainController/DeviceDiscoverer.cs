@@ -6,18 +6,17 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public delegate void DeviceFoundEventHandler(IDevice foundDevice);
-    public delegate void DeviceLostEventHandler(IDevice lostDevice);
+    public delegate void DeviceFoundEventHandler(Device foundDevice);
+    public delegate void DeviceLostEventHandler(Device lostDevice);
 
     //TO DO add passive listening of Multicast EndPoint to recognize if device is steel online
     public abstract class DeviceDiscoverer
     {
-        private List<IDevice> Relevant = new List<IDevice>();
-        private List<IDevice> LostByReport = new List<IDevice>();
+        private List<Device> Relevant = new List<Device>();
+        private List<Device> LostByReport = new List<Device>();
 
         int RefreshTimeout = 3000;
         readonly Thread RefreshingThread;
@@ -87,10 +86,10 @@ namespace VerySmartHome.MainController
                 RefreshRelevant(foundDevices);
             }
         }
-        public List<IDevice> FindDevices()
+        public List<Device> FindDevices()
         {
             RefreshDevices();
-            return new List<IDevice>(Relevant);
+            return new List<Device>(Relevant);
         }
         public virtual List<string> GetResponses()
         {
@@ -119,31 +118,31 @@ namespace VerySmartHome.MainController
             searcher.Dispose();
             return responses;
         }
-        protected virtual List<IDevice> CreateDevices(List<string> responses)
+        protected virtual List<Device> CreateDevices(List<string> responses)
         {
-            List<IDevice> devices = new List<IDevice>();
+            List<Device> devices = new List<Device>();
             for (int i = 0; i < responses.Count; i++)
             {
-                IDevice device = CreateDevice(responses[i]);
+                Device device = CreateDevice(responses[i]);
                 devices.Add(device);
             }
             return devices;
         }
-        protected abstract IDevice CreateDevice(string response);
+        protected abstract Device CreateDevice(string response);
         public void StopDiscover()
         {
             RefreshingTrigger.Reset();
         }
-        private void RefreshRelevant(List<IDevice> discovered)
+        private void RefreshRelevant(List<Device> discovered)
         {
             var lost = PickLost(discovered);
             RemoveLost(lost);
             var found = PickFound(discovered);
             AddFound(found);
         }
-        private List<IDevice> PickLost(List<IDevice> discovered)
+        private List<Device> PickLost(List<Device> discovered)
         {
-            List<IDevice> lost = new List<IDevice>();
+            List<Device> lost = new List<Device>();
 
             if (discovered.Count == 0)
             {
@@ -170,9 +169,9 @@ namespace VerySmartHome.MainController
             }
             return lost;
         }
-        private List<IDevice> PickFound(List<IDevice> discovered)
+        private List<Device> PickFound(List<Device> discovered)
         {
-            List<IDevice> found = new List<IDevice>();
+            List<Device> found = new List<Device>();
 
             if (discovered.Count != 0)
             {
@@ -192,7 +191,7 @@ namespace VerySmartHome.MainController
             }
             return found;
         }
-        void RemoveLost(List<IDevice> lost)
+        void RemoveLost(List<Device> lost)
         {            
             foreach (var device in lost)
             {
@@ -200,7 +199,7 @@ namespace VerySmartHome.MainController
                 OnDeviceLost(device);
             }
         }
-        void AddFound(List<IDevice> found)
+        void AddFound(List<Device> found)
         {
             foreach (var device in found)
             {
@@ -221,14 +220,14 @@ namespace VerySmartHome.MainController
                 }
             }
         }
-        private void OnDeviceFound(IDevice foundDevice)
+        private void OnDeviceFound(Device foundDevice)
         {
             lock(Locker)
             {
                 DeviceFound?.Invoke(foundDevice);
             }
         }
-        private void OnDeviceLost(IDevice lostDevice)
+        private void OnDeviceLost(Device lostDevice)
         {
             lock(Locker)
             {
@@ -236,7 +235,7 @@ namespace VerySmartHome.MainController
                 lostDevice.Disconnect();
             }
         }
-        private void OnNoResponseFromDevice(IDevice device)
+        private void OnNoResponseFromDevice(Device device)
         {
             LostByReport.Add(device);
             OnDeviceLost(device);
