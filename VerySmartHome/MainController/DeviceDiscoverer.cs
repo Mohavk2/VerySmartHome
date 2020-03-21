@@ -15,7 +15,7 @@ namespace VerySmartHome.MainController
     //TO DO add passive listening of Multicast EndPoint to recognize if device is steel online
     public abstract class DeviceDiscoverer
     {
-        private List<Device> Relevant = new List<Device>();
+        private DeviceCollectionID Relevant = new DeviceCollectionID();
         private List<Device> LostByReport = new List<Device>();
 
         int RefreshTimeout = 3000;
@@ -67,6 +67,10 @@ namespace VerySmartHome.MainController
                 RefreshingThread.Start();
             }
         }
+        public void StopDiscover()
+        {
+            RefreshingTrigger.Reset();
+        }
         private void Discovering()
         {
             while (true)
@@ -78,12 +82,15 @@ namespace VerySmartHome.MainController
         }
         public void RefreshDevices()
         {
-            lock(Locker)
+            lock (Locker)
             {
                 RemoveLostByReport();
                 var responses = GetResponses();
                 var foundDevices = CreateDevices(responses);
-                RefreshRelevant(foundDevices);
+                var lost = Relevant.RemoveObsoleteAndReturn(foundDevices);
+                var found = Relevant.AddNewAndReturn(foundDevices);
+                NotifyLost(lost);
+                NotifyFound(found);
             }
         }
         public List<Device> FindDevices()
@@ -103,7 +110,7 @@ namespace VerySmartHome.MainController
             searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
             searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
 
-            Thread.Sleep(1000); //to give a time to devices for responding
+            Thread.Sleep(1500); //to give a time to devices for responding
             searcher.ReceiveTimeout = 2000;
             while (searcher.Available > 0)
             {
@@ -129,107 +136,43 @@ namespace VerySmartHome.MainController
             return devices;
         }
         protected abstract Device CreateDevice(string response);
-        public void StopDiscover()
-        {
-            RefreshingTrigger.Reset();
-        }
-        private void RefreshRelevant(List<Device> discovered)
-        {
-            var lost = PickLost(discovered);
-            RemoveLost(lost);
-            var found = PickFound(discovered);
-            AddFound(found);
-        }
-        private List<Device> PickLost(List<Device> discovered)
-        {
-            List<Device> lost = new List<Device>();
-
-            if (discovered.Count == 0)
-            {
-                foreach(var device in Relevant)
-                {
-                    lost.Add(device);
-                }
-            }
-            else if (Relevant.Count != 0)
-            {
-                for (int i = 0; i < Relevant.Count; i++)
-                {
-                    bool containsLost = true;
-                    for (int j = 0; j < discovered.Count; j++)
-                    {
-                        if (discovered[j].GetId() == Relevant[i].GetId())
-                            containsLost = false;
-                    }
-                    if (containsLost)
-                    {
-                        lost.Add(Relevant[i]);
-                    }
-                }
-            }
-            return lost;
-        }
-        private List<Device> PickFound(List<Device> discovered)
-        {
-            List<Device> found = new List<Device>();
-
-            if (discovered.Count != 0)
-            {
-                for (int i = 0; i < discovered.Count; i++)
-                {
-                    bool alreadyExists = false;
-                    for (int j = 0; j < Relevant.Count; j++)
-                    {
-                        if (discovered[i].GetId() == Relevant[j].GetId())
-                            alreadyExists = true;
-                    }
-                    if (alreadyExists == false)
-                    {
-                        found.Add(discovered[i]);
-                    }
-                }
-            }
-            return found;
-        }
-        void RemoveLost(List<Device> lost)
-        {            
-            foreach (var device in lost)
-            {
-                Relevant.Remove(device);
-                OnDeviceLost(device);
-            }
-        }
-        void AddFound(List<Device> found)
-        {
-            foreach (var device in found)
-            {
-                Relevant.Add(device);
-                OnDeviceFound(device);
-            }
-        }
         void RemoveLostByReport()
         {
-            lock(Locker)
+            lock (Locker)
             {
                 if (LostByReport.Count != 0 && Relevant.Count != 0)
                 {
-                    foreach(var device in LostByReport)
+                    foreach (var device in LostByReport)
                     {
-                        Relevant.Remove(device);
+                        Relevant.RemoveById(device);
                     }
                 }
+            }
+        }
+        void NotifyLost(List<Device> lost)
+        {
+            foreach (var device in lost)
+            {
+                OnDeviceLost(device);
+            }
+        }
+        void NotifyFound(List<Device> found)
+        {
+            foreach (var device in found)
+            {
+                OnDeviceFound(device);
             }
         }
         private void OnDeviceFound(Device foundDevice)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 DeviceFound?.Invoke(foundDevice);
             }
         }
         private void OnDeviceLost(Device lostDevice)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 DeviceLost?.Invoke(lostDevice);
                 lostDevice.Disconnect();

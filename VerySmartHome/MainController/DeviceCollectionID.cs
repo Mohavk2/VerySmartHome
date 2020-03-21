@@ -30,6 +30,20 @@ namespace VerySmartHome.MainController
             }
             return false;
         }
+        private bool ContainsId(IList<Device> devices, Device device)
+        {
+            if (devices != null && device != null)
+            {
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    if (devices[i].GetId() == device.GetId())
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         /// <summary>
         /// Removes item that matches by Id. Using GetId() method.
         /// </summary>
@@ -41,7 +55,18 @@ namespace VerySmartHome.MainController
                 for (int i = 0; i < Items.Count; i++)
                 {
                     if (Items[i].GetId() == device.GetId())
-                        Items.RemoveAt(i);
+                        RemoveAt(i);
+                }
+            }
+        }
+        public void RemoveBunch(List<Device> devices)
+        {
+            if (devices != null)
+            {
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    if (ContainsId(Items, devices[i]))
+                        RemoveById(devices[i]);
                 }
             }
         }
@@ -57,10 +82,10 @@ namespace VerySmartHome.MainController
                 return added;
             for (int i = 0; i < devices.Count; i++)
             {
-                if (!Items.Contains(devices[i]))
+                if (!ContainsId(devices[i]))
                 {
                     added.Add(devices[i]);
-                    Items.Add(devices[i]);
+                    Add(devices[i]);
                 }
             }
             return added;
@@ -77,10 +102,10 @@ namespace VerySmartHome.MainController
                 return (List<Device>)Items;
             for (int i = 0; i < Items.Count; i++)
             {
-                if (!devices.Contains(Items[i]))
+                if (!ContainsId(devices, Items[i]))
                 {
                     obsolete.Add(Items[i]);
-                    Items.RemoveAt(i);
+                    RemoveAt(i);
                 }
             }
             return obsolete;
@@ -95,9 +120,9 @@ namespace VerySmartHome.MainController
             {
                 for (int i = 0; i < devices.Count; i++)
                 {
-                    if (!Items.Contains(devices[i]))
+                    if (!Contains(devices[i]))
                     {
-                        Items.Add(devices[i]);
+                        Add(devices[i]);
                     }
                 }
             }
@@ -112,9 +137,9 @@ namespace VerySmartHome.MainController
             {
                 for (int i = 0; i < Items.Count; i++)
                 {
-                    if (!devices.Contains(Items[i]))
+                    if (!ContainsId(devices, Items[i]))
                     {
-                        Items.RemoveAt(i);
+                        RemoveAt(i);
                     }
                 }
             }
