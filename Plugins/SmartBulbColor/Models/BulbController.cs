@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using VerySmartHome.MainController;
-using VerySmartHome.Interfaces;
 
 //MM - MusicMode
 
@@ -51,14 +50,14 @@ namespace SmartBulbColor.Models
             DeviceDiscoverer.DeviceLost += OnDeviceLost;
             Discoverer.StartDiscover();
         }
-        public override List<IDevice> GetDevices()
+        public override List<Device> GetDevices()
         {
             if (Bulbs.Count != 0)
             {
-                List<IDevice> devices = new List<IDevice>(Bulbs);
+                List<Device> devices = new List<Device>(Bulbs);
                 return devices;
             }
-            else return new List<IDevice>();
+            else return new List<Device>();
         }
         public List<ColorBulb> GetBulbs()
         {
@@ -171,7 +170,7 @@ namespace SmartBulbColor.Models
             bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
         }
 
-        private void OnDeviceFound(IDevice foundDevice)
+        private void OnDeviceFound(Device foundDevice)
         {
             lock(Locker)
             {
@@ -179,7 +178,7 @@ namespace SmartBulbColor.Models
                 OnBulbCollectionChanged();
             }
         }
-        private void OnDeviceLost(IDevice lostDevice)
+        private void OnDeviceLost(Device lostDevice)
         {
             lock (Locker)
             {

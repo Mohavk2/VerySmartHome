@@ -81,7 +81,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MainController\Device.cs" />
-    <Compile Include="Interfaces\IDevice.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
     <Compile Include="MainController\DeviceDiscoverer.cs" />
@@ -130,6 +129,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Background.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
