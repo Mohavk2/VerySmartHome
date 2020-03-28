@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace VerySmartHome.MainController
 {
@@ -15,8 +16,7 @@ namespace VerySmartHome.MainController
     //TO DO add passive listening of Multicast EndPoint to recognize if device is steel online
     public abstract class DeviceDiscoverer
     {
-        private DeviceCollectionID Relevant = new DeviceCollectionID();
-        private List<Device> LostByReport = new List<Device>();
+        private DeviceByIdNotifyList Relevant = new DeviceByIdNotifyList();
 
         int RefreshTimeout = 3000;
         readonly Thread RefreshingThread;
@@ -49,6 +49,8 @@ namespace VerySmartHome.MainController
             RefreshingThread.IsBackground = true;
             RefreshingTrigger = new ManualResetEvent(true);
 
+            Relevant.DeviceAdded += OnDeviceFound;
+            Relevant.DeviceRemoved += OnDeviceLost;
             Device.NoResponseFromDevice += OnNoResponseFromDevice;
         }
         public DeviceDiscoverer(string message, string ip, int port) : this(message)
@@ -84,13 +86,10 @@ namespace VerySmartHome.MainController
         {
             lock (Locker)
             {
-                RemoveLostByReport();
                 var responses = GetResponses();
                 var foundDevices = CreateDevices(responses);
-                var lost = Relevant.RemoveObsoleteAndReturn(foundDevices);
-                var found = Relevant.AddNewAndReturn(foundDevices);
-                NotifyLost(lost);
-                NotifyFound(found);
+                Relevant.RemoveObsoleteAndNotify(foundDevices);
+                Relevant.AddNewAndNotify(foundDevices);
             }
         }
         public List<Device> FindDevices()
@@ -136,52 +135,26 @@ namespace VerySmartHome.MainController
             return devices;
         }
         protected abstract Device CreateDevice(string response);
-        void RemoveLostByReport()
-        {
-            lock (Locker)
-            {
-                if (LostByReport.Count != 0 && Relevant.Count != 0)
-                {
-                    foreach (var device in LostByReport)
-                    {
-                        Relevant.RemoveById(device);
-                    }
-                }
-            }
-        }
-        void NotifyLost(List<Device> lost)
-        {
-            foreach (var device in lost)
-            {
-                OnDeviceLost(device);
-            }
-        }
-        void NotifyFound(List<Device> found)
-        {
-            foreach (var device in found)
-            {
-                OnDeviceFound(device);
-            }
-        }
+
         private void OnDeviceFound(Device foundDevice)
         {
-            lock (Locker)
-            {
-                DeviceFound?.Invoke(foundDevice);
-            }
+            DeviceFound?.Invoke(foundDevice);
         }
         private void OnDeviceLost(Device lostDevice)
         {
-            lock (Locker)
-            {
-                DeviceLost?.Invoke(lostDevice);
-                lostDevice.Disconnect();
-            }
+             DeviceLost?.Invoke(lostDevice);
+             lostDevice.Disconnect();
         }
-        private void OnNoResponseFromDevice(Device device)
+        private void OnNoResponseFromDevice(Device lostDevice)
         {
-            LostByReport.Add(device);
-            OnDeviceLost(device);
+            Task removeDevice = new Task( ()=> 
+            {
+                lock (Locker)
+                {
+                    Relevant.RemoveObsoleteAndNotify(lostDevice);
+                }
+            });
+            removeDevice.Start();
         }
     }
 }

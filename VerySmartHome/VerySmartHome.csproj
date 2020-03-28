@@ -81,7 +81,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MainController\Device.cs" />
-    <Compile Include="MainController\DeviceCollectionID.cs" />
+    <Compile Include="MainController\DeviceByIdNotifyList.cs" />
     <Compile Include="MainController\DeviceController.cs" />
     <Compile Include="MainController\MainController.cs" />
     <Compile Include="MainController\DeviceDiscoverer.cs" />

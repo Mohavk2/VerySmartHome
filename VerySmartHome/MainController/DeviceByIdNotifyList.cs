@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace VerySmartHome.MainController
 {
-    class DeviceCollectionID : ObservableCollection<Device>
+    class DeviceByIdNotifyList : List<Device>
     {
-        public DeviceCollectionID() : base() { }
-        public DeviceCollectionID(IEnumerable<Device> collection) : base(collection) { }
+        public delegate void DeviceInOutHandler(Device device);
+        public event DeviceInOutHandler DeviceAdded;
+        public event DeviceInOutHandler DeviceRemoved;
+        public DeviceByIdNotifyList() : base() { }
+        public DeviceByIdNotifyList(IEnumerable<Device> collection) : base(collection) { }
         /// <summary>
         /// Check if the collection contains an item with the same Id
         /// </summary>
@@ -20,9 +18,9 @@ namespace VerySmartHome.MainController
         {
             if (device != null)
             {
-                for (int i = 0; i < Items.Count; i++)
+                for (int i = 0; i < this.Count; i++)
                 {
-                    if (Items[i].GetId() == device.GetId())
+                    if (this[i].GetId() == device.GetId())
                     {
                         return true;
                     }
@@ -52,9 +50,9 @@ namespace VerySmartHome.MainController
         {
             if (device != null)
             {
-                for (int i = 0; i < Items.Count; i++)
+                for (int i = 0; i < this.Count; i++)
                 {
-                    if (Items[i].GetId() == device.GetId())
+                    if (this[i].GetId() == device.GetId())
                         RemoveAt(i);
                 }
             }
@@ -65,50 +63,69 @@ namespace VerySmartHome.MainController
             {
                 for (int i = 0; i < devices.Count; i++)
                 {
-                    if (ContainsId(Items, devices[i]))
+                    if (ContainsId(this, devices[i]))
                         RemoveById(devices[i]);
                 }
             }
         }
         /// <summary>
-        /// Adds only new items in the collection from a given list. Compares by Id. Returns added items.
+        /// Adds item. Compares by Id. Notifies.
+        /// </summary>
+        /// <param name="device">Item to add</param>
+        public void AddNewAndNotify(Device device)
+        {
+            if (!ContainsId(device))
+            {
+                Add(device);
+                OnDeviceAdded(device);
+            }
+        }
+        /// <summary>
+        /// Removes item. Compares by Id. Notifies.
+        /// </summary>
+        /// <param name="device">Item to remove</param>
+        public void RemoveObsoleteAndNotify(Device device)
+        {
+            for(int i = 0; i < this.Count; i++)
+            {
+                if(this[i].GetId() == device.GetId())
+                {
+                    var toRemove = this[i];
+                    RemoveAt(i);
+                    OnDeviceRemoved(toRemove);
+                }
+            }
+        }
+        /// <summary>
+        /// Adds only new items in the collection from a given list. Compares by Id. Notifies.
         /// </summary>
         /// <param name="devices">Items to compare</param>
-        /// <returns>Added items</returns>
-        public List<Device> AddNewAndReturn(List<Device> devices)
+        public void AddNewAndNotify(List<Device> devices)
         {
-            var added = new List<Device>();
-            if (devices == null)
-                return added;
             for (int i = 0; i < devices.Count; i++)
             {
                 if (!ContainsId(devices[i]))
                 {
-                    added.Add(devices[i]);
                     Add(devices[i]);
+                    OnDeviceAdded(devices[i]);
                 }
             }
-            return added;
         }
         /// <summary>
-        /// Remove obsolete items in compare to a given list. Compares by Id. Returns removed items.
+        /// Remove obsolete items in compare to a given list. Compares by Id. Notifies.
         /// </summary>
         /// <param name="devices">Items to compare</param>
-        /// <returns>Removed items</returns>
-        public List<Device> RemoveObsoleteAndReturn(List<Device> devices)
+        public void RemoveObsoleteAndNotify(List<Device> devices)
         {
-            var obsolete = new List<Device>();
-            if (devices == null)
-                return (List<Device>)Items;
-            for (int i = 0; i < Items.Count; i++)
+            for (int i = 0; i < this.Count; i++)
             {
-                if (!ContainsId(devices, Items[i]))
+                if (!ContainsId(devices, this[i]))
                 {
-                    obsolete.Add(Items[i]);
+                    var obsolete = this[i];
                     RemoveAt(i);
+                    OnDeviceRemoved(obsolete);
                 }
             }
-            return obsolete;
         }
         /// <summary>
         /// Adds only new items in the collection from a given list. Compares by Id.
@@ -135,9 +152,9 @@ namespace VerySmartHome.MainController
         {
             if (devices != null)
             {
-                for (int i = 0; i < Items.Count; i++)
+                for (int i = 0; i < this.Count; i++)
                 {
-                    if (!ContainsId(devices, Items[i]))
+                    if (!ContainsId(devices, this[i]))
                     {
                         RemoveAt(i);
                     }
@@ -152,6 +169,15 @@ namespace VerySmartHome.MainController
         {
             RemoveObsolete(devices);
             AddNew(devices);
+        }
+
+        void OnDeviceAdded(Device device)
+        {
+            DeviceAdded?.Invoke(device);
+        }
+        void OnDeviceRemoved(Device device)
+        {
+            DeviceRemoved?.Invoke(device);
         }
     }
 }
