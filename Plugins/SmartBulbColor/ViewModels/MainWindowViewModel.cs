@@ -15,10 +15,10 @@ namespace SmartBulbColor.ViewModels
 
         BulbController SmartBulbController = new BulbController();
         
-        Object RefresherLocker = new Object();
+        Object Locker = new Object();
 
-        BulbCollectionUIThreadSafe _bulbs = new BulbCollectionUIThreadSafe();
-        public ObservableCollection<ColorBulb> Bulbs
+        BulbDispatchedCollection _bulbs = new BulbDispatchedCollection();
+        public BulbDispatchedCollection Bulbs
         {
             get
             {
@@ -32,7 +32,7 @@ namespace SmartBulbColor.ViewModels
                 }
                 else
                 {
-                    _bulbs.RefreshSafe(value);
+                    Bulbs = value;
                     OnPropertyChanged("Bulbs");
                 }
                 
@@ -49,7 +49,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        BulbCollectionUIThreadSafe _currentBulbs = new BulbCollectionUIThreadSafe();
+        BulbDispatchedCollection _currentBulbs = new BulbDispatchedCollection();
         public ObservableCollection<ColorBulb> CurrentBulbs
         {
             get
@@ -109,7 +109,8 @@ namespace SmartBulbColor.ViewModels
 
         public MainWindowViewModel()
         {
-            SmartBulbController.BulbCollectionChanged += RefreshBulbCollection;
+            SmartBulbController.BulbFound += OnBulbFound;
+            SmartBulbController.BulbLost += OnBulbLost;
             SmartBulbController.StartBulbsRefreshing();
         }
 
@@ -162,7 +163,7 @@ namespace SmartBulbColor.ViewModels
             try
             {
                 SmartBulbController.DiscoverBulbs();
-                Bulbs = new BulbCollectionUIThreadSafe(SmartBulbController.GetBulbs());
+                Bulbs = new BulbDispatchedCollection(SmartBulbController.GetBulbs());
                 var reports = SmartBulbController.GetDeviceReports();
                 foreach (var report in reports)
                 {
@@ -275,17 +276,13 @@ namespace SmartBulbColor.ViewModels
             }
             return true;
         }
-
-        private void RefreshBulbCollection()
-        {            
-            lock(RefresherLocker)
-            {
-                var bulbsThatAreOnline = new ObservableCollection<ColorBulb>(SmartBulbController.GetBulbs());
-                if (bulbsThatAreOnline != null)
-                {
-                    Bulbs = bulbsThatAreOnline;
-                }
-            }
+        private void OnBulbFound(ColorBulb foundBulb)
+        {
+            Bulbs.AddSafe(foundBulb);
+        }
+        private void OnBulbLost(ColorBulb lostBulb)
+        {
+            Bulbs.RemoveSafe(lostBulb);
         }
         public void Dispose()
         {

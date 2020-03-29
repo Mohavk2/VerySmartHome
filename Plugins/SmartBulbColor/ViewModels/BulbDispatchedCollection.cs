@@ -6,15 +6,15 @@ using SmartBulbColor.Models;
 
 namespace SmartBulbColor.ViewModels
 {
-    class BulbCollectionUIThreadSafe : ObservableCollection<ColorBulb>
+    class BulbDispatchedCollection : ObservableCollection<ColorBulb>
     {
         static readonly Dispatcher CurrentDispatcher;
-        static BulbCollectionUIThreadSafe()
+        static BulbDispatchedCollection()
         {
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
-        public BulbCollectionUIThreadSafe() : base() { }
-        public BulbCollectionUIThreadSafe(IEnumerable<ColorBulb> bulbs) : base(bulbs) { }
+        public BulbDispatchedCollection() : base() { }
+        public BulbDispatchedCollection(IEnumerable<ColorBulb> bulbs) : base(bulbs) { }
         public void AddSafe(ColorBulb newItem)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => { this.Add(newItem); }));

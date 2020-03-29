@@ -13,6 +13,9 @@ namespace SmartBulbColor.Models
     {
         public delegate void BulbCollectionNotifier();
         public event BulbCollectionNotifier BulbCollectionChanged;
+        public delegate void BulbStatusChangedHandler(ColorBulb bulb);
+        public event BulbStatusChangedHandler BulbFound;
+        public event BulbStatusChangedHandler BulbLost;
 
         private Object Locker = new Object();
 
@@ -209,8 +212,9 @@ namespace SmartBulbColor.Models
             {
                 lock (Locker)
                 {
-                    Bulbs.Add((ColorBulb)foundDevice);
-                    OnBulbCollectionChanged();
+                    var bulb = (ColorBulb)foundDevice;
+                    Bulbs.Add(bulb);
+                    OnBulbFound(bulb);
                 }
             });
             task.Start();
@@ -221,11 +225,20 @@ namespace SmartBulbColor.Models
             {
                 lock (Locker)
                 {
-                    Bulbs.Remove((ColorBulb)lostDevice);
-                    OnBulbCollectionChanged();
+                    var bulb = (ColorBulb)lostDevice;
+                    Bulbs.Remove(bulb);
+                    OnBulbLost(bulb);
                 }
             });
             task.Start();
+        }
+        private void OnBulbFound(ColorBulb bulb)
+        {
+            BulbFound?.Invoke(bulb);
+        }
+        private void OnBulbLost(ColorBulb bulb)
+        {
+            BulbLost?.Invoke(bulb);
         }
         public void Dispose()
         {
