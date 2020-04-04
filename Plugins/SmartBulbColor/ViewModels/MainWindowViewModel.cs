@@ -16,28 +16,7 @@ namespace SmartBulbColor.ViewModels
         BulbController SmartBulbController = new BulbController();
         
         Object Locker = new Object();
-
-        BulbDispatchedCollection _bulbs = new BulbDispatchedCollection();
-        public BulbDispatchedCollection Bulbs
-        {
-            get
-            {
-                return _bulbs;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new Exception("Can't add value to ViewModel Bulb collection. Value isn't correct");
-                }
-                else
-                {
-                    Bulbs = value;
-                    OnPropertyChanged("Bulbs");
-                }
-                
-            }
-        }
+        public BulbDispatchedCollection Bulbs { get; } = new BulbDispatchedCollection();
         ColorBulb _selectedBulb;
         public ColorBulb SelectedBulb
         {
@@ -160,21 +139,7 @@ namespace SmartBulbColor.ViewModels
         }
         public void ExecuteFindBulbsCommand(Object parametr)
         {
-            try
-            {
-                SmartBulbController.DiscoverBulbs();
-                Bulbs = new BulbDispatchedCollection(SmartBulbController.GetBulbs());
-                var reports = SmartBulbController.GetDeviceReports();
-                foreach (var report in reports)
-                {
-                    Logs = report;
-                }
-                Logs = SmartBulbController.DeviceCount + " bulbs found";
-            }
-            catch (Exception NoDeviceException)
-            {
-                Logs = NoDeviceException.Message;
-            }
+            SmartBulbController.DiscoverBulbs();
         }
         public ICommand ToggleAmbientLight
         {

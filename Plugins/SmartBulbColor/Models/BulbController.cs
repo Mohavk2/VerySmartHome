@@ -19,19 +19,7 @@ namespace SmartBulbColor.Models
 
         private Object Locker = new Object();
 
-        public List<ColorBulb> _bulbs = new List<ColorBulb>();
-        public List<ColorBulb> Bulbs 
-        {
-            get 
-            {
-                return _bulbs;
-            }
-            private set
-            {
-                _bulbs = value;
-                OnBulbCollectionChanged();
-            } 
-        }
+        public List<ColorBulb> Bulbs { get; } = new List<ColorBulb>();
         public List<ColorBulb> BulbsForAmbientLight { get; private set; } = new List<ColorBulb>();
         public override int DeviceCount
         {
@@ -85,14 +73,7 @@ namespace SmartBulbColor.Models
         {
             lock(Locker)
             {
-                try
-                {
-                    Bulbs = Discoverer.FindDevices().Cast<ColorBulb>().ToList();
-                }
-                catch (Exception NoResponseException)
-                {
-                    throw NoResponseException;
-                }
+                Discoverer.FindDevices();
             }
         }
         public void StartBulbsRefreshing()

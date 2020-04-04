@@ -92,10 +92,9 @@ namespace VerySmartHome.MainController
                 Relevant.AddNewAndNotify(foundDevices);
             }
         }
-        public List<Device> FindDevices()
+        public void FindDevices()
         {
             RefreshDevices();
-            return new List<Device>(Relevant);
         }
         public virtual List<string> GetResponses()
         {
