@@ -80,6 +80,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\IComparableById.cs" />
     <Compile Include="MainController\Device.cs" />
     <Compile Include="MainController\DeviceByIdNotifyList.cs" />
     <Compile Include="MainController\DeviceController.cs" />
@@ -131,8 +132,6 @@
   <ItemGroup>
     <Resource Include="Resources\Background.jpg" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

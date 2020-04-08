@@ -1,0 +1,55 @@
+﻿<UserControl x:Class="SmartBulbColor.Views.ColorBulbPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" Width="498.126" Height="371.25">
+    <UserControl.Resources>
+        <Style x:Key="MainButtonStyle">
+            <Setter Property="Control.Background" Value="Black"/>
+            <Setter Property="Control.MinWidth" Value="120"/>
+            <Setter Property="Control.Height" Value="44"/>
+            <Setter Property="Control.FontSize" Value="16"/>
+            <Setter Property="Control.FontWeight" Value="Bold"/>
+            <Setter Property="Control.Foreground" Value="#FF00F92D"/>
+        </Style>
+        <Style x:Key="BulbIconStyle" TargetType="{x:Type Image}">
+            <Setter Property="Source" Value="/Resources/LightOFF.png"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=IsPowered}" Value="true">
+                    <Setter Property="Source" Value="/Resources/LightON.png"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid x:Name="BulbToolPanel" MinWidth="500" VerticalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition MinWidth="323"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition MinHeight="120"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="270"></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
+            <WrapPanel Grid.Column="0" Grid.Row="0" Background="Black">
+                <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
+                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
+                <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
+                Content="Ambient Light" Width="85"/>
+                <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
+                Content="Normal Light"/>
+            </WrapPanel>
+        </StackPanel>
+        <Rectangle Grid.Row="1" Height="30" x:Name="PickedColor" Stroke="Black" 
+                           Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Canvas Grid.Row="2" x:Name="Palette" Height="221" ClipToBounds="True" MouseMove="Palette_MouseMove"
+                 Grid.Column="0" VerticalAlignment="Top" Margin="3,0" MouseDown="Palette_MouseDown">
+            <Canvas.Background>
+                <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
+            </Canvas.Background>
+            <Ellipse Grid.Row="1" x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
+        </Canvas>
+    </Grid>
+</UserControl>

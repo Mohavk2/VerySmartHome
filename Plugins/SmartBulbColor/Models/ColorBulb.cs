@@ -28,9 +28,6 @@ namespace SmartBulbColor.Models
         private const int ReconnectDelay = 160;
         private const int ReconnectionAttemptsCount = 3;
 
-        private const string LightOnImgPath = "/Models/LightON.png";
-        private const string LightOffImgPath = "/Models/LightOFF.png";
-
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
         readonly static Socket TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -63,7 +60,6 @@ namespace SmartBulbColor.Models
                 Model = response[7].Substring(MODEL.Length);
                 FwVer = int.Parse(response[8].Substring(FW_VER.Length));
                 IsPowered = response[10].Substring(POWER.Length) == "on" ? true : false;
-                StateIconPath = IsPowered ? LightOnImgPath : LightOffImgPath;
                 Brightness = int.Parse(response[11].Substring(BRIGHT.Length));
                 ColorMode = int.Parse(response[12].Substring(COLOR_MODE.Length));
                 ColorTemperature = int.Parse(response[13].Substring(CT.Length));
@@ -146,16 +142,7 @@ namespace SmartBulbColor.Models
             set
             {
                 _isPowered = value;
-                if (_isPowered)
-                {
-                    StateIconPath = LightOnImgPath;
-                    OnPropertyChanged("IsPowered");
-                }
-                else
-                {
-                    StateIconPath = LightOffImgPath;
-                    OnPropertyChanged("IsPowered");
-                }
+                OnPropertyChanged("IsPowered");
             }
         }
         private string _stateIconPath = "";

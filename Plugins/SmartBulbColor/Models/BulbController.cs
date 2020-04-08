@@ -12,7 +12,6 @@ namespace SmartBulbColor.Models
     sealed class BulbController : DeviceController, IDisposable
     {
         public delegate void BulbCollectionNotifier();
-        public event BulbCollectionNotifier BulbCollectionChanged;
         public delegate void BulbStatusChangedHandler(ColorBulb bulb);
         public event BulbStatusChangedHandler BulbFound;
         public event BulbStatusChangedHandler BulbLost;
@@ -28,7 +27,6 @@ namespace SmartBulbColor.Models
                 return Bulbs.Count;
             }
         }
-
         readonly static BulbDiscoverer Discoverer = new BulbDiscoverer(ColorBulb.SSDPMessage);
         private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
@@ -64,7 +62,6 @@ namespace SmartBulbColor.Models
                 }
                 else
                 {
-                    //DiscoverBulbs();
                     return Bulbs;
                 }
             }
@@ -170,13 +167,6 @@ namespace SmartBulbColor.Models
                     reports.Add("No color bulbs found yet!!!");
                     return reports;
                 }
-            }
-        }
-        private void OnBulbCollectionChanged()
-        {
-            lock(Locker)
-            {
-                BulbCollectionChanged?.Invoke();
             }
         }
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)

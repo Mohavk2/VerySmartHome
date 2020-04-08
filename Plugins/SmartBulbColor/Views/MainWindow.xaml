@@ -4,8 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
+        xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="736" Width="698">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="469" Width="698">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -13,109 +14,49 @@
         <ImageBrush ImageSource="/SmartBulbColor;component/Resources/Background.jpg"/>
     </Window.Background>
     <Window.Resources>
-        <Style x:Key="MainButtonStyle">
-            <Setter Property="Control.Background" Value="Black"/>
-            <Setter Property="Control.MinWidth" Value="120"/>
-            <Setter Property="Control.Height" Value="44"/>
-            <Setter Property="Control.FontSize" Value="16"/>
-            <Setter Property="Control.FontWeight" Value="Bold"/>
-            <Setter Property="Control.Foreground" Value="#FF00F92D"/>
-        </Style>
         <Style TargetType="ListBox">
             <Setter Property="Control.Background" Value="Black"/>
             <Setter Property="Control.FontSize" Value="14"/>
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
         </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="Black"/>
-            <Setter Property="Opacity" Value="0.9"/>
-            <Setter Property="Foreground" Value="#FF0035E8"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-        <Style TargetType="ToolBar">
-            <Setter Property="Background" Value="Black"/>
-            <Setter Property="Opacity" Value="0.9"/>
+        <DataTemplate x:Key="ItemTemplate">
+            <StackPanel Orientation="Vertical" MinWidth="150">
+                <Image Source="/Resources/LightON.png" Width="120" Height="120"/>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="SelectedItemTemplate">
+            <StackPanel Orientation="Vertical" MinWidth="150">
+                <views:ColorBulbPanel x:Name="BulbPanel"/>
+            </StackPanel>
+        </DataTemplate>
+        <Style TargetType="{x:Type ListBoxItem}" x:Key="ListItemStyle">
+            <Setter Property="ContentTemplate" Value="{StaticResource ItemTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="ContentTemplate" Value="{StaticResource SelectedItemTemplate}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
-    <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <ToolBar DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-            <Button x:Name="FindBulbs"  Command="{Binding FindBulbs}" Style="{StaticResource MainButtonStyle}" 
-                Content="Find Devices"/>
-            <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
-                Content="Normal Light"/>
-            <Button x:Name="ClearButton" Command="{Binding ClearConsole}" Style="{StaticResource MainButtonStyle}"
-                Content="Clear Console"/>
-            <Button x:Name="HideConsole" Style="{StaticResource MainButtonStyle}"
-                Content="Hide Console" Click="HideConsole_Click"/>
-        </ToolBar>
-        <TextBox DockPanel.Dock="Bottom" Name="MainConsole" Text="{Binding Path=Logs}" IsReadOnly="True" TextChanged="MainConsole_TextChanged"
-                 MinWidth ="679" MinHeight="302"/>
-
-        <Grid DockPanel.Dock="Right" MinWidth="500" VerticalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition MinWidth="323"></ColumnDefinition>
-                <ColumnDefinition></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition MinHeight="88"></RowDefinition>
-                <RowDefinition Height="30"></RowDefinition>
-                <RowDefinition Height="270"></RowDefinition>
-            </Grid.RowDefinitions>
-            <WrapPanel Grid.Column="0" Grid.Row="0" MinWidth="250" Margin="3,0,3,0" Background="Black">
-                <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
-                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
-                <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
-                Content="Ambient Light" Width="85"/>
-            </WrapPanel>
-            <Rectangle Grid.Row="1" Height="30" x:Name="PickedColor" Stroke="Black" 
-                           Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Canvas Grid.Row="2" x:Name="Palette" Height="235" ClipToBounds="True" MouseMove="Palette_MouseMove"
-                 Grid.Column="0" VerticalAlignment="Top" Margin="3,0" MouseDown="Palette_MouseDown">
-                <Canvas.Background>
-                    <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
-                </Canvas.Background>
-                <Ellipse Grid.Row="1" x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
-            </Canvas>
-            <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Margin="3">
-                <TextBlock Text="Current Bulb" FontSize="18" FontWeight="Bold"/>
-                <TextBlock Text="Name"/>
-                <TextBox Text="{Binding SelectedBulb.Name, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"  Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="ID"/>
-                <TextBox Text="{Binding SelectedBulb.Id, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="Ip"/>
-                <TextBox Text="{Binding SelectedBulb.Ip, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="Brightness"/>
-                <TextBox Text="{Binding SelectedBulb.Brightness, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="ColorMode"/>
-                <TextBox Text="{Binding SelectedBulb.ColorMode, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="RGB"/>
-                <TextBox Text="{Binding SelectedBulb.Rgb, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="Temperature"/>
-                <TextBox Text="{Binding  SelectedBulb.ColorTemperature, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-                <TextBlock Text="Power"/>
-                <TextBox Text="{Binding SelectedBulb.IsPowered, UpdateSourceTrigger=PropertyChanged}" Foreground="Black" Background="#FF1B5A8F"/>
-            </StackPanel>
-        </Grid>
-        <StackPanel DockPanel.Dock="Left" Width="193">
-            <ListBox  MinWidth="150" x:Name="BulbList" 
-                 ItemsSource="{Binding Bulbs}" SelectedItem="{Binding SelectedBulb}"              
-                 FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Width="193" Height="353">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical" MinWidth="150">
-                            <Image Source="{Binding StateIconPath}" Width="120" Height="120"/>
-                            <TextBlock Text="{Binding}" TextAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </StackPanel>
-    </DockPanel>
+    <TabControl x:Name="Tools" Height="438" VerticalAlignment="Top">
+        <TabItem x:Name="AllBulbs">
+            <TabItem.Header>
+                <TextBlock>All bulbs</TextBlock>
+            </TabItem.Header>
+            <TabItem.Content>
+                <StackPanel>
+                    <ListBox MinWidth="300" x:Name="BulbList" ItemContainerStyle="{StaticResource ListItemStyle}"                            
+                             ItemsSource="{Binding ColorBulbsVM}" SelectedItem="{Binding SelectedBulbVM}"             
+                             FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  Height="410">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+                </StackPanel>
+            </TabItem.Content>
+        </TabItem>
+    </TabControl>
 </Window>

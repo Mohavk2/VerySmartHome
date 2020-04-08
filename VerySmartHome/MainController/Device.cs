@@ -4,10 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public abstract class Device : INotifyPropertyChanged, IDisposable
+    public abstract class Device : INotifyPropertyChanged, IComparableById, IDisposable
     {
         public delegate void NoResponseHandler(Device device);
         public static event NoResponseHandler NoResponseFromDevice;
@@ -28,8 +29,8 @@ namespace VerySmartHome.MainController
             }
         }
 
-        public abstract int GetId();
         public abstract string GetName();
+        public abstract int GetId();
         public abstract string GetIP();
         public abstract int GetPort();
         public abstract void Disconnect();

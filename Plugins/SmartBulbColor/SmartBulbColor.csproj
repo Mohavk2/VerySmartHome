@@ -62,9 +62,18 @@
     <Compile Include="Models\ColorBulb.cs" />
     <Compile Include="Models\BulbController.cs" />
     <Compile Include="Models\BulbDiscoverer.cs" />
+    <Compile Include="ViewModels\ColorBulbViewModel.cs" />
+    <Compile Include="ViewModels\DispatchedCollection.cs" />
+    <Compile Include="Views\ColorBulbPanel.xaml.cs">
+      <DependentUpon>ColorBulbPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ImagePixelColorPicker.cs" />
     <Compile Include="Models\HSBColor.cs" />
     <Compile Include="Models\ScreenColorAnalyzer.cs" />
+    <Page Include="Views\ColorBulbPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -74,7 +83,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Compile Include="ViewModels\BulbDispatchedCollection.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -117,8 +125,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Models\LightOFF.png" />
-    <Resource Include="Models\LightON.png" />
+    <Resource Include="Resources\LightOFF.png" />
+    <Resource Include="Resources\LightON.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\AppIcon.ico" />
