@@ -18,7 +18,7 @@ namespace VerySmartHome.MainController
     {
         private DeviceByIdNotifyList Relevant = new DeviceByIdNotifyList();
 
-        int RefreshTimeout = 3000;
+        int RefreshTimeout = 5000;
         readonly Thread RefreshingThread;
         readonly ManualResetEvent RefreshingTrigger;
         protected Object Locker = new Object();

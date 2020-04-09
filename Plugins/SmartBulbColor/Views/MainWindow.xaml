@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
         xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="469" Width="698">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="828" Width="520">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -20,35 +20,35 @@
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
         </Style>
-        <DataTemplate x:Key="ItemTemplate">
+        <DataTemplate x:Key="Item">
             <StackPanel Orientation="Vertical" MinWidth="150">
-                <Image Source="/Resources/LightON.png" Width="120" Height="120"/>
+                <views:ColorBulbPanel x:Name="BulbPanel"/>
             </StackPanel>
         </DataTemplate>
-        <DataTemplate x:Key="SelectedItemTemplate">
+        <DataTemplate x:Key="ItemSelected">
             <StackPanel Orientation="Vertical" MinWidth="150">
                 <views:ColorBulbPanel x:Name="BulbPanel"/>
             </StackPanel>
         </DataTemplate>
         <Style TargetType="{x:Type ListBoxItem}" x:Key="ListItemStyle">
-            <Setter Property="ContentTemplate" Value="{StaticResource ItemTemplate}"/>
+            <Setter Property="ContentTemplate" Value="{StaticResource Item}"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="ContentTemplate" Value="{StaticResource SelectedItemTemplate}"/>
+                    <Setter Property="ContentTemplate" Value="{StaticResource ItemSelected}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
-    <TabControl x:Name="Tools" Height="438" VerticalAlignment="Top">
+    <TabControl x:Name="Tools" VerticalAlignment="Top" Margin="0,0,0,-2">
         <TabItem x:Name="AllBulbs">
             <TabItem.Header>
                 <TextBlock>All bulbs</TextBlock>
             </TabItem.Header>
             <TabItem.Content>
                 <StackPanel>
-                    <ListBox MinWidth="300" x:Name="BulbList" ItemContainerStyle="{StaticResource ListItemStyle}"                            
+                    <ListBox x:Name="BulbList" ItemContainerStyle="{StaticResource ListItemStyle}"                            
                              ItemsSource="{Binding ColorBulbsVM}" SelectedItem="{Binding SelectedBulbVM}"             
-                             FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  Height="410">
+                             FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel/>

@@ -21,7 +21,26 @@ namespace SmartBulbColor.ViewModels
             GroupChanged?.Invoke(bulb, from, to);
         }
 
-        public ColorBulb Bulb;
+        private ColorBulb _bulb;
+        public ColorBulb Bulb
+        {
+            get { return _bulb; }
+            set
+            {
+                _bulb = value;
+                OnPropertyChanged("Bulb");
+            }
+        }
+        private bool _isControlEnabled;
+        public bool IsControlEnabled
+        {
+            get { return IsControlEnabled; }
+            set
+            {
+                _isControlEnabled = value;
+                OnPropertyChanged("IsControlEnabled");
+            }
+        }
         public int GetId() { return Bulb.GetId(); }
         private bool _isPowered;
         public bool IsPowered 
