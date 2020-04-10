@@ -19,37 +19,49 @@
                 <DataTrigger Binding="{Binding Path=IsPowered}" Value="true">
                     <Setter Property="Source" Value="/Resources/LightON.png"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsControlEnabled}" Value="true">
-
-                </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <StackPanel Orientation="Horizontal">
+    <StackPanel x:Name="ControlPanel" Orientation="Horizontal">
         <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
-            <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
+            <Canvas MinWidth="120" MinHeight="120">
+                <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
+            </Canvas>
             <TextBlock Text="{Binding Path=Bulb.Name}" HorizontalAlignment="Center" Foreground="AliceBlue" FontSize="14" Height="30"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <WrapPanel Background="Black" Width="120">
-                <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
-                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
-                <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
-                Content="Ambient Light" Width="85"/>
-                <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
-                Content="Normal Light"/>
-            </WrapPanel>
+        <Grid>
             <StackPanel Orientation="Horizontal">
-                <Rectangle x:Name="PickedColor" Stroke="Black" 
+                <WrapPanel Background="Black" Width="120">
+                    <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
+                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
+                    <Button x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}" 
+                Content="Ambient Light" Width="85"/>
+                    <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
+                Content="Normal Light"/>
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="10" x:Name="PickedColor" Stroke="Black" 
                            Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Canvas MinWidth="250" x:Name="Palette" ClipToBounds="True" MouseMove="Palette_MouseMove"                    
+                    <Canvas MinWidth="240" x:Name="Palette" ClipToBounds="True" MouseMove="Palette_MouseMove"                    
                     Margin="3,0" MouseDown="Palette_MouseDown">
-                    <Canvas.Background>
-                        <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
-                    </Canvas.Background>
-                    <Ellipse x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
-                </Canvas>
+                        <Canvas.Background>
+                            <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
+                        </Canvas.Background>
+                        <Ellipse x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
+                    </Canvas>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+            <Rectangle Name="Cap" Fill="Black" Opacity="0.3">
+                <Rectangle.Style>
+                    <Style TargetType="Rectangle">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=ControlPanel, Path=IsMouseOver}" Value="true">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Rectangle.Style>
+            </Rectangle>
+        </Grid>
     </StackPanel>
 </UserControl>

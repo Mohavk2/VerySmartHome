@@ -20,40 +20,41 @@
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
         </Style>
-        <DataTemplate x:Key="Item">
-            <StackPanel Orientation="Vertical" MinWidth="150">
-                <views:ColorBulbPanel x:Name="BulbPanel"/>
-            </StackPanel>
-        </DataTemplate>
-        <DataTemplate x:Key="ItemSelected">
-            <StackPanel Orientation="Vertical" MinWidth="150">
-                <views:ColorBulbPanel x:Name="BulbPanel"/>
-            </StackPanel>
-        </DataTemplate>
-        <Style TargetType="{x:Type ListBoxItem}" x:Key="ListItemStyle">
-            <Setter Property="ContentTemplate" Value="{StaticResource Item}"/>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="IsSelected" Value="False"/>
             <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="ContentTemplate" Value="{StaticResource ItemSelected}"/>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="IsSelected" Value="True"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <DataTemplate x:Key="Item">
+            <Grid MinWidth="150">
+                <views:ColorBulbPanel x:Name="BulbPanel"/>
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
-    <TabControl x:Name="Tools" VerticalAlignment="Top" Margin="0,0,0,-2">
+    <TabControl x:Name="Tools" VerticalAlignment="Top">
         <TabItem x:Name="AllBulbs">
             <TabItem.Header>
                 <TextBlock>All bulbs</TextBlock>
             </TabItem.Header>
             <TabItem.Content>
                 <StackPanel>
-                    <ListBox x:Name="BulbList" ItemContainerStyle="{StaticResource ListItemStyle}"                            
+                    <ListBox x:Name="BulbList"                         
                              ItemsSource="{Binding ColorBulbsVM}" SelectedItem="{Binding SelectedBulbVM}"             
-                             FontSize="16" FontWeight="Bold" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                             FontSize="16" FontWeight="Bold" 
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource Item}"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                     </ListBox>
                 </StackPanel>
             </TabItem.Content>
