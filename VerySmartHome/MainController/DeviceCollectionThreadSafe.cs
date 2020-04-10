@@ -12,10 +12,11 @@ namespace VerySmartHome.MainController
     public class DeviceCollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IComparableById
     {
         List<T> Items;
+
         int Position;
         object Locker = new object();
         T IEnumerator<T>.Current { get => Items[Position]; }
-        object IEnumerator.Current { get => (T)Items[Position]; }
+        object IEnumerator.Current { get => Items[Position]; }
         public int Count
         {
             get

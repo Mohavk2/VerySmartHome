@@ -62,7 +62,6 @@
     <Compile Include="Models\ColorBulb.cs" />
     <Compile Include="Models\BulbController.cs" />
     <Compile Include="Models\BulbDiscoverer.cs" />
-    <Compile Include="Models\BulbGroupManager.cs" />
     <Compile Include="ViewModels\ColorBulbViewModel.cs" />
     <Compile Include="ViewModels\DispatchedCollection.cs" />
     <Compile Include="Views\ColorBulbPanel.xaml.cs">

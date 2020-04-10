@@ -16,8 +16,6 @@ namespace SmartBulbColor.Models
         public event BulbStatusChangedHandler BulbFound;
         public event BulbStatusChangedHandler BulbLost;
 
-        private Object Locker = new Object();
-
         public DeviceCollectionThreadSafe<ColorBulb> Bulbs { get; } = new DeviceCollectionThreadSafe<ColorBulb>();
         public DeviceCollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new DeviceCollectionThreadSafe<ColorBulb>();
         public override int DeviceCount
@@ -42,12 +40,6 @@ namespace SmartBulbColor.Models
         }
         public override List<Device> GetDevices()
         {
-            //if (Bulbs.Count != 0)
-            //{
-            //    List<Device> devices = new List<Device>(Bulbs);
-            //    return devices;
-            //}
-            //else 
             return new List<Device>();
         }
         public DeviceCollectionThreadSafe<ColorBulb> GetBulbs()
@@ -131,21 +123,15 @@ namespace SmartBulbColor.Models
         }
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
-            lock (Locker)
-            {
-                bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
-            }
+            bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
         }
         private void OnDeviceFound(Device foundDevice)
         {
             Task task = new Task(() =>
             {
-                lock (Locker)
-                {
-                    var bulb = (ColorBulb)foundDevice;
-                    Bulbs.Add(bulb);
-                    OnBulbFound(bulb);
-                }
+                var bulb = (ColorBulb)foundDevice;
+                Bulbs.Add(bulb);
+                OnBulbFound(bulb);
             });
             task.Start();
         }
@@ -153,12 +139,9 @@ namespace SmartBulbColor.Models
         {
             Task task = new Task(() =>
             {
-                lock (Locker)
-                {
-                    var bulb = (ColorBulb)lostDevice;
-                    Bulbs.Remove(bulb);
-                    OnBulbLost(bulb);
-                }
+                var bulb = (ColorBulb)lostDevice;
+                Bulbs.Remove(bulb);
+                OnBulbLost(bulb);
             });
             task.Start();
         }
