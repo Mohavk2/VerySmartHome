@@ -18,8 +18,8 @@ namespace SmartBulbColor.Models
 
         private Object Locker = new Object();
 
-        public List<ColorBulb> Bulbs { get; } = new List<ColorBulb>();
-        public List<ColorBulb> BulbsForAmbientLight { get; private set; } = new List<ColorBulb>();
+        public DeviceCollectionThreadSafe<ColorBulb> Bulbs { get; } = new DeviceCollectionThreadSafe<ColorBulb>();
+        public DeviceCollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new DeviceCollectionThreadSafe<ColorBulb>();
         public override int DeviceCount
         {
             get
@@ -32,7 +32,7 @@ namespace SmartBulbColor.Models
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public bool IsAmbientLightON { get; private set;} = false;
+        public bool IsAmbientLightON { get; private set; } = false;
 
         public BulbController()
         {
@@ -42,36 +42,28 @@ namespace SmartBulbColor.Models
         }
         public override List<Device> GetDevices()
         {
-            lock(Locker)
-            {
-                if (Bulbs.Count != 0)
-                {
-                    List<Device> devices = new List<Device>(Bulbs);
-                    return devices;
-                }
-                else return new List<Device>();
-            }
+            //if (Bulbs.Count != 0)
+            //{
+            //    List<Device> devices = new List<Device>(Bulbs);
+            //    return devices;
+            //}
+            //else 
+            return new List<Device>();
         }
-        public List<ColorBulb> GetBulbs()
+        public DeviceCollectionThreadSafe<ColorBulb> GetBulbs()
         {
-            lock(Locker)
+            if (Bulbs.Count != 0)
             {
-                if (Bulbs.Count != 0)
-                {
-                    return Bulbs;
-                }
-                else
-                {
-                    return Bulbs;
-                }
+                return Bulbs;
+            }
+            else
+            {
+                return Bulbs;
             }
         }
         public void DiscoverBulbs()
         {
-            lock(Locker)
-            {
-                Discoverer.FindDevices();
-            }
+            Discoverer.FindDevices();
         }
         public void StartBulbsRefreshing()
         {
@@ -79,54 +71,45 @@ namespace SmartBulbColor.Models
         }
         public void TogglePower(ColorBulb bulb)
         {
-            lock(Locker)
-            {
-                bulb.TogglePower();
-            }
+            bulb.TogglePower();
         }
         public void NormalLight_ON()
         {
-            lock(Locker)
-            {
-                AmbientLight_OFF();
+            AmbientLight_OFF();
 
-                Thread.Sleep(500);
-                if (Bulbs.Count != 0)
+            Thread.Sleep(500);
+            if (Bulbs.Count != 0)
+            {
+                foreach (var bulb in Bulbs)
                 {
-                    foreach (var bulb in Bulbs)
-                    {
-                        bulb.SetNormalLight(5400, 100);
-                        Console.WriteLine("Norm Light is On");
-                    }
+                    bulb.SetNormalLight(5400, 100);
+                    Console.WriteLine("Norm Light is On");
                 }
             }
         }
         public void AmbientLight_ON()
         {
-            lock(Locker)
+            try
             {
-                try
+                SetColorMode(2);
+                Discoverer.StopDiscover();
+                foreach (var bulb in Bulbs)
                 {
-                    SetColorMode(2);
-                    Discoverer.StopDiscover();
-                    AmbientLight.SetBulbsForStreaming(Bulbs);
-                    AmbientLight.StartSreaming();
-                    IsAmbientLightON = true;
+                    AmbientLight.AddBulbForStreaming(bulb);
                 }
-                catch (Exception MusicModeFailedException)
-                {
-                    throw MusicModeFailedException;
-                }
+                AmbientLight.StartSreaming();
+                IsAmbientLightON = true;
+            }
+            catch (Exception MusicModeFailedException)
+            {
+                throw MusicModeFailedException;
             }
         }
         public void AmbientLight_OFF()
         {
-            lock(Locker)
-            {
-                AmbientLight.StopStreaming();
-                IsAmbientLightON = false;
-                Discoverer.StartDiscover();
-            }
+            AmbientLight.StopStreaming();
+            IsAmbientLightON = false;
+            Discoverer.StartDiscover();
         }
         /// <summary>
         /// Sets color mode
@@ -134,49 +117,25 @@ namespace SmartBulbColor.Models
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
         void SetColorMode(int value)
         {
-            lock(Locker)
+            if (value > 0 & value <= 3)
             {
-                if (value > 0 & value <= 3)
-                {
-                    if (Bulbs.Count != 0)
-                    {
-                        foreach (var bulb in Bulbs)
-                        {
-                            bulb.SetColorMode(value);
-                        }
-                    }
-                    else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
-                }
-            }
-        }
-        public List<String> GetDeviceReports()
-        {
-            lock(Locker)
-            {
-                List<String> reports = new List<string>();
                 if (Bulbs.Count != 0)
                 {
-                    foreach (ColorBulb bulb in Bulbs)
+                    foreach (var bulb in Bulbs)
                     {
-                        reports.Add(bulb.GetReport());
+                        bulb.SetColorMode(value);
                     }
-                    return reports;
                 }
-                else
-                {
-                    reports.Add("No color bulbs found yet!!!");
-                    return reports;
-                }
+                else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
             }
         }
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
             }
         }
-
         private void OnDeviceFound(Device foundDevice)
         {
             Task task = new Task(() =>

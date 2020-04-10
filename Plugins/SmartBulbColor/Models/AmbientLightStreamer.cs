@@ -7,7 +7,7 @@ namespace SmartBulbColor.Models
 {
     class AmbientLightStreamer
     {
-        List<ColorBulb> BulbsForStreaming;
+        DeviceCollectionThreadSafe<ColorBulb> BulbsForStreaming = new DeviceCollectionThreadSafe<ColorBulb>();
 
         Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
 
@@ -27,9 +27,9 @@ namespace SmartBulbColor.Models
             AmbilightTrigger = new ManualResetEvent(true);
         }
 
-        public void SetBulbsForStreaming(List<ColorBulb> bulbs)
+        public void AddBulbForStreaming(ColorBulb bulb)
         {
-            BulbsForStreaming = new List<ColorBulb>(bulbs);
+            BulbsForStreaming.Add(bulb);
         }
 
         public void StartSreaming()
