@@ -9,7 +9,7 @@ using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public class DeviceCollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IComparableById
+    public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IComparableById
     {
         List<T> Items;
 
@@ -27,7 +27,7 @@ namespace VerySmartHome.MainController
                 }
             }
         }
-        public DeviceCollectionThreadSafe()
+        public CollectionThreadSafe()
         {
             Items = new List<T>();
             Position = -1;
@@ -36,6 +36,11 @@ namespace VerySmartHome.MainController
         {
             lock(Locker)
             {
+                for (int i = 0; i < Count; i++)
+                {
+                    if (Items[i].GetId() == item.GetId())
+                        return;
+                }
                 Items.Add(item);
             }
         }
@@ -43,7 +48,11 @@ namespace VerySmartHome.MainController
         {
             lock(Locker)
             {
-                Items.Remove(item);
+                for (int i = 0; i < Count; i++)
+                {
+                    if (Items[i].GetId() == item.GetId())
+                        Items.RemoveAt(i);
+                }
             }
         }
         public bool MoveNext()

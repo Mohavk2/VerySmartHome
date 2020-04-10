@@ -16,8 +16,8 @@ namespace SmartBulbColor.Models
         public event BulbStatusChangedHandler BulbFound;
         public event BulbStatusChangedHandler BulbLost;
 
-        public DeviceCollectionThreadSafe<ColorBulb> Bulbs { get; } = new DeviceCollectionThreadSafe<ColorBulb>();
-        public DeviceCollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new DeviceCollectionThreadSafe<ColorBulb>();
+        public CollectionThreadSafe<ColorBulb> Bulbs { get; } = new CollectionThreadSafe<ColorBulb>();
+        public CollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulb>();
         public override int DeviceCount
         {
             get
@@ -42,7 +42,7 @@ namespace SmartBulbColor.Models
         {
             return new List<Device>();
         }
-        public DeviceCollectionThreadSafe<ColorBulb> GetBulbs()
+        public CollectionThreadSafe<ColorBulb> GetBulbs()
         {
             if (Bulbs.Count != 0)
             {

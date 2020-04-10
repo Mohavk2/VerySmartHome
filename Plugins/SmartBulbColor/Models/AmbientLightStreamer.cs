@@ -7,7 +7,7 @@ namespace SmartBulbColor.Models
 {
     class AmbientLightStreamer
     {
-        DeviceCollectionThreadSafe<ColorBulb> BulbsForStreaming = new DeviceCollectionThreadSafe<ColorBulb>();
+        CollectionThreadSafe<ColorBulb> BulbsForStreaming = new CollectionThreadSafe<ColorBulb>();
 
         Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
 

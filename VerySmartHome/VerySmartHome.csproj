@@ -83,8 +83,9 @@
     <Compile Include="Interfaces\IComparableById.cs" />
     <Compile Include="MainController\Device.cs" />
     <Compile Include="MainController\DeviceByIdNotifyList.cs" />
-    <Compile Include="MainController\DeviceCollectionThreadSafe.cs" />
+    <Compile Include="MainController\CollectionThreadSafe.cs" />
     <Compile Include="MainController\DeviceController.cs" />
+    <Compile Include="MainController\GroupManager.cs" />
     <Compile Include="MainController\MainController.cs" />
     <Compile Include="MainController\DeviceDiscoverer.cs" />
     <Compile Include="MainWindow.xaml.cs">

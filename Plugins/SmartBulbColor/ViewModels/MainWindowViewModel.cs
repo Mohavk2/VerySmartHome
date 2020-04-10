@@ -28,8 +28,8 @@ namespace SmartBulbColor.ViewModels
         }
         public MainWindowViewModel()
         {
-            SmartBulbController.BulbFound += OnBulbFound;
-            SmartBulbController.BulbLost += OnBulbLost;
+            SmartBulbController.BulbFound += (foundBulb)=> { ColorBulbsVM.AddSafe(new ColorBulbViewModel(foundBulb)); };
+            SmartBulbController.BulbLost += (lostBulb) => { ColorBulbsVM.RemoveSafe(new ColorBulbViewModel(lostBulb)); };
             SmartBulbController.StartBulbsRefreshing();
         }
         public ICommand FindBulbs
@@ -43,18 +43,6 @@ namespace SmartBulbColor.ViewModels
         {
             SmartBulbController.DiscoverBulbs();
         }  
-        private void OnBulbFound(ColorBulb foundBulb)
-        {
-            ColorBulbsVM.AddSafe(new ColorBulbViewModel(foundBulb));
-        }
-        private void OnBulbLost(ColorBulb lostBulb)
-        {
-            ColorBulbsVM.RemoveSafe(new ColorBulbViewModel(lostBulb));
-        }
-        private void OnBulbGroupChanged(ColorBulb bulb, ColorBulbGroup groupfrom, ColorBulbGroup groupTo)
-        {
-
-        }
         public void Dispose()
         {
             SmartBulbController.Dispose();
