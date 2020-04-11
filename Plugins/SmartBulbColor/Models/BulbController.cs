@@ -30,8 +30,6 @@ namespace SmartBulbColor.Models
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public bool IsAmbientLightON { get; private set; } = false;
-
         public BulbController()
         {
             DeviceDiscoverer.DeviceFound += OnDeviceFound;
@@ -61,66 +59,34 @@ namespace SmartBulbColor.Models
         {
             Discoverer.StartDiscover();
         }
-        public void TogglePower(ColorBulb bulb)
+        public void ToggleAmbientLight(ColorBulb bulb)
         {
-            bulb.TogglePower();
-        }
-        public void NormalLight_ON()
-        {
-            AmbientLight_OFF();
-
-            Thread.Sleep(500);
-            if (Bulbs.Count != 0)
+            if (!BulbsForAmbientLight.Contains(bulb))
             {
-                foreach (var bulb in Bulbs)
+                try
                 {
-                    bulb.SetNormalLight(5400, 100);
-                    Console.WriteLine("Norm Light is On");
-                }
-            }
-        }
-        public void AmbientLight_ON()
-        {
-            try
-            {
-                SetColorMode(2);
-                Discoverer.StopDiscover();
-                foreach (var bulb in Bulbs)
-                {
+                    Discoverer.StopDiscover();
+                    bulb.SetColorMode(2);
+                    BulbsForAmbientLight.Add(bulb);
                     AmbientLight.AddBulbForStreaming(bulb);
                 }
-                AmbientLight.StartSreaming();
-                IsAmbientLightON = true;
+                catch (Exception MusicModeFailedException)
+                {
+                    throw MusicModeFailedException;
+                }
             }
-            catch (Exception MusicModeFailedException)
+            else
             {
-                throw MusicModeFailedException;
+                AmbientLight.RemoveBulb(bulb);
+                BulbsForAmbientLight.Remove(bulb);
+                if (BulbsForAmbientLight.Count == 0)
+                    Discoverer.StartDiscover();
             }
-        }
-        public void AmbientLight_OFF()
-        {
-            AmbientLight.StopStreaming();
-            IsAmbientLightON = false;
-            Discoverer.StartDiscover();
         }
         /// <summary>
         /// Sets color mode
         /// </summary>
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
-        void SetColorMode(int value)
-        {
-            if (value > 0 & value <= 3)
-            {
-                if (Bulbs.Count != 0)
-                {
-                    foreach (var bulb in Bulbs)
-                    {
-                        bulb.SetColorMode(value);
-                    }
-                }
-                else throw new Exception("Can't turn Music Mode ON becouse there is no found bulbs yet");
-            }
-        }
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
             bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
@@ -130,8 +96,11 @@ namespace SmartBulbColor.Models
             Task task = new Task(() =>
             {
                 var bulb = (ColorBulb)foundDevice;
-                Bulbs.Add(bulb);
-                OnBulbFound(bulb);
+                if( ! BulbsForAmbientLight.Contains(bulb))
+                {
+                    Bulbs.Add(bulb);
+                    BulbFound?.Invoke(bulb);
+                }
             });
             task.Start();
         }
@@ -140,18 +109,13 @@ namespace SmartBulbColor.Models
             Task task = new Task(() =>
             {
                 var bulb = (ColorBulb)lostDevice;
-                Bulbs.Remove(bulb);
-                OnBulbLost(bulb);
+                if ( ! BulbsForAmbientLight.Contains(bulb))
+                {
+                    Bulbs.Remove(bulb);
+                    BulbLost?.Invoke(bulb);
+                }
             });
             task.Start();
-        }
-        private void OnBulbFound(ColorBulb bulb)
-        {
-            BulbFound?.Invoke(bulb);
-        }
-        private void OnBulbLost(ColorBulb bulb)
-        {
-            BulbLost?.Invoke(bulb);
         }
         public void Dispose()
         {

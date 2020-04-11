@@ -42,7 +42,18 @@ namespace SmartBulbColor.ViewModels
         public void ExecuteFindBulbsCommand(Object parametr)
         {
             SmartBulbController.DiscoverBulbs();
-        }  
+        }
+        public ICommand ToggleAmbientLight
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteToggleAmbientLightCommand);
+            }
+        }
+        private void ExecuteToggleAmbientLightCommand(Object parametr)
+        {
+            SmartBulbController.ToggleAmbientLight(SelectedBulbVM.Bulb);
+        }
         public void Dispose()
         {
             SmartBulbController.Dispose();

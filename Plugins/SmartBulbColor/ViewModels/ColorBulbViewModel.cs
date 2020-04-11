@@ -11,16 +11,8 @@ using VerySmartHome.Interfaces;
 
 namespace SmartBulbColor.ViewModels 
 {
-    internal delegate void GroupChangedHandler(ColorBulb bulb, ColorBulbGroup from, ColorBulbGroup to);
-    public enum ColorBulbGroup { Common = 0, AmbientLight = 1 }
     internal class ColorBulbViewModel : ViewModelBase , IComparableById
     {
-        public static event GroupChangedHandler GroupChanged;
-        private static void OnGroupChanged(ColorBulb bulb, ColorBulbGroup from, ColorBulbGroup to)
-        {
-            GroupChanged?.Invoke(bulb, from, to);
-        }
-
         private ColorBulb _bulb;
         public ColorBulb Bulb
         {
@@ -56,8 +48,6 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsPowered");
             }
         }
-        public ColorBulbGroup CurrentGroup = ColorBulbGroup.Common;
-        public ColorBulbGroup DefaultGroup = ColorBulbGroup.Common;
         public ColorBulbViewModel(ColorBulb bulb)
         {
             Bulb = bulb;
@@ -91,7 +81,7 @@ namespace SmartBulbColor.ViewModels
         }
         private bool CanExecuteSetColorByColorPickerPoint(Object parametr)
         {
-            if (Bulb == null || CurrentGroup == ColorBulbGroup.AmbientLight)
+            if (Bulb == null)
             {
                 return false;
             }
@@ -112,7 +102,7 @@ namespace SmartBulbColor.ViewModels
         }
         private bool CanExecuteTogglePower(Object parametr)
         {
-            if (Bulb == null || CurrentGroup == ColorBulbGroup.AmbientLight)
+            if (Bulb == null)
             {
                 return false;
             }
@@ -132,33 +122,11 @@ namespace SmartBulbColor.ViewModels
         }
         private bool CanExecuteTurnNormalLightONCommand(Object parametr)
         {
-            if(Bulb == null || CurrentGroup == ColorBulbGroup.AmbientLight)
+            if(Bulb == null)
             {
                 return false;
             }
             return true;
-        }
-        public ICommand ToggleAmbientLight
-        {
-            get
-            {
-                return new ControllerCommand(ExecuteToggleAmbientLightCommand);
-            }
-        }
-        private void ExecuteToggleAmbientLightCommand(Object parametr)
-        {
-            if(CurrentGroup != ColorBulbGroup.AmbientLight)
-            {
-                CurrentGroup = ColorBulbGroup.AmbientLight;
-                OnGroupChanged(Bulb, DefaultGroup , CurrentGroup);
-                IsPowered = Bulb.IsPowered;
-            }
-            else
-            {
-                var current = CurrentGroup;
-                CurrentGroup = DefaultGroup;
-                OnGroupChanged(Bulb, current, DefaultGroup);
-            }
         }
     }
 }

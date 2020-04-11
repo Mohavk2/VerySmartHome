@@ -14,25 +14,12 @@
         <ImageBrush ImageSource="/SmartBulbColor;component/Resources/Background.jpg"/>
     </Window.Background>
     <Window.Resources>
-        <Style TargetType="ListBox">
+        <Style x:Key="BulbListStyle" TargetType="ListBox">
             <Setter Property="Control.Background" Value="Black"/>
             <Setter Property="Control.FontSize" Value="14"/>
             <Setter Property="Control.FontWeight" Value="Bold"/>
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
         </Style>
-        <Style TargetType="ListBoxItem">
-            <Setter Property="IsSelected" Value="False"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="IsSelected" Value="True"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <DataTemplate x:Key="Item">
-            <Grid MinWidth="150">
-                <views:ColorBulbPanel x:Name="BulbPanel"/>
-            </Grid>
-        </DataTemplate>
     </Window.Resources>
     <TabControl x:Name="Tools" VerticalAlignment="Top">
         <TabItem x:Name="AllBulbs">
@@ -41,7 +28,8 @@
             </TabItem.Header>
             <TabItem.Content>
                 <StackPanel>
-                    <ListBox x:Name="BulbList"                         
+                    <ListBox x:Name="BulbList"
+                             Style="{StaticResource BulbListStyle}"
                              ItemsSource="{Binding ColorBulbsVM}" SelectedItem="{Binding SelectedBulbVM}"             
                              FontSize="16" FontWeight="Bold" 
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -51,13 +39,35 @@
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                         <ListBox.ItemContainerStyle>
-                            <Style TargetType="{x:Type ListBoxItem}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource Item}"/>
+                            <Style TargetType="ListBoxItem">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="IsSelected" Value="True"/>
+                                    </Trigger>
+                                </Style.Triggers>
                             </Style>
                         </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel MinWidth="150">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="AmbientLightButton" Content="Ambient Light"  
+                                                Height="30" MinWidth="150" HorizontalAlignment="Left"
+                                                Command="{Binding DataContext.ToggleAmbientLight, 
+                                                RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                    </StackPanel>
+                                    <views:ColorBulbPanel x:Name="BulbPanel"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
                     </ListBox>
                 </StackPanel>
             </TabItem.Content>
+        </TabItem>
+        <TabItem x:Name="AmbientLight">
+            <TabItem.Header>
+                AmbientLight
+            </TabItem.Header>
         </TabItem>
     </TabControl>
 </Window>

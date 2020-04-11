@@ -21,7 +21,7 @@ namespace VerySmartHome.MainController
         {
             get
             {
-                lock(Locker)
+                lock (Locker)
                 {
                     return Items.Count;
                 }
@@ -32,9 +32,21 @@ namespace VerySmartHome.MainController
             Items = new List<T>();
             Position = -1;
         }
+        public bool Contains(T item)
+        {
+            lock (Locker)
+            {
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    if (item.GetId() == Items[i].GetId())
+                        return true;
+                }
+                return false;
+            }
+        }
         public void Add(T item)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 for (int i = 0; i < Count; i++)
                 {
@@ -46,7 +58,7 @@ namespace VerySmartHome.MainController
         }
         public void Remove(T item)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 for (int i = 0; i < Count; i++)
                 {
@@ -57,16 +69,26 @@ namespace VerySmartHome.MainController
         }
         public bool MoveNext()
         {
-            Monitor.Enter(Locker);
-            if (Position > Items.Count)
+            if (!Monitor.IsEntered(Locker))
             {
-                Position++;
-                return true;
+                Monitor.Enter(Locker);
             }
-            else
+            try
             {
-                Reset();
-                return false;
+                if (Position < Items.Count - 1)
+                {
+                    Position++;
+                    return true;
+                }
+                else
+                {
+                    Reset();
+                    return false;
+                }
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message + "Something bad happend with the threadsafe collection and it's deadlocked now!");
             }
         }
         public void Reset()

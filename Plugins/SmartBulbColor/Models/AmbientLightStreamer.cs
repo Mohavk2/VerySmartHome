@@ -7,14 +7,11 @@ namespace SmartBulbColor.Models
 {
     class AmbientLightStreamer
     {
-        CollectionThreadSafe<ColorBulb> BulbsForStreaming = new CollectionThreadSafe<ColorBulb>();
-
-        Queue<ColorBulb> BulbsToRemove = new Queue<ColorBulb>();
+        CollectionThreadSafe<ColorBulb> BulbsForStreaming { get; set; } = new CollectionThreadSafe<ColorBulb>();
 
         readonly Thread AmbilightThread;
         readonly ManualResetEvent AmbilightTrigger;
         public ScreenColorAnalyzer ColorAnalyzer;
-        private Object Locker = new Object();
 
         public AmbientLightStreamer()
         {
@@ -30,6 +27,8 @@ namespace SmartBulbColor.Models
         public void AddBulbForStreaming(ColorBulb bulb)
         {
             BulbsForStreaming.Add(bulb);
+            if(BulbsForStreaming.Count == 1)
+                StartSreaming();
         }
 
         public void StartSreaming()
@@ -62,11 +61,7 @@ namespace SmartBulbColor.Models
                 var sat = color.Saturation;
 
                 if (BulbsForStreaming != null && BulbsForStreaming.Count != 0)
-                {
-                    if(BulbsToRemove.Count != 0)
-                    {
-                        BulbsForStreaming.Remove(BulbsToRemove.Dequeue());
-                    }
+                { 
                     foreach (var bulb in BulbsForStreaming)
                     {
                         bulb.SetSceneHSV(hue, sat, bright);
@@ -78,9 +73,13 @@ namespace SmartBulbColor.Models
                 Thread.Sleep(60);
             }
         }
-        private void OnDeviceLost(Device foundDevice)
+        public void RemoveBulb(ColorBulb bulb)
         {
-            BulbsToRemove.Enqueue((ColorBulb)foundDevice);
+            BulbsForStreaming.Remove(bulb);
+        }
+        private void OnDeviceLost(Device device)
+        {
+            RemoveBulb((ColorBulb)device);
         }
     }
 }
