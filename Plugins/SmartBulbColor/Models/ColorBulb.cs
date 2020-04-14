@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using VerySmartHome.MainController;
 using System.Threading;
+using System.Windows.Media;
 
 namespace SmartBulbColor.Models
 {
@@ -141,8 +142,11 @@ namespace SmartBulbColor.Models
             get { return _isPowered; }
             set
             {
-                _isPowered = value;
-                OnPropertyChanged("IsPowered");
+                if(value != _isPowered)
+                {
+                    _isPowered = value;
+                    OnPropertyChanged("IsPowered");
+                }
             }
         }
         private string _stateIconPath = "";
@@ -424,6 +428,7 @@ namespace SmartBulbColor.Models
         {
             string command = $"{{\"id\":{Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {saturation}, {value}]}}\r\n";
             SendCommand(command);
+            IsPowered = true;
         }
         public void SetNormalLight(int colorTemperature, int brightness)
         {

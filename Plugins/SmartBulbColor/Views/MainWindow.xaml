@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
         xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Height="828" Width="520">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="520">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -21,7 +21,7 @@
             <Setter Property="Control.Foreground" Value="#FF0035E8"/>
         </Style>
     </Window.Resources>
-    <TabControl x:Name="Tools" VerticalAlignment="Top">
+    <TabControl x:Name="Tools" VerticalAlignment="Stretch">
         <TabItem x:Name="AllBulbs">
             <TabItem.Header>
                 <TextBlock>All bulbs</TextBlock>

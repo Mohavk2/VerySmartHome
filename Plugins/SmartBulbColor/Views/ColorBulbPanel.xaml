@@ -24,9 +24,24 @@
     </UserControl.Resources>
     <StackPanel x:Name="ControlPanel" Orientation="Horizontal">
         <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
-            <Canvas MinWidth="120" MinHeight="120">
+            <Grid MinWidth="120" MinHeight="120" Background="Black">
                 <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
-            </Canvas>
+                <Ellipse Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,25" 
+                         Opacity="0.6" Fill="{Binding ElementName=PickedColor, Path=Fill, Mode=Default, UpdateSourceTrigger=PropertyChanged}">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="20" KernelType="Gaussian"/>
+                    </Ellipse.Effect>
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsPowered, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                    <Setter Property="Visibility" Value="Hidden"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+            </Grid>
             <TextBlock Text="{Binding Path=Bulb.Name}" HorizontalAlignment="Center" Foreground="AliceBlue" FontSize="14" Height="30"/>
         </StackPanel>
         <Grid>
@@ -38,7 +53,7 @@
                 Content="Normal Light"/>
                 </WrapPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Rectangle Width="10" x:Name="PickedColor" Stroke="Black" 
+                    <Rectangle Width="10" x:Name="PickedColor" Stroke="Black"                               
                            Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Canvas MinWidth="240" x:Name="Palette" ClipToBounds="True" MouseMove="Palette_MouseMove"                    
                     Margin="3,0" MouseDown="Palette_MouseDown">

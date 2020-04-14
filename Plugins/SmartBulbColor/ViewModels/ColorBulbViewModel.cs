@@ -7,11 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using VerySmartHome.Interfaces;
 
-namespace SmartBulbColor.ViewModels 
+namespace SmartBulbColor.ViewModels
 {
-    internal class ColorBulbViewModel : ViewModelBase , IComparableById
+    internal class ColorBulbViewModel : ViewModelBase, IComparableById
     {
         private ColorBulb _bulb;
         public ColorBulb Bulb
@@ -21,6 +22,19 @@ namespace SmartBulbColor.ViewModels
             {
                 _bulb = value;
                 OnPropertyChanged("Bulb");
+            }
+        }
+        private SolidColorBrush _pickerBrush = Brushes.White;
+        public SolidColorBrush PickerBrush
+        {
+            get { return _pickerBrush; }
+            set
+            {
+                _pickerBrush = value;
+                if (SetColorByColorPickerPoint.CanExecute(value))
+                {
+                    SetColorByColorPickerPoint.Execute(value);
+                }
             }
         }
         private bool _isControlEnabled;
@@ -35,12 +49,12 @@ namespace SmartBulbColor.ViewModels
         }
         public int GetId() { return Bulb.GetId(); }
         private bool _isPowered;
-        public bool IsPowered 
+        public bool IsPowered
         {
-            get 
+            get
             {
                 _isPowered = Bulb.IsPowered;
-                return _isPowered; 
+                return _isPowered;
             }
             set
             {
@@ -51,19 +65,6 @@ namespace SmartBulbColor.ViewModels
         public ColorBulbViewModel(ColorBulb bulb)
         {
             Bulb = bulb;
-        }
-        private SolidColorBrush _pickerBrush = Brushes.Black;
-        public SolidColorBrush PickerBrush
-        {
-            get { return _pickerBrush; }
-            set
-            {
-                _pickerBrush = value;
-                if (SetColorByColorPickerPoint.CanExecute(value))
-                {
-                    SetColorByColorPickerPoint.Execute(value);
-                }
-            }
         }
         public ICommand SetColorByColorPickerPoint
         {
@@ -78,6 +79,7 @@ namespace SmartBulbColor.ViewModels
             Color color = brush.Color;
             HSBColor hsbColor = new HSBColor(color);
             Bulb.SetSceneHSV(hsbColor.Hue, hsbColor.Saturation, hsbColor.Brightness);
+            IsPowered = Bulb.IsPowered;
         }
         private bool CanExecuteSetColorByColorPickerPoint(Object parametr)
         {
@@ -119,6 +121,8 @@ namespace SmartBulbColor.ViewModels
         {
             Bulb.SetNormalLight(5400, 100);
             IsPowered = Bulb.IsPowered;
+            _pickerBrush = Brushes.White;
+            OnPropertyChanged("PickerBrush");
         }
         private bool CanExecuteTurnNormalLightONCommand(Object parametr)
         {
