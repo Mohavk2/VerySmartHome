@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -11,18 +12,6 @@ namespace SmartBulbColor.Models
     {
         public const string DeviceType = "MiBulbColor";
         public const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n" + "HOST: 239.255.255.250:1982\r\n" + "MAN: \"ssdp:discover\"\r\n" + "ST: wifi_bulb");
-        private const string LOCATION = "Location: yeelight://";
-        private const string ID = "id: ";
-        private const string MODEL = "model: ";
-        private const string FW_VER = "fw_ver: ";
-        private const string POWER = "power: ";
-        private const string BRIGHT = "bright: ";
-        private const string COLOR_MODE = "color_mode: ";
-        private const string CT = "ct: ";
-        private const string RGB = "rgb: ";
-        private const string HUE = "hue: ";
-        private const string SAT = "sat: ";
-        private const string NAME = "name: ";
 
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
@@ -46,23 +35,35 @@ namespace SmartBulbColor.Models
         {
             if (BulbResponse.Length != 0)
             {
-                var response = BulbResponse.Split(new[] { "\r\n" }, StringSplitOptions.None);
+                var response = BulbResponse.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var responseLine in response)
+                {
+                    string[] responseParams = responseLine.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
 
-                var ipPort = response[4].Substring(LOCATION.Length);
-                var temp = ipPort.Split(':');
-                Ip = temp[0];
-                Port = int.Parse(temp[1]);
-                Id = Convert.ToInt32(response[6].Substring(ID.Length), 16);
-                Model = response[7].Substring(MODEL.Length);
-                FwVer = int.Parse(response[8].Substring(FW_VER.Length));
-                IsPowered = response[10].Substring(POWER.Length) == "on" ? true : false;
-                Brightness = int.Parse(response[11].Substring(BRIGHT.Length));
-                ColorMode = int.Parse(response[12].Substring(COLOR_MODE.Length));
-                ColorTemperature = int.Parse(response[13].Substring(CT.Length));
-                Rgb = int.Parse(response[14].Substring(RGB.Length));
-                Hue = int.Parse(response[15].Substring(HUE.Length));
-                Saturation = int.Parse(response[16].Substring(SAT.Length));
-                Name = response[17].Substring(NAME.Length);
+                    if(responseParams.Length == 2)
+                    {
+                        KeyValuePair<string, string> pair = new KeyValuePair<string, string>(responseParams[0].Trim(), responseParams[1].Trim());
+                        switch (pair.Key)
+                        {
+                            case "Location":
+                                Uri url = new Uri(pair.Value);
+                                Ip = url.Host;
+                                Port = url.Port;
+                                break;
+                            case "id": Id = Convert.ToInt32(pair.Value, 16); break;
+                            case "model": Model = pair.Value; break;
+                            case "fw_ver": FwVer = int.Parse(pair.Value); break;
+                            case "power": IsPowered = pair.Value == "on" ? true : false; break;
+                            case "bright": Brightness = int.Parse(pair.Value); break;
+                            case "color_mode": ColorMode = int.Parse(pair.Value); break;
+                            case "ct": ColorTemperature = int.Parse(pair.Value); break;
+                            case "rgb": Rgb = int.Parse(pair.Value); break;
+                            case "hue": Hue = int.Parse(pair.Value); break;
+                            case "sat": Saturation = int.Parse(pair.Value); break;
+                            case "name": Name = pair.Value; break;
+                        }
+                    }
+                }
             }
         }
         public override int GetId()
@@ -245,29 +246,11 @@ namespace SmartBulbColor.Models
         }
         private int _saturation = 0;
 
-        public string GetReport()
-        {
-            const string divider = "\r\n";
-            string report =
-                LOCATION.ToUpper() + Ip + ":" + Port + divider +
-                ID.ToUpper() + Id + divider +
-                MODEL.ToUpper() + Model + divider +
-                FW_VER.ToUpper() + FwVer + divider +
-                POWER.ToUpper() + IsPowered + divider +
-                BRIGHT.ToUpper() + Brightness + divider +
-                COLOR_MODE.ToUpper() + ColorMode + divider +
-                CT.ToUpper() + ColorTemperature + divider +
-                RGB.ToUpper() + Rgb + divider +
-                HUE.ToUpper() + Hue + divider +
-                SAT.ToUpper() + Saturation + divider +
-                NAME.ToUpper() + Name + divider;
-            return report;
-        }
         private void SendCommand(string command)
         {
             lock (CommandLocker)
             {
-                if (Client == null)                                     
+                if (Client == null)
                 {
                     ReconnectMusicMode();
                 }
@@ -285,7 +268,7 @@ namespace SmartBulbColor.Models
                     return;
                 else
                     WaitForOnline();
-            }                       
+            }
         }
         private bool TrySendStraightCommand(string command)
         {
@@ -351,7 +334,7 @@ namespace SmartBulbColor.Models
         }
 
         private void WaitForOnline()
-        {                          
+        {
             //TODO: add 
         }
         public void SetName(string name)
