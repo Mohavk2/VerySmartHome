@@ -5,7 +5,7 @@ using VerySmartHome.Interfaces;
 
 namespace SmartBulbColor.ViewModels
 {
-    class DispatchedCollection<T> : ObservableCollection<T> where T : IComparableById
+    class DispatchedCollection<T> : ObservableCollection<T> where T : IHasID
     {
         static readonly Dispatcher CurrentDispatcher;
         static DispatchedCollection()
@@ -13,27 +13,19 @@ namespace SmartBulbColor.ViewModels
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
         public DispatchedCollection() : base() { }
-        public void AddSafe(IComparableById itemToAdd)
+        public void AddSafe(IHasID itemToAdd)
         {
-            CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => 
+            CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                for(int i = 0; i < Count; i++)
-                {
-                    if (Items[i].GetId() == itemToAdd.GetId())
-                        return;
-                }
-                this.Add((T)itemToAdd); 
+                if(!this.Items.Contains((T)itemToAdd))
+                this.Add((T)itemToAdd);
             }));
         }
-        public void RemoveSafe(IComparableById itemToRemove)
+        public void RemoveSafe(IHasID itemToRemove)
         {
-            CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => 
+            CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (Items[i].GetId() == itemToRemove.GetId())
-                        this.RemoveAt(i);
-                } 
+                this.Items.Remove((T)itemToRemove);
             }));
         }
     }

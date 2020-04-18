@@ -29,7 +29,6 @@ namespace SmartBulbColor.ViewModels
         public MainWindowViewModel()
         {
             SmartBulbController.BulbFound += (foundBulb)=> { ColorBulbsVM.AddSafe(new ColorBulbViewModel(foundBulb)); };
-            SmartBulbController.BulbLost += (lostBulb) => { ColorBulbsVM.RemoveSafe(new ColorBulbViewModel(lostBulb)); };
             SmartBulbController.StartBulbsRefreshing();
         }
         public ICommand FindBulbs

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VerySmartHome.Interfaces
 {
-    public interface IComparableById
+    public interface IHasID
     {
         int GetId();
     }

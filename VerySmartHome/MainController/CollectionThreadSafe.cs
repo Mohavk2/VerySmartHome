@@ -9,7 +9,7 @@ using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IComparableById
+    public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IHasID
     {
         List<T> Items;
 
@@ -36,35 +36,29 @@ namespace VerySmartHome.MainController
         {
             lock (Locker)
             {
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    if (item.GetId() == Items[i].GetId())
-                        return true;
-                }
-                return false;
+                if (Items.Contains(item))
+                    return true;
+                else
+                    return false;
             }
         }
+        /// <summary>
+        /// Adding will not apply if the collection already contains the object you trying to add
+        /// </summary>
+        /// <param name="item"></param>
         public void Add(T item)
         {
             lock (Locker)
             {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (Items[i].GetId() == item.GetId())
-                        return;
-                }
-                Items.Add(item);
+                if (!Items.Contains(item))
+                    Items.Add(item);
             }
         }
         public void Remove(T item)
         {
             lock (Locker)
             {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (Items[i].GetId() == item.GetId())
-                        Items.RemoveAt(i);
-                }
+                Items.Remove(item);
             }
         }
         public bool MoveNext()
@@ -86,7 +80,7 @@ namespace VerySmartHome.MainController
                     return false;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message + "Something bad happend with the threadsafe collection and it's deadlocked now!");
             }

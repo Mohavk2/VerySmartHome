@@ -15,22 +15,18 @@ namespace SmartBulbColor.Models
 
         public AmbientLightStreamer()
         {
-            DeviceDiscoverer.DeviceLost += OnDeviceLost;
-
             ColorAnalyzer = new ScreenColorAnalyzer();
 
             AmbilightThread = new Thread(new ThreadStart(StreamAmbientLightHSL));
             AmbilightThread.IsBackground = true;
             AmbilightTrigger = new ManualResetEvent(true);
         }
-
         public void AddBulbForStreaming(ColorBulb bulb)
         {
             BulbsForStreaming.Add(bulb);
             if(BulbsForStreaming.Count == 1)
                 StartSreaming();
         }
-
         public void StartSreaming()
         {
             if (AmbilightThread.IsAlive)
@@ -76,10 +72,6 @@ namespace SmartBulbColor.Models
         public void RemoveBulb(ColorBulb bulb)
         {
             BulbsForStreaming.Remove(bulb);
-        }
-        private void OnDeviceLost(Device device)
-        {
-            RemoveBulb((ColorBulb)device);
         }
     }
 }

@@ -11,20 +11,17 @@ using System.Threading.Tasks;
 namespace VerySmartHome.MainController
 {
     public delegate void DeviceFoundEventHandler(Device foundDevice);
-    public delegate void DeviceLostEventHandler(Device lostDevice);
 
-    //TO DO add passive listening of Multicast EndPoint to recognize if device is steel online
     public abstract class DeviceDiscoverer
     {
-        private DeviceByIdNotifyList Relevant = new DeviceByIdNotifyList();
+        List<int> RelevantIds = new List<int>();
 
-        int RefreshTimeout = 8000;
+        int RefreshTimeout = 3000;
         readonly Thread RefreshingThread;
         readonly ManualResetEvent RefreshingTrigger;
         protected Object Locker = new Object();
 
         public static event DeviceFoundEventHandler DeviceFound;
-        public static event DeviceLostEventHandler DeviceLost;
 
         public string SearchMessage { get; set; }
         public string MulticastIP { get; set; } = "239.255.255.250";
@@ -48,10 +45,6 @@ namespace VerySmartHome.MainController
             RefreshingThread = new Thread(new ThreadStart(Discovering));
             RefreshingThread.IsBackground = true;
             RefreshingTrigger = new ManualResetEvent(true);
-
-            Relevant.DeviceAdded += OnDeviceFound;
-            Relevant.DeviceRemoved += OnDeviceLost;
-            Device.NoResponseFromDevice += OnNoResponseFromDevice;
         }
         public DeviceDiscoverer(string message, string ip, int port) : this(message)
         {
@@ -87,9 +80,19 @@ namespace VerySmartHome.MainController
             lock (Locker)
             {
                 var responses = GetResponses();
-                var foundDevices = CreateDevices(responses);
-                Relevant.RemoveObsoleteAndNotify(foundDevices);
-                Relevant.AddNewAndNotify(foundDevices);
+                foreach (var response in responses)
+                {
+                    int id = ParseId(response);
+
+                    if(id != -1)//if success
+                    {
+                        if(!RelevantIds.Contains(id))
+                        {
+                            RelevantIds.Add(id);
+                            OnDeviceFound(CreateDevice(response));
+                        }
+                    }
+                }
             }
         }
         public void FindDevices()
@@ -123,37 +126,30 @@ namespace VerySmartHome.MainController
             searcher.Dispose();
             return responses;
         }
-        protected virtual List<Device> CreateDevices(List<string> responses)
+        /// <summary>
+        /// Returns Id if exist, else returns -1
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        protected int ParseId(string response)
         {
-            List<Device> devices = new List<Device>();
-            for (int i = 0; i < responses.Count; i++)
+            var targetStartsWith = "id: ";
+
+            string[] properties = response.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            foreach (var property in properties)
             {
-                Device device = CreateDevice(responses[i]);
-                devices.Add(device);
+                if (property.Contains(targetStartsWith))
+                {
+                    return Convert.ToInt32(property.Substring(targetStartsWith.Length), 16);
+                }
             }
-            return devices;
+            return -1;
         }
         protected abstract Device CreateDevice(string response);
 
         private void OnDeviceFound(Device foundDevice)
         {
             DeviceFound?.Invoke(foundDevice);
-        }
-        private void OnDeviceLost(Device lostDevice)
-        {
-             DeviceLost?.Invoke(lostDevice);
-             lostDevice.Disconnect();
-        }
-        private void OnNoResponseFromDevice(Device lostDevice)
-        {
-            Task removeDevice = new Task( ()=> 
-            {
-                lock (Locker)
-                {
-                    Relevant.RemoveObsoleteAndNotify(lostDevice);
-                }
-            });
-            removeDevice.Start();
         }
     }
 }

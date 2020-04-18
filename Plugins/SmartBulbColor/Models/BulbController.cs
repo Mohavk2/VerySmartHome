@@ -14,7 +14,6 @@ namespace SmartBulbColor.Models
         public delegate void BulbCollectionNotifier();
         public delegate void BulbStatusChangedHandler(ColorBulb bulb);
         public event BulbStatusChangedHandler BulbFound;
-        public event BulbStatusChangedHandler BulbLost;
 
         public CollectionThreadSafe<ColorBulb> Bulbs { get; } = new CollectionThreadSafe<ColorBulb>();
         public CollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulb>();
@@ -33,7 +32,6 @@ namespace SmartBulbColor.Models
         public BulbController()
         {
             DeviceDiscoverer.DeviceFound += OnDeviceFound;
-            DeviceDiscoverer.DeviceLost += OnDeviceLost;
             Discoverer.StartDiscover();
         }
         public override List<Device> GetDevices()
@@ -100,19 +98,6 @@ namespace SmartBulbColor.Models
                 {
                     Bulbs.Add(bulb);
                     BulbFound?.Invoke(bulb);
-                }
-            });
-            task.Start();
-        }
-        private void OnDeviceLost(Device lostDevice)
-        {
-            Task task = new Task(() =>
-            {
-                var bulb = (ColorBulb)lostDevice;
-                if ( ! BulbsForAmbientLight.Contains(bulb))
-                {
-                    Bulbs.Remove(bulb);
-                    BulbLost?.Invoke(bulb);
                 }
             });
             task.Start();

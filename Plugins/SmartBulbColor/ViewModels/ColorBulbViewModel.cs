@@ -12,7 +12,7 @@ using VerySmartHome.Interfaces;
 
 namespace SmartBulbColor.ViewModels
 {
-    internal class ColorBulbViewModel : ViewModelBase, IComparableById
+    internal class ColorBulbViewModel : ViewModelBase, IHasID
     {
         private ColorBulb _bulb;
         public ColorBulb Bulb

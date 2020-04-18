@@ -8,17 +8,9 @@ using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public abstract class Device : INotifyPropertyChanged, IComparableById, IDisposable
+    public abstract class Device : INotifyPropertyChanged, IHasID, IDisposable
     {
-        public delegate void NoResponseHandler(Device device);
-        public static event NoResponseHandler NoResponseFromDevice;
-
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnNoResponseFromDevice()
-        {
-            NoResponseFromDevice?.Invoke(this);
-        }
 
         public void OnPropertyChanged(string propertyName)
         {
@@ -28,12 +20,11 @@ namespace VerySmartHome.MainController
                 handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-
         public abstract string GetName();
         public abstract int GetId();
         public abstract string GetIP();
         public abstract int GetPort();
-        public abstract void Disconnect();
+        public abstract void DisconnectMusicMode();
         public abstract void Dispose();
     }
 }
