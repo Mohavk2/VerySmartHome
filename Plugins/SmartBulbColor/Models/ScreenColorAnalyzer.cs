@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
+using System.Windows;
 
 namespace SmartBulbColor.Models
 {
@@ -11,7 +11,7 @@ namespace SmartBulbColor.Models
         HSBColor ColorBufer = new HSBColor(0,0,0);
         public HSBColor GetMostCommonColorHSB()
         {
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            Bitmap printscreen = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
             Graphics graphics = Graphics.FromImage(printscreen as Image);
             graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
             graphics.Dispose();
