@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public abstract class Device : INotifyPropertyChanged, IHasID, IDisposable
+    public abstract class Device : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

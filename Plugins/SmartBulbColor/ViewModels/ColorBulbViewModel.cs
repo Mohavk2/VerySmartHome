@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using VerySmartHome.Interfaces;
 
 namespace SmartBulbColor.ViewModels
 {
-    internal class ColorBulbViewModel : ViewModelBase, IHasID
+    internal class ColorBulbViewModel : ViewModelBase
     {
         private ColorBulb _bulb;
         public ColorBulb Bulb

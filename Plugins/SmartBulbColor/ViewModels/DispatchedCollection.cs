@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
-using VerySmartHome.Interfaces;
 
 namespace SmartBulbColor.ViewModels
 {
-    class DispatchedCollection<T> : ObservableCollection<T> where T : IHasID
+    class DispatchedCollection<T> : ObservableCollection<T>
     {
         static readonly Dispatcher CurrentDispatcher;
         static DispatchedCollection()
@@ -13,7 +12,7 @@ namespace SmartBulbColor.ViewModels
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
         public DispatchedCollection() : base() { }
-        public void AddSafe(IHasID itemToAdd)
+        public void AddSafe(T itemToAdd)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
@@ -21,7 +20,7 @@ namespace SmartBulbColor.ViewModels
                 this.Add((T)itemToAdd);
             }));
         }
-        public void RemoveSafe(IHasID itemToRemove)
+        public void RemoveSafe(T itemToRemove)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {

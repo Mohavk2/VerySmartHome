@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using VerySmartHome.Interfaces;
 
 namespace VerySmartHome.MainController
 {
-    public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T> where T : IHasID
+    public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T>
     {
         List<T> Items;
 

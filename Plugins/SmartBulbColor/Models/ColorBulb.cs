@@ -3,9 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using VerySmartHome.MainController;
-using System.Threading;
-using System.Windows.Media;
-using System.Threading.Tasks;
 
 namespace SmartBulbColor.Models
 {
