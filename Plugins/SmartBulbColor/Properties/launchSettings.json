@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SmartBulbColor": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\Saint\\source\\repos\\VerySmartHome\\Plugins\\SmartBulbColor"
+    }
+  }
+}

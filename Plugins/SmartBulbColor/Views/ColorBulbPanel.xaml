@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:SmartBulbColor.Views"
              mc:Ignorable="d" Width="500">
     <UserControl.Resources>
         <Style x:Key="MainButtonStyle">
@@ -14,10 +15,10 @@
             <Setter Property="Control.Foreground" Value="#FF00F92D"/>
         </Style>
         <Style x:Key="BulbIconStyle" TargetType="{x:Type Image}">
-            <Setter Property="Source" Value="/Resources/LightOFF.png"/>
+            <Setter Property="Source" Value="pack://application:,,,/SmartBulbColor;component/Resources/LightOFF.png"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Path=IsPowered}" Value="true">
-                    <Setter Property="Source" Value="/Resources/LightON.png"/>
+                    <Setter Property="Source" Value="pack://application:,,,/SmartBulbColor;component/Resources/LightON.png"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -26,15 +27,16 @@
         <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
             <Grid MinWidth="120" MinHeight="120" Background="Black">
                 <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
-                <Ellipse Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,25" 
-                         Opacity="0.6" Fill="{Binding ElementName=PickedColor, Path=Fill, Mode=Default, UpdateSourceTrigger=PropertyChanged}">
+                <Ellipse x:Name="BulbGlow" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,25" 
+                         Opacity="0.6" DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}" 
+                         Fill="{Binding DataContext.PickerBrush, Mode=TwoWay}">
                     <Ellipse.Effect>
                         <BlurEffect Radius="20" KernelType="Gaussian"/>
                     </Ellipse.Effect>
                     <Ellipse.Style>
-                        <Style TargetType="Ellipse">
+                        <Style TargetType="{x:Type Ellipse}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=IsPowered, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                <DataTrigger Binding="{Binding Path=DataContext.IsPowered, UpdateSourceTrigger=PropertyChanged}" Value="false">
                                     <Setter Property="Visibility" Value="Hidden"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -52,17 +54,6 @@
                     <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}" 
                 Content="Normal Light"/>
                 </WrapPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Rectangle Width="10" x:Name="PickedColor" Stroke="Black"                               
-                           Fill="{Binding PickerBrush, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Canvas MinWidth="240" x:Name="Palette" ClipToBounds="True" MouseMove="Palette_MouseMove"                    
-                    Margin="3,0" MouseDown="Palette_MouseDown">
-                        <Canvas.Background>
-                            <ImageBrush ImageSource="/SmartBulbColor;component/Resources/ColorPicker.jpg"></ImageBrush>
-                        </Canvas.Background>
-                        <Ellipse x:Name="PickerMarker" StrokeThickness="2" Height="20" Width="20" Stroke="Black" />
-                    </Canvas>
-                </StackPanel>
             </StackPanel>
             <Rectangle Name="Cap" Fill="Black" Opacity="0.3">
                 <Rectangle.Style>
@@ -76,5 +67,8 @@
                 </Rectangle.Style>
             </Rectangle>
         </Grid>
+        <views:ColorPicker x:Name="Picker" 
+                           SelectedColor="{Binding ElementName=BulbGlow, Path=Fill, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+        </views:ColorPicker>
     </StackPanel>
 </UserControl>
