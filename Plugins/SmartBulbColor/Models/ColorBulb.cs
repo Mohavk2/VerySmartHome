@@ -407,7 +407,7 @@ namespace SmartBulbColor.Models
         }
         public override void Dispose()
         {
-            Client?.Dispose();
+            DisconnectMusicMode();
         }
     }
 }

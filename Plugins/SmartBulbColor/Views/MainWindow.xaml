@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
+        xmlns:properties="clr-namespace:SmartBulbColor.Properties"
         xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="520">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="520" Height="455">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -51,10 +52,16 @@
                             <DataTemplate>
                                 <StackPanel MinWidth="150">
                                     <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="AmbientLightButton" Content="Ambient Light"  
+                                        <ToggleButton x:Name="AmbientLightButton" 
                                                 Height="30" MinWidth="150" HorizontalAlignment="Left"
                                                 Command="{Binding DataContext.ToggleAmbientLight, 
-                                                RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                                RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                            <ToggleButton.Content>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Margin="0,0,10,3" VerticalAlignment="Center">Ambient Light</TextBlock>
+                                                </StackPanel>
+                                            </ToggleButton.Content>
+                                        </ToggleButton>
                                     </StackPanel>
                                     <views:ColorBulbPanel x:Name="BulbPanel"/>
                                 </StackPanel>

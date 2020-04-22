@@ -102,7 +102,10 @@ namespace SmartBulbColor.Models
         }
         public void Dispose()
         {
-
+            foreach(var bulb in Bulbs)
+            {
+                bulb.Dispose();
+            }
         }
     }
 }
