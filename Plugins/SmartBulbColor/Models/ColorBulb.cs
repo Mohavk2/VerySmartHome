@@ -4,10 +4,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using VerySmartHome.MainController;
+using SmartBulbColor.BulbCommands;
+using System.Text.Json;
 
 namespace SmartBulbColor.Models
 {
-    enum Effect { Sudden = 0, Smooth = 1 }
     internal sealed class ColorBulb : Device
     {
         public const string DeviceType = "MiBulbColor";
@@ -40,7 +41,7 @@ namespace SmartBulbColor.Models
                 {
                     string[] responseParams = responseLine.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
 
-                    if(responseParams.Length == 2)
+                    if (responseParams.Length == 2)
                     {
                         KeyValuePair<string, string> pair = new KeyValuePair<string, string>(responseParams[0].Trim(), responseParams[1].Trim());
                         switch (pair.Key)
@@ -140,6 +141,10 @@ namespace SmartBulbColor.Models
                 if (value != _isPowered)
                 {
                     _isPowered = value;
+                    if (_isPowered == true)
+                        ReconnectMusicMode();
+                    else
+                        DisconnectMusicMode();
                     OnPropertyChanged("IsPowered");
                 }
             }
@@ -246,6 +251,73 @@ namespace SmartBulbColor.Models
         }
         private int _saturation = 0;
 
+        public void ExecuteCommand(BulbCommand command)
+        {
+            command.SetDeviceId(Id);
+            var jsonCommand = JsonSerializer.Serialize(command, typeof(BulbCommand));
+            string jsonResponse;
+            switch (command.Mode)
+            {
+                case ResponseMode.None:
+                    SendCommand(jsonCommand);
+                    ChangeRelatedBulbProperties(command);
+                    break;
+                case ResponseMode.IsOk:
+                    jsonResponse = SendResponsiveCommand(jsonCommand);
+                    if (jsonResponse.Contains("\"ok\""))
+                        ChangeRelatedBulbProperties(command);
+                    break;
+                case ResponseMode.FullResponse:
+                    jsonResponse = SendResponsiveCommand(jsonCommand);
+                    ParseJsonResponse(jsonResponse);
+                    break;
+            }
+        }
+
+        private void ParseJsonResponse(string jsonResponse)
+        {
+           //TODO: write bulb response parsing method
+        }
+
+        private void ChangeRelatedBulbProperties(BulbCommand command)
+        {
+            switch(command.Method)
+            {
+                case "set_ct_abx":
+                    ColorTemperature = (int)command.Parameters[0];
+                    break;
+                case "set_rgb":
+                    Rgb = (int)command.Parameters[0];
+                    break;
+                case "set_hsv":
+                    Hue = (int)command.Parameters[0];
+                    Saturation = (int)command.Parameters[1];
+                    break;
+                case "set_bright":
+                    Brightness = (int)command.Parameters[0];
+                    break;
+                case "set_power":
+                    IsPowered = (string)command.Parameters[0] == "on" ? true : false;
+                    break;
+                case "toggle":
+                    IsPowered = !IsPowered;
+                    break;
+                case "set_scene":
+                    if ((string)command.Parameters[0] == "color")
+                        Rgb = (int)command.Parameters[1];
+                    if((string)command.Parameters[0] == "ct")
+                        ColorTemperature = (int)command.Parameters[1];
+                    if ((string)command.Parameters[0] == "hsv")
+                    {
+                        Hue = (int)command.Parameters[1];
+                        Saturation = (int)command.Parameters[2];
+                        Brightness = (int)command.Parameters[3];
+                    }
+                    IsPowered = true;
+                    break;
+            }
+        }
+
         private void SendCommand(string command)
         {
             lock (CommandLocker)
@@ -255,7 +327,7 @@ namespace SmartBulbColor.Models
                     ReconnectMusicMode();
                 }
                 bool success = true;
-                byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+                byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
                 try
                 {
                     Client?.Send(comandBuffer);
@@ -270,14 +342,14 @@ namespace SmartBulbColor.Models
                     WaitForOnline();
             }
         }
-        private bool TrySendStraightCommand(string command)
+        private string SendResponsiveCommand(string command)
         {
             lock (CommandLocker)
             {
                 int attemps = 0;
                 do
                 {
-                    byte[] comandBuffer = Encoding.UTF8.GetBytes(command);
+                    byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
                     using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                     {
                         IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
@@ -290,20 +362,22 @@ namespace SmartBulbColor.Models
                             client.Send(comandBuffer);
 
                             byte[] recBuffer = new byte[100];
-                            client.Receive(recBuffer);
-                            string responce = Encoding.UTF8.GetString(recBuffer);
+                            IAsyncResult recResult = client.BeginReceive(recBuffer, 0, recBuffer.Length, SocketFlags.None, null, null);
 
-                            if (responce.Contains("\"ok\""))
-                                return true;
-                            else
-                                attemps++;
+                            bool recSuccess = recResult.AsyncWaitHandle.WaitOne(2000);
+                            if (recSuccess == false)
+                                throw new Exception("Something went wrong while receiving response from the device #" + Id);
+                            client.EndReceive(recResult);
+
+                            string responce = Encoding.UTF8.GetString(recBuffer);
+                            return responce;
                         }
                         attemps++;
                     }
                 } while (attemps < 3);
                 DisconnectMusicMode();
                 IsOnline = false;
-                return false;
+                return string.Empty;
             }
         }
         private void ReconnectMusicMode()
@@ -329,74 +403,19 @@ namespace SmartBulbColor.Models
         }
         private bool SendRequestForConnection()
         {
-            var command = $"{{\"id\":{Id},\"method\":\"set_music\",\"params\":[1, \"{LocalIP}\", {LocalPort}]}}\r\n";
-            return TrySendStraightCommand(command);
+            var musicModeCommand = BulbCommandBuilder.CreateSetMusicModeCommand(MusicModeAction.On, LocalIP.ToString(), LocalPort);
+            musicModeCommand.SetDeviceId(Id);
+            var jsonCommand = JsonSerializer.Serialize(musicModeCommand, typeof(BulbCommand));
+            var response = SendResponsiveCommand(jsonCommand);
+            if (response.Contains("\"ok\""))
+                return true;
+            else
+                return false;
         }
 
         private void WaitForOnline()
         {
             //TODO: add 
-        }
-        public void SetName(string name)
-        {
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_name\",\"params\":[\"{name}\"]}}\r\n";
-            SendCommand(command);
-            Name = name;
-        }
-        public void TogglePower()
-        {
-            if (IsPowered)
-            {
-                SetPower(false, Effect.Smooth, 500);
-                DisconnectMusicMode();
-            }
-            else
-            {
-                SetPower(true, Effect.Smooth, 500);
-                ReconnectMusicMode();
-            }
-        }
-        public bool SetPower(bool power, Effect effect, int duration)
-        {
-            var pow = power ? "on" : "off";
-
-            var dur = (duration < 30) ? 30 : duration;
-
-            string eff = (effect == Effect.Smooth) ? "smooth" : "sudden";
-
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"{pow}\", \"{eff}\", {dur}]}}\r\n";
-
-            if (TrySendStraightCommand(command))
-            {
-                IsPowered = power;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public void SetColorMode(int value)
-        {
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_power\",\"params\":[\"on\", \"smooth\", 30, {value}]}}\r\n";
-            if (TrySendStraightCommand(command))
-            {
-                IsPowered = true;
-            }
-        }
-        public void SetSceneHSV(int hue, float saturation, float value)
-        {
-            string command = $"{{\"id\":{Id},\"method\":\"set_scene\",\"params\":[\"hsv\", {hue}, {saturation}, {value}]}}\r\n";
-            SendCommand(command);
-            IsPowered = true;
-        }
-        public void SetNormalLight(int colorTemperature, int brightness)
-        {
-            var command = $"{{\"id\":{this.Id},\"method\":\"set_scene\",\"params\":[\"ct\", {colorTemperature}, {brightness}]}}\r\n";
-            if (TrySendStraightCommand(command))
-            {
-                IsPowered = true;
-            }
         }
         public override string ToString()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartBulbColor.BulbCommands;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerySmartHome.MainController;
@@ -61,8 +62,8 @@ namespace SmartBulbColor.Models
             {
                 try
                 {
-                    Discoverer.StopDiscover();
-                    bulb.SetColorMode(2);
+                    Discoverer.StopDiscover();         
+                    bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Sudden, 30, ColorMode.HSV));
                     BulbsForAmbientLight.Add(bulb);
                     AmbientLight.AddBulbForStreaming(bulb);
                 }
@@ -85,7 +86,7 @@ namespace SmartBulbColor.Models
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
-            bulb.SetSceneHSV(color.Hue, color.Saturation, color.Brightness);
+            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(color.Hue, (int)color.Saturation, (int)color.Brightness));
         }
         private void OnDeviceFound(Device foundDevice)
         {

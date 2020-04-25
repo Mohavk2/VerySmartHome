@@ -20,19 +20,10 @@ namespace SmartBulbColor.BulbCommands
 		flow_params,    //Current flow parameters (only meaningful when 'flowing' is 1)
 		music_on,       //1: Music mode is on / 0: Music mode is off
 		name,           //The name of the device set by “set_name” command
-		bg_power,       //Background light power status
-		bg_flowing,     //Background light is flowing
-		bg_flow_params, //Current flow parameters of background light
-		bg_ct,          //Color temperature of background light
-		bg_lmode,       //1: rgb mode / 2: color temperature mode / 3: hsv mode
-		bg_bright,      //Brightness percentage of background light
-		bg_rgb,         //Color of background light
-		bg_hue,         //Hue of background light
-		bg_sat,         //Saturation of background light
 		nl_br,          //Brightness of night mode light
 		active_mode     //0: daylight mode / 1: moonlight mode (ceiling light only)
 	}
-	public enum SettingPowerMode
+	public enum ColorMode
 	{
 		Default = 0,
 		CT = 1,
@@ -90,5 +81,11 @@ namespace SmartBulbColor.BulbCommands
 	{
 		Off = 0,
 		On = 1
+	}
+	public enum ResponseMode
+	{
+		None,
+		IsOk,
+		FullResponse
 	}
 }

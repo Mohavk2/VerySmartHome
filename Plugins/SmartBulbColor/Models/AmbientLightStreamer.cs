@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using SmartBulbColor.BulbCommands;
+using System.Threading;
 using VerySmartHome.MainController;
 
 namespace SmartBulbColor.Models
@@ -53,12 +54,12 @@ namespace SmartBulbColor.Models
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-
+                var command = BulbCommandBuilder.CreateSetSceneHsvCommand(hue, (int)sat, (int)bright);
                 if (BulbsForStreaming != null && BulbsForStreaming.Count != 0)
                 { 
                     foreach (var bulb in BulbsForStreaming)
                     {
-                        bulb.SetSceneHSV(hue, sat, bright);
+                        bulb.ExecuteCommand(command);
                     }
                 }
                 else StopStreaming();

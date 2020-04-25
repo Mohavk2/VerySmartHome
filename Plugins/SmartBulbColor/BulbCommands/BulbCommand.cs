@@ -8,6 +8,8 @@ namespace SmartBulbColor.BulbCommands
 {
     public class BulbCommand
     {
+        public ResponseMode Mode { get; private set; }
+
         [JsonPropertyName(name: "id")]
         public int? Id { get; set; }
         [JsonPropertyName(name: "method")]
@@ -15,12 +17,13 @@ namespace SmartBulbColor.BulbCommands
         [JsonPropertyName(name: "params")]
         public ArrayList Parameters { get; set; }
 
-        public BulbCommand(string method, ArrayList parameters)
+        public BulbCommand(string method, ArrayList parameters, ResponseMode mode)
         {
+            Mode = mode;
             Method = method;
             Parameters = parameters;
         }
-        public void CompleteWithId(int id)
+        public void SetDeviceId(int id)
         {
             Id = id;
         }
