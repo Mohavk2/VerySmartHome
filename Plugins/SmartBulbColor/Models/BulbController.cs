@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerySmartHome.MainController;
 
-//MM - MusicMode
-
 namespace SmartBulbColor.Models
 {
     sealed class BulbController : DeviceController, IDisposable
@@ -63,7 +61,6 @@ namespace SmartBulbColor.Models
                 try
                 {
                     Discoverer.StopDiscover();         
-                    bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Sudden, 30, ColorMode.HSV));
                     BulbsForAmbientLight.Add(bulb);
                     AmbientLight.AddBulbForStreaming(bulb);
                 }

@@ -52,16 +52,6 @@
                             <DataTemplate>
                                 <StackPanel MinWidth="150">
                                     <StackPanel Orientation="Horizontal">
-                                        <ToggleButton x:Name="AmbientLightButton" 
-                                                Height="30" MinWidth="150" HorizontalAlignment="Left"
-                                                Command="{Binding DataContext.ToggleAmbientLight, 
-                                                RelativeSource={RelativeSource AncestorType=ListBox}}">
-                                            <ToggleButton.Content>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Margin="0,0,10,3" VerticalAlignment="Center">Ambient Light</TextBlock>
-                                                </StackPanel>
-                                            </ToggleButton.Content>
-                                        </ToggleButton>
                                     </StackPanel>
                                     <views:ColorBulbPanel x:Name="BulbPanel"/>
                                 </StackPanel>

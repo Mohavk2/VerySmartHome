@@ -14,6 +14,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class ColorBulbViewModel : ViewModelBase
     {
+        readonly BulbController Controller;
         private ColorBulb _bulb;
         public ColorBulb Bulb
         {
@@ -62,8 +63,9 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsPowered");
             }
         }
-        public ColorBulbViewModel(ColorBulb bulb)
+        public ColorBulbViewModel(BulbController controller, ColorBulb bulb)
         {
+            Controller = controller;
             Bulb = bulb;
         }
         public ICommand SetColorByColorPickerPoint
@@ -123,6 +125,17 @@ namespace SmartBulbColor.ViewModels
             IsPowered = Bulb.IsPowered;
             _pickerBrush = Brushes.White;
             OnPropertyChanged("PickerBrush");
+        }
+        public ICommand ToggleAmbientLight
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteToggleAmbientLightCommand);
+            }
+        }
+        private void ExecuteToggleAmbientLightCommand(Object parametr)
+        {
+            Controller.ToggleAmbientLight(Bulb);
         }
         private bool CanExecuteTurnNormalLightONCommand(Object parametr)
         {

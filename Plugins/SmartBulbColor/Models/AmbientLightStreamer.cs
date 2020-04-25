@@ -22,6 +22,7 @@ namespace SmartBulbColor.Models
         }
         public void AddBulbForStreaming(ColorBulb bulb)
         {
+            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Smooth, 5, ColorMode.HSV));
             BulbsForStreaming.Add(bulb);
             if(BulbsForStreaming.Count == 1)
                 StartSreaming();

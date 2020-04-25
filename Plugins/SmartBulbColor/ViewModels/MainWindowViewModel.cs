@@ -12,7 +12,7 @@ namespace SmartBulbColor.ViewModels
     class MainWindowViewModel : ViewModelBase, IDisposable
     {
 
-        BulbController SmartBulbController = new BulbController();
+        BulbController Controller = new BulbController();
 
         public DispatchedCollection<ColorBulbViewModel> ColorBulbsVM { get; } = new DispatchedCollection<ColorBulbViewModel>();
 
@@ -28,8 +28,8 @@ namespace SmartBulbColor.ViewModels
         }
         public MainWindowViewModel()
         {
-            SmartBulbController.BulbFound += (foundBulb)=> { ColorBulbsVM.AddSafe(new ColorBulbViewModel(foundBulb)); };
-            SmartBulbController.StartBulbsRefreshing();
+            Controller.BulbFound += (foundBulb)=> { ColorBulbsVM.AddSafe(new ColorBulbViewModel(Controller, foundBulb)); };
+            Controller.StartBulbsRefreshing();
         }
         public ICommand FindBulbs
         {
@@ -40,22 +40,11 @@ namespace SmartBulbColor.ViewModels
         }
         public void ExecuteFindBulbsCommand(Object parametr)
         {
-            SmartBulbController.DiscoverBulbs();
-        }
-        public ICommand ToggleAmbientLight
-        {
-            get
-            {
-                return new ControllerCommand(ExecuteToggleAmbientLightCommand);
-            }
-        }
-        private void ExecuteToggleAmbientLightCommand(Object parametr)
-        {
-            SmartBulbController.ToggleAmbientLight(SelectedBulbVM.Bulb);
+            Controller.DiscoverBulbs();
         }
         public void Dispose()
         {
-            SmartBulbController.Dispose();
+            Controller.Dispose();
         }
     }
 }
