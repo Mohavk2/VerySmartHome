@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.DeviceCommands
+namespace SmartBulbColor.BulbCommands
 {
 	public enum Power { On, Off }
 	public enum Effect { Sudden, Smooth }

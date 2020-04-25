@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.DeviceCommands
+namespace SmartBulbColor.BulbCommands
 {
     public static class BulbCommandFactory
     {
@@ -182,7 +182,7 @@ namespace SmartBulbColor.DeviceCommands
             array.Add(property.ToString());
             return new BulbCommand("set_adjust", array);
         }
-        public static BulbCommand CreateSetColorModeCommand(MusicModeAction action, string ip, int port)
+        public static BulbCommand CreateSetMusicModeCommand(MusicModeAction action, string ip, int port)
         {
             ArrayList array = new ArrayList();
             array.Add((int)action);

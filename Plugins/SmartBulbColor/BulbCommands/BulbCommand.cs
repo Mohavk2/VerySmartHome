@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace SmartBulbColor.DeviceCommands
+namespace SmartBulbColor.BulbCommands
 {
     public class BulbCommand
     {
