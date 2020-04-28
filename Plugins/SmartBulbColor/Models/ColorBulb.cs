@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using VerySmartHome.MainController;
+using CommonLibrary;
 using SmartBulbColor.RemoteBulbAPI;
 using System.Text.Json;
 

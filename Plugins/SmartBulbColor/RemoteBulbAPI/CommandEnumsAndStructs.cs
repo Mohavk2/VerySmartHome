@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SmartBulbColor.RemoteBulbAPI
+﻿namespace SmartBulbColor.RemoteBulbAPI
 {
 	public enum Power { On, Off }
 	public enum Effect { Sudden, Smooth }

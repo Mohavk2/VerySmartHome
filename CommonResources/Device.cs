@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace VerySmartHome.MainController
+namespace CommonLibrary
 {
     public abstract class Device : INotifyPropertyChanged, IDisposable
     {

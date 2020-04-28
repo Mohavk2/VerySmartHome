@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
-
-namespace SmartBulbColor.RemoteBulbAPI
+﻿namespace SmartBulbColor.RemoteBulbAPI
 {
     public class BulbJsonResponse
     {

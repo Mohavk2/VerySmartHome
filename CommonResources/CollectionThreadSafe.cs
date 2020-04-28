@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace VerySmartHome.MainController
+namespace CommonLibrary
 {
     public class CollectionThreadSafe<T> : IEnumerable<T>, IEnumerator<T>
     {

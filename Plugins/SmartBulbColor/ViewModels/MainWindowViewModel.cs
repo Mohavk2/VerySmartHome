@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Windows.Input;
-using System.Windows.Media;
-using SmartBulbColor.Infrastructure;
+﻿using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
-using VerySmartHome.MainController;
+using System;
+using System.Windows.Input;
 
 namespace SmartBulbColor.ViewModels
 {

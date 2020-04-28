@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VerySmartHome.MainController
+namespace CommonLibrary
 {
     public abstract class DeviceController
     {

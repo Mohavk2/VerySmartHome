@@ -1,14 +1,9 @@
-﻿using SmartBulbColor.RemoteBulbAPI;
-using SmartBulbColor.Infrastructure;
+﻿using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using SmartBulbColor.RemoteBulbAPI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace SmartBulbColor.ViewModels
 {

@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace VerySmartHome.MainController
+namespace CommonLibrary
 {
     public delegate void DeviceFoundEventHandler(Device foundDevice);
 
