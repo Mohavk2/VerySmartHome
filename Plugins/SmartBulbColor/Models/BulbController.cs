@@ -1,4 +1,4 @@
-﻿using SmartBulbColor.BulbCommands;
+﻿using SmartBulbColor.RemoteBulbAPI;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -98,7 +98,7 @@ namespace VerySmartHome.MainController
         }
         public virtual List<string> GetResponses()
         {
-            var searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
             var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
             var responders = new List<EndPoint>();

@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using VerySmartHome.MainController;
-using SmartBulbColor.BulbCommands;
+using SmartBulbColor.RemoteBulbAPI;
 using System.Text.Json;
 
 namespace SmartBulbColor.Models
@@ -166,10 +166,20 @@ namespace SmartBulbColor.Models
             private set
             {
                 _isOnline = value;
-                OnPropertyChanged("IsMusicModeEnabled");
+                OnPropertyChanged("IsOnline");
             }
         }
         private bool _isOnline = true;
+        public bool IsMusicModeOn
+        {
+            get { return _isMusicModeOn; }
+            set
+            {
+                _isMusicModeOn = value;
+                OnPropertyChanged("IsMusicModeOn");
+            }
+        }
+        private bool _isMusicModeOn = false;
         public string Model
         {
             get { return _model; }
@@ -220,6 +230,26 @@ namespace SmartBulbColor.Models
             }
         }
         private int _colorTemperature = 0;
+        public bool Flowing
+        {
+            get { return _flowing; }
+            set
+            {
+                _flowing = value;
+                OnPropertyChanged("Flowing");
+            }
+        }
+        private bool _flowing = false;
+        public int Delayoff
+        {
+            get { return _delayoff; }
+            set
+            {
+                _delayoff = value;
+                OnPropertyChanged("Delayoff");
+            }
+        }
+        private int _delayoff = 0;
         public int Rgb
         {
             get { return _rgb; }
@@ -260,64 +290,14 @@ namespace SmartBulbColor.Models
             {
                 case ResponseMode.None:
                     SendCommand(jsonCommand);
-                    ChangeRelatedBulbProperties(command);
                     break;
                 case ResponseMode.IsOk:
                     jsonResponse = SendResponsiveCommand(jsonCommand);
                     if (jsonResponse.Contains("\"ok\""))
-                        ChangeRelatedBulbProperties(command);
-                    break;
-                case ResponseMode.FullResponse:
-                    jsonResponse = SendResponsiveCommand(jsonCommand);
-                    ParseJsonResponse(jsonResponse);
+                        RefreshBulbState();
                     break;
             }
         }
-
-        private void ParseJsonResponse(string jsonResponse)
-        {
-           //TODO: write bulb response parsing method
-        }
-
-        private void ChangeRelatedBulbProperties(BulbCommand command)
-        {
-            switch(command.Method)
-            {
-                case "set_ct_abx":
-                    ColorTemperature = (int)command.Parameters[0];
-                    break;
-                case "set_rgb":
-                    Rgb = (int)command.Parameters[0];
-                    break;
-                case "set_hsv":
-                    Hue = (int)command.Parameters[0];
-                    Saturation = (int)command.Parameters[1];
-                    break;
-                case "set_bright":
-                    Brightness = (int)command.Parameters[0];
-                    break;
-                case "set_power":
-                    IsPowered = (string)command.Parameters[0] == "on" ? true : false;
-                    break;
-                case "toggle":
-                    IsPowered = !IsPowered;
-                    break;
-                case "set_scene":
-                    if ((string)command.Parameters[0] == "color")
-                        Rgb = (int)command.Parameters[1];
-                    if((string)command.Parameters[0] == "ct")
-                        ColorTemperature = (int)command.Parameters[1];
-                    if ((string)command.Parameters[0] == "hsv")
-                    {
-                        Hue = (int)command.Parameters[1];
-                        Saturation = (int)command.Parameters[2];
-                        Brightness = (int)command.Parameters[3];
-                    }
-                    IsPowered = true;
-                    break;
-            }
-        }
-
         private void SendCommand(string command)
         {
             lock (CommandLocker)
@@ -368,8 +348,8 @@ namespace SmartBulbColor.Models
                             if (recSuccess == false)
                                 throw new Exception("Something went wrong while receiving response from the device #" + Id);
                             client.EndReceive(recResult);
-
-                            string responce = Encoding.UTF8.GetString(recBuffer);
+                            string str = Encoding.UTF8.GetString(recBuffer);
+                            var responce = str.Substring(0, str.IndexOf("\r\n"));
                             return responce;
                         }
                         attemps++;
@@ -412,7 +392,47 @@ namespace SmartBulbColor.Models
             else
                 return false;
         }
+        private void RefreshBulbState()
+        {
+            BulbProperties[] bulbProperties = new BulbProperties[]
+            {
+                BulbProperties.power,
+                BulbProperties.bright,
+                BulbProperties.ct,
+                BulbProperties.rgb,
+                BulbProperties.hue,
+                BulbProperties.sat,
+                BulbProperties.color_mode,
+                BulbProperties.flowing,
+                BulbProperties.delayoff,
+                BulbProperties.music_on,
+                BulbProperties.name,
+            };
+            var propertiesCommand = BulbCommandBuilder.CreateGetPropertiesCommand(bulbProperties);
+            propertiesCommand.SetDeviceId(Id);
+            var jsonCommand = JsonSerializer.Serialize(propertiesCommand, typeof(BulbCommand));
+            var response = SendResponsiveCommand(jsonCommand);
+            ParseJsonProperties(response);
+        }
+        private void ParseJsonProperties(string jsonResponse)
+        {
+            BulbJsonResponse bulbJsonResponse = JsonSerializer.Deserialize<BulbJsonResponse>(jsonResponse);
 
+            if (bulbJsonResponse != null && bulbJsonResponse.result != null && bulbJsonResponse.result.Length != 0)
+            {
+                IsPowered = bulbJsonResponse.result[0] == "on" ? true : false;
+                Brightness = int.Parse(bulbJsonResponse.result[1]);
+                ColorTemperature = int.Parse(bulbJsonResponse.result[2]);
+                Rgb = int.Parse(bulbJsonResponse.result[3]);
+                Hue = int.Parse(bulbJsonResponse.result[4]);
+                Saturation = int.Parse(bulbJsonResponse.result[5]);
+                ColorMode = int.Parse(bulbJsonResponse.result[6]);
+                Flowing = bulbJsonResponse.result[7] == "1" ? true : false;
+                Delayoff = int.Parse(bulbJsonResponse.result[8]);
+                IsMusicModeOn = bulbJsonResponse.result[9] == "1" ? true : false;
+                Name = bulbJsonResponse.result[10];
+            }
+        }
         private void WaitForOnline()
         {
             //TODO: add 

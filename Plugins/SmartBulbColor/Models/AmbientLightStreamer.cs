@@ -1,4 +1,4 @@
-﻿using SmartBulbColor.BulbCommands;
+﻿using SmartBulbColor.RemoteBulbAPI;
 using System.Threading;
 using VerySmartHome.MainController;
 

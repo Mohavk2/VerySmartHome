@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.BulbCommands
+namespace SmartBulbColor.RemoteBulbAPI
 {
 	public enum Power { On, Off }
 	public enum Effect { Sudden, Smooth }
@@ -20,8 +20,6 @@ namespace SmartBulbColor.BulbCommands
 		flow_params,    //Current flow parameters (only meaningful when 'flowing' is 1)
 		music_on,       //1: Music mode is on / 0: Music mode is off
 		name,           //The name of the device set by “set_name” command
-		nl_br,          //Brightness of night mode light
-		active_mode     //0: daylight mode / 1: moonlight mode (ceiling light only)
 	}
 	public enum ColorMode
 	{

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.BulbCommands
+namespace SmartBulbColor.RemoteBulbAPI
 {
     public static class BulbCommandBuilder
     {
@@ -15,7 +15,7 @@ namespace SmartBulbColor.BulbCommands
             ArrayList array = new ArrayList();
             foreach (var property in properties)
             {
-                array.Add(property);
+                array.Add(property.ToString());
             }
             return new BulbCommand("get_prop", array, ResponseMode.FullResponse);
         }
