@@ -75,7 +75,8 @@ namespace SmartBulbColor.ViewModels
             var brush = (SolidColorBrush)parametr;
             Color color = brush.Color;
             HSBColor hsbColor = new HSBColor(color);
-            Bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(hsbColor.Hue, (int)hsbColor.Saturation, (int)hsbColor.Brightness));
+            Bulb.ExecuteCommand(
+                BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hsbColor.Hue, (int)hsbColor.Saturation, (int)hsbColor.Brightness));
             IsPowered = Bulb.IsPowered;
         }
         private bool CanExecuteSetColorByColorPickerPoint(Object parametr)
@@ -116,7 +117,7 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteTurnNormalLightONCommand(Object parametr)
         {
-            Bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(5400, 100));
+            Bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
             IsPowered = Bulb.IsPowered;
             _pickerBrush = Brushes.White;
             OnPropertyChanged("PickerBrush");

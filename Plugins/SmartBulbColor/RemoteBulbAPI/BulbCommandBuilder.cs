@@ -16,40 +16,40 @@ namespace SmartBulbColor.RemoteBulbAPI
             {
                 array.Add(property.ToString());
             }
-            return new BulbCommand("get_prop", array, ResponseMode.FullResponse);
+            return new BulbCommand("get_prop", array, CommandType.RefreshState);
         }
-        public static BulbCommand CreateSetColorTemperatureCommand(int colorTemperature, Effect effect, int duration)
+        public static BulbCommand CreateSetColorTemperatureCommand(CommandType type, int colorTemperature, Effect effect, int duration)
         {
             ArrayList array = new ArrayList();
             array.Add(colorTemperature);
             array.Add(effect.ToString());
             array.Add(duration);
-            return new BulbCommand("set_ct_abx", array, ResponseMode.None);
+            return new BulbCommand("set_ct_abx", array, type);
         }
-        public static BulbCommand CreateSetRgbCommand(int rgbDecimal, Effect effect, int duration)
+        public static BulbCommand CreateSetRgbCommand(CommandType type, int rgbDecimal, Effect effect, int duration)
         {
             ArrayList array = new ArrayList();
             array.Add(rgbDecimal);
             array.Add(effect.ToString());
             array.Add(duration);
-            return new BulbCommand("set_rgb", array, ResponseMode.None);
+            return new BulbCommand("set_rgb", array, type);
         }
-        public static BulbCommand CreateSetHsvCommand(int hue, int saturation, Effect effect, int duration)
+        public static BulbCommand CreateSetHsvCommand(CommandType type, int hue, int saturation, Effect effect, int duration)
         {
             ArrayList array = new ArrayList();
             array.Add(hue);
             array.Add(saturation);
             array.Add(effect.ToString());
             array.Add(duration);
-            return new BulbCommand("set_hsv", array, ResponseMode.None);
+            return new BulbCommand("set_hsv", array, type);
         }
-        public static BulbCommand CreateSetBrightnessCommand(int brightness, Effect effect, int duration)
+        public static BulbCommand CreateSetBrightnessCommand(CommandType type, int brightness, Effect effect, int duration)
         {
             ArrayList array = new ArrayList();
             array.Add(brightness);
             array.Add(effect.ToString());
             array.Add(duration);
-            return new BulbCommand("set_bright", array, ResponseMode.None);
+            return new BulbCommand("set_bright", array, type);
         }
         public static BulbCommand CreateSetPowerCommand(Power power, Effect effect, int duration, ColorMode mode)
         {
@@ -58,12 +58,12 @@ namespace SmartBulbColor.RemoteBulbAPI
             array.Add(effect.ToString());
             array.Add(duration);
             array.Add((int)mode);
-            return new BulbCommand("set_power", array, ResponseMode.IsOk);
+            return new BulbCommand("set_power", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateToggleCommand() //TODO: check if empty an array works for json []
         {
             ArrayList array = new ArrayList();
-            return new BulbCommand("toggle", array, ResponseMode.IsOk);
+            return new BulbCommand("toggle", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateStartColorFlowCommand(int count, FlowEndsWith action, params ColorFlowTurple[] colorFlows)
         {
@@ -84,37 +84,37 @@ namespace SmartBulbColor.RemoteBulbAPI
             array.Add(count);
             array.Add((int)action);
             array.Add(builder.ToString());
-            return new BulbCommand("start_cf", array, ResponseMode.IsOk);
+            return new BulbCommand("start_cf", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateStopColorFlowCommand() //TODO: check if empty an array works for json []
         {
             ArrayList array = new ArrayList();
-            return new BulbCommand("stop_cf", array, ResponseMode.IsOk);
+            return new BulbCommand("stop_cf", array, CommandType.RefreshState);
         }
-        public static BulbCommand CreateSetSceneColorCommand(int decimalRgb, int brightness)
+        public static BulbCommand CreateSetSceneColorCommand(CommandType type, int decimalRgb, int brightness)
         {
             ArrayList array = new ArrayList();
             array.Add("color");
             array.Add(decimalRgb);
             array.Add(brightness);
-            return new BulbCommand("set_scene", array, ResponseMode.None);
+            return new BulbCommand("set_scene", array, type);
         }
-        public static BulbCommand CreateSetSceneColorTemperatureCommand(int colorTemperature, int brightness)
+        public static BulbCommand CreateSetSceneColorTemperatureCommand(CommandType type, int colorTemperature, int brightness)
         {
             ArrayList array = new ArrayList();
             array.Add("ct");
             array.Add(colorTemperature);
             array.Add(brightness);
-            return new BulbCommand("set_scene", array, ResponseMode.None);
+            return new BulbCommand("set_scene", array, type);
         }
-        public static BulbCommand CreateSetSceneHsvCommand(int hue, int saturation, int brightness)
+        public static BulbCommand CreateSetSceneHsvCommand(CommandType type, int hue, int saturation, int brightness)
         {
             ArrayList array = new ArrayList();
             array.Add("hsv");
             array.Add(hue);
             array.Add(saturation);
             array.Add(brightness);
-            return new BulbCommand("set_scene", array, ResponseMode.None);
+            return new BulbCommand("set_scene", array, type);
         }
         public static BulbCommand CreateSetSceneColorFlowCommand(int count, FlowEndsWith action, params ColorFlowTurple[] colorFlows)
         {
@@ -136,7 +136,7 @@ namespace SmartBulbColor.RemoteBulbAPI
             array.Add(count);
             array.Add((int)action);
             array.Add(builder.ToString());
-            return new BulbCommand("set_scene", array, ResponseMode.IsOk);
+            return new BulbCommand("set_scene", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateSetSceneAutoDelayOffCommand(int brightness, int delayOff)
         {
@@ -144,26 +144,26 @@ namespace SmartBulbColor.RemoteBulbAPI
             array.Add("auto_delay_off");
             array.Add(brightness);
             array.Add(delayOff);
-            return new BulbCommand("set_scene", array, ResponseMode.IsOk);
+            return new BulbCommand("set_scene", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateAddSleepTimerCommand(TimerType type, int time)
         {
             ArrayList array = new ArrayList();
             array.Add((int)type);
             array.Add(time);
-            return new BulbCommand("cron_add", array, ResponseMode.IsOk);
+            return new BulbCommand("cron_add", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateGetSleepTimerCommand(TimerType type)
         {
             ArrayList array = new ArrayList();
             array.Add((int)type);
-            return new BulbCommand("cron_get", array, ResponseMode.FullResponse);
+            return new BulbCommand("cron_get", array, CommandType.RefreshState);
         }
         public static BulbCommand CreateDeleteSleepTimerCommand(TimerType type)
         {
             ArrayList array = new ArrayList();
             array.Add((int)type);
-            return new BulbCommand("cron_del", array, ResponseMode.IsOk);
+            return new BulbCommand("cron_del", array, CommandType.RefreshState);
         }
         /// <summary>
         /// Sets particular property Adjust. 
@@ -179,7 +179,7 @@ namespace SmartBulbColor.RemoteBulbAPI
             ArrayList array = new ArrayList();
             array.Add(action.ToString());
             array.Add(property.ToString());
-            return new BulbCommand("set_adjust", array, ResponseMode.None);
+            return new BulbCommand("set_adjust", array, CommandType.Stream);
         }
         public static BulbCommand CreateSetMusicModeCommand(MusicModeAction action, string ip, int port)
         {
@@ -187,7 +187,7 @@ namespace SmartBulbColor.RemoteBulbAPI
             array.Add((int)action);
             array.Add(ip);
             array.Add(port);
-            return new BulbCommand("set_music", array, ResponseMode.IsOk);
+            return new BulbCommand("set_music", array, CommandType.RefreshState);
         }
     }
 }

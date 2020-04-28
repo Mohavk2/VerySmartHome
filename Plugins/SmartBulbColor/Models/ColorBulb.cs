@@ -283,82 +283,80 @@ namespace SmartBulbColor.Models
 
         public void ExecuteCommand(BulbCommand command)
         {
-            command.SetDeviceId(Id);
-            var jsonCommand = JsonSerializer.Serialize(command, typeof(BulbCommand));
-            string jsonResponse;
-            switch (command.Mode)
+            lock (CommandLocker)
             {
-                case ResponseMode.None:
-                    SendCommand(jsonCommand);
-                    break;
-                case ResponseMode.IsOk:
-                    jsonResponse = SendResponsiveCommand(jsonCommand);
-                    if (jsonResponse.Contains("\"ok\""))
-                        RefreshBulbState();
-                    break;
+                command.SetDeviceId(Id);
+                var jsonCommand = JsonSerializer.Serialize(command, typeof(BulbCommand));
+                string jsonResponse;
+                switch (command.Mode)
+                {
+                    case CommandType.Stream:
+                        SendCommand(jsonCommand);
+                        break;
+                    case CommandType.RefreshState:
+                        jsonResponse = SendResponsiveCommand(jsonCommand);
+                        if (jsonResponse.Contains("\"ok\""))
+                            RefreshBulbState();
+                        break;
+                }
             }
         }
         private void SendCommand(string command)
         {
-            lock (CommandLocker)
+
+            if (Client == null)
             {
-                if (Client == null)
-                {
-                    ReconnectMusicMode();
-                }
-                bool success = true;
-                byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
-                try
-                {
-                    Client?.Send(comandBuffer);
-                }
-                catch //TODO: Add logging
-                {
-                    success = false;
-                }
-                if (success == true)
-                    return;
-                else
-                    WaitForOnline();
+                ReconnectMusicMode();
             }
+            bool success = true;
+            byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
+            try
+            {
+                Client?.Send(comandBuffer);
+            }
+            catch //TODO: Add logging
+            {
+                success = false;
+            }
+            if (success == true)
+                return;
+            else
+                WaitForOnline();
         }
         private string SendResponsiveCommand(string command)
         {
-            lock (CommandLocker)
+            int attemps = 0;
+            do
             {
-                int attemps = 0;
-                do
+                byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
+                using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
-                    byte[] comandBuffer = Encoding.UTF8.GetBytes(command + "\r\n");
-                    using (Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                    IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
+
+                    bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+
+                    if (client.Connected)
                     {
-                        IAsyncResult result = client.BeginConnect(this.Ip, this.Port, null, null);
+                        client.EndConnect(result);
+                        client.Send(comandBuffer);
 
-                        bool success = result.AsyncWaitHandle.WaitOne(1000, true);
+                        byte[] recBuffer = new byte[100];
+                        IAsyncResult recResult = client.BeginReceive(recBuffer, 0, recBuffer.Length, SocketFlags.None, null, null);
 
-                        if (client.Connected)
-                        {
-                            client.EndConnect(result);
-                            client.Send(comandBuffer);
-
-                            byte[] recBuffer = new byte[100];
-                            IAsyncResult recResult = client.BeginReceive(recBuffer, 0, recBuffer.Length, SocketFlags.None, null, null);
-
-                            bool recSuccess = recResult.AsyncWaitHandle.WaitOne(2000);
-                            if (recSuccess == false)
-                                throw new Exception("Something went wrong while receiving response from the device #" + Id);
-                            client.EndReceive(recResult);
-                            string str = Encoding.UTF8.GetString(recBuffer);
-                            var responce = str.Substring(0, str.IndexOf("\r\n"));
-                            return responce;
-                        }
-                        attemps++;
+                        bool recSuccess = recResult.AsyncWaitHandle.WaitOne(2000);
+                        if (recSuccess == false)
+                            throw new Exception("Something went wrong while receiving response from the device #" + Id);
+                        client.EndReceive(recResult);
+                        string str = Encoding.UTF8.GetString(recBuffer);
+                        var responce = str.Substring(0, str.IndexOf("\r\n"));
+                        return responce;
                     }
-                } while (attemps < 3);
-                DisconnectMusicMode();
-                IsOnline = false;
-                return string.Empty;
-            }
+                    attemps++;
+                }
+            } while (attemps < 3);
+            DisconnectMusicMode();
+            IsOnline = false;
+            return string.Empty;
         }
         private void ReconnectMusicMode()
         {

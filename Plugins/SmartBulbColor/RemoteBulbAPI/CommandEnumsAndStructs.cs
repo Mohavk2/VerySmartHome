@@ -76,10 +76,9 @@
 		Off = 0,
 		On = 1
 	}
-	public enum ResponseMode
+	public enum CommandType
 	{
-		None,
-		IsOk,
-		FullResponse
+		Stream,
+		RefreshState
 	}
 }

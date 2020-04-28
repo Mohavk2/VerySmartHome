@@ -22,7 +22,7 @@ namespace SmartBulbColor.Models
         }
         public void AddBulbForStreaming(ColorBulb bulb)
         {
-            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Smooth, 5, ColorMode.HSV));
+            //bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Smooth, 5, ColorMode.HSV));
             BulbsForStreaming.Add(bulb);
             if(BulbsForStreaming.Count == 1)
                 StartSreaming();
@@ -55,7 +55,7 @@ namespace SmartBulbColor.Models
                 var bright = color.Brightness;
                 var hue = (bright < 1) ? previosHue : color.Hue;
                 var sat = color.Saturation;
-                var command = BulbCommandBuilder.CreateSetSceneHsvCommand(hue, (int)sat, (int)bright);
+                var command = BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hue, (int)sat, (int)bright);
                 if (BulbsForStreaming != null && BulbsForStreaming.Count != 0)
                 { 
                     foreach (var bulb in BulbsForStreaming)

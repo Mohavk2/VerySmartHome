@@ -83,7 +83,8 @@ namespace SmartBulbColor.Models
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
         public void SetSceneHSV(ColorBulb bulb, HSBColor color)
         {
-            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(color.Hue, (int)color.Saturation, (int)color.Brightness));
+            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
+                CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
         }
         private void OnDeviceFound(Device foundDevice)
         {

@@ -5,7 +5,7 @@ namespace SmartBulbColor.RemoteBulbAPI
 {
     public class BulbCommand
     {
-        public ResponseMode Mode { get; private set; }
+        public CommandType Mode { get; private set; }
 
         [JsonPropertyName(name: "id")]
         public int? Id { get; set; }
@@ -14,7 +14,7 @@ namespace SmartBulbColor.RemoteBulbAPI
         [JsonPropertyName(name: "params")]
         public ArrayList Parameters { get; set; }
 
-        public BulbCommand(string method, ArrayList parameters, ResponseMode mode)
+        public BulbCommand(string method, ArrayList parameters, CommandType mode)
         {
             Mode = mode;
             Method = method;
