@@ -7,128 +7,176 @@ using System.Threading;
 
 namespace CommonLibrary
 {
-    public delegate void DeviceFoundEventHandler(Device foundDevice);
+    public delegate void HTTPResponsesReceivedHandler(Dictionary<string, List<string>> variousResponses);
 
-    public abstract class DeviceDiscoverer
+    public class DeviceDiscoverer
     {
-        List<int> RelevantIds = new List<int>();
+        static List<DiscovererClient> Clients = new List<DiscovererClient>();
 
-        int RefreshTimeout = 3000;
-        readonly Thread RefreshingThread;
-        readonly ManualResetEvent RefreshingTrigger;
-        protected Object Locker = new Object();
+        public static string MulticastIP { get; set; } = "239.255.255.250";
+        static int LocalPort { get; set; } = 65212;
+        static int RefreshTimeout = 3000;
 
-        public static event DeviceFoundEventHandler DeviceFound;
+        static readonly Thread RefreshingThread;
+        static readonly ManualResetEvent RefreshingTrigger;
+        static Object Locker = new Object();
 
-        public string SearchMessage { get; set; }
-        public string MulticastIP { get; set; } = "239.255.255.250";
-        public int MulticastPort { get; set; } = 1982;
-        private int LocalPort { get; set; } = 65212;
+        public static event HTTPResponsesReceivedHandler HTTPResponsesFound;
+        private static void OnHTTPResponsesFound(Dictionary<string, List<string>> variousResponses)
+        {
+            HTTPResponsesFound?.Invoke(variousResponses);
+        }
 
         public static IPAddress GetLocalIP()
         {
-            IPAddress localIP;
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            lock(Locker)
             {
-                socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                return localIP = endPoint.Address;
+                IPAddress localIP;
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    socket.Connect("8.8.8.8", 65530);
+                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                    return localIP = endPoint.Address;
+                }
             }
         }
-        public DeviceDiscoverer(string message)
+        static DeviceDiscoverer()
         {
-            this.SearchMessage = message;
-
             RefreshingThread = new Thread(new ThreadStart(Discovering));
             RefreshingThread.IsBackground = true;
             RefreshingTrigger = new ManualResetEvent(true);
         }
-        public DeviceDiscoverer(string message, string ip, int port) : this(message)
+
+        static void StartDiscovering()
         {
-            this.MulticastIP = ip;
-            this.MulticastPort = port;
-        }
-        public void StartDiscover()
-        {
-            if (RefreshingThread.IsAlive)
+            if(Clients.Count != 0)
             {
-                RefreshingTrigger.Set();
-            }
-            else
-            {
-                RefreshingThread.Start();
+                if (RefreshingThread.IsAlive)
+                {
+                    RefreshingTrigger.Set();
+                }
+                else
+                {
+                    RefreshingThread.Start();
+                }
             }
         }
-        public void StopDiscover()
+        static void StopDiscovering()
         {
             RefreshingTrigger.Reset();
         }
-        private void Discovering()
+        static void Discovering()
         {
-            while (true)
+            while (true && Clients.Count != 0)
             {
                 RefreshingTrigger.WaitOne(Timeout.Infinite);
-                RefreshDevices();
+                SearchBySSDP();
                 Thread.Sleep(RefreshTimeout);
             }
+            StopDiscovering();
         }
-        public void RefreshDevices()
+        static void SearchBySSDP()
         {
             lock (Locker)
             {
-                var responses = GetResponses();
-                foreach (var response in responses)
+                Dictionary<string, List<string>> variousResponses = new Dictionary<string, List<string>>();
+                foreach (var client in Clients)
                 {
-                    int id = ParseId(response);
+                    variousResponses.Add(client.DeviceType, GetDeviceResponsesBySSDP(client));
+                }
+                OnHTTPResponsesFound(variousResponses);
+            }
+        }
+        static List<string> GetDeviceResponsesBySSDP(DiscovererClient client)
+        {
+            using (Socket searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), client.Port);
+                var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+                var responders = new List<EndPoint>();
+                var response = new byte[1024];
+                var responses = new List<string>();
 
-                    if(id != -1)//if success
+                searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
+                searcher.SendTo(Encoding.UTF8.GetBytes(client.SsdpMessage), multicast);
+
+                Thread.Sleep(1500); //to give a time to devices for responding
+                searcher.ReceiveTimeout = 2000;
+                while (searcher.Available > 0)
+                {
+                    searcher.ReceiveFrom(response, ref responder);
+
+                    if (responders.Count == 0 || !(responders.Contains(responder)))//to avoid duplicating messages
                     {
-                        if(!RelevantIds.Contains(id))
-                        {
-                            RelevantIds.Add(id);
-                            OnDeviceFound(CreateDevice(response));
+                        responders.Add(responder);
+                        responses.Add(Encoding.UTF8.GetString(response));
+                    }
+                }
+                return new List<string>(responses);
+            }
+        }
+        struct DiscovererClient
+        {
+            public string SsdpMessage { get; }
+            public string DeviceType { get; }
+            public int Port { get; }
+
+            public DiscovererClient(string ssdpMessage, string deviceType, int port)
+            {
+                SsdpMessage = ssdpMessage;
+                DeviceType = deviceType;
+                Port = port;
+            }
+        }
+        ///////////////////*Client instance Part*//////////////////
+        public delegate void DeviceFoundHandler(Device foundDevice);
+        public event DeviceFoundHandler DeviceFound;
+
+        DiscovererClient Client;
+        DeviceFactory Factory;
+
+        List<int> IdsToIgnore = new List<int>();
+        public bool IgnoreAlreadyFoundIds = true;
+
+        public DeviceDiscoverer(DeviceSearchingAtributes Atributes, DeviceFactory factory)
+        {
+            Client = new DiscovererClient(Atributes.SsdpMessage, Atributes.DeviceType, Atributes.MulticastPort);
+            Factory = factory;
+            lock (Locker)
+            {
+                Clients.Add(Client);
+            }
+            HTTPResponsesFound += CreateDeviceAndnotify;
+        }
+        void CreateDeviceAndnotify(Dictionary<string, List<string>> variousResponses)
+        {
+            lock(Locker)
+            {
+                if (variousResponses.ContainsKey(Client.DeviceType))
+                {
+                    var responses = variousResponses[Client.DeviceType];
+                    foreach (var response in responses)
+                    {
+                        var foundId = ParseId(response);
+                        if (!IdsToIgnore.Contains(foundId))
+                        { 
+                            var foundDevice = Factory.CreateDevice(response);
+                            if (IgnoreAlreadyFoundIds)
+                            {
+                                IdsToIgnore.Add(foundId);
+                            }
+                            DeviceFound?.Invoke(foundDevice);
                         }
                     }
                 }
             }
-        }
-        public void FindDevices()
-        {
-            RefreshDevices();
-        }
-        public virtual List<string> GetResponses()
-        {
-            Socket searcher = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            var multicast = new IPEndPoint(IPAddress.Parse(MulticastIP), MulticastPort);
-            var responder = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
-            var responders = new List<EndPoint>();
-            var response = new byte[1024];
-            var responses = new List<string>();
-
-            searcher.Bind(new IPEndPoint(GetLocalIP(), LocalPort));
-            searcher.SendTo(Encoding.UTF8.GetBytes(SearchMessage), multicast);
-
-            Thread.Sleep(1500); //to give a time to devices for responding
-            searcher.ReceiveTimeout = 2000;
-            while (searcher.Available > 0)
-            {
-                searcher.ReceiveFrom(response, ref responder);
-
-                if (responders.Count == 0 || !(responders.Contains(responder)))
-                {
-                    responders.Add(responder);
-                    responses.Add(Encoding.UTF8.GetString(response));
-                }
-            }
-            searcher.Dispose();
-            return responses;
         }
         /// <summary>
         /// Returns Id if exist, else returns -1
         /// </summary>
         /// <param name="response"></param>
         /// <returns></returns>
-        protected int ParseId(string response)
+        private int ParseId(string response)
         {
             var targetStartsWith = "id: ";
 
@@ -142,11 +190,31 @@ namespace CommonLibrary
             }
             return -1;
         }
-        protected abstract Device CreateDevice(string response);
-
-        private void OnDeviceFound(Device foundDevice)
+        public void SetIdsToIgnore(List<int> ids)
         {
-            DeviceFound?.Invoke(foundDevice);
+            lock(Locker)
+            {
+                IdsToIgnore.Clear();
+                IdsToIgnore.AddRange(ids);
+            }
+        }
+        public void StartDiscover()
+        {
+            lock(Locker)
+            {
+                if(!Clients.Contains(Client))
+                {
+                    Clients.Add(Client);
+                }
+                StartDiscovering();
+            }
+        }
+        public void StopDiscover()
+        {
+            lock (Locker)
+            {
+                Clients.Remove(Client);
+            }
         }
     }
 }

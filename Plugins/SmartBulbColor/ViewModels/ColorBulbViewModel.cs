@@ -43,7 +43,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsControlEnabled");
             }
         }
-        public int GetId() { return Bulb.GetId(); }
+        public int GetId() { return Bulb.Id; }
         private bool _isPowered;
         public bool IsPowered
         {
@@ -141,5 +141,6 @@ namespace SmartBulbColor.ViewModels
             }
             return true;
         }
+
     }
 }

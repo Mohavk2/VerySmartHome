@@ -11,9 +11,6 @@ namespace SmartBulbColor.Models
 {
     internal sealed class ColorBulb : Device
     {
-        public const string DeviceType = "MiBulbColor";
-        public const string SSDPMessage = ("M-SEARCH * HTTP/1.1\r\n" + "HOST: 239.255.255.250:1982\r\n" + "MAN: \"ssdp:discover\"\r\n" + "ST: wifi_bulb");
-
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
 
@@ -67,26 +64,7 @@ namespace SmartBulbColor.Models
                 }
             }
         }
-        public override int GetId()
-        {
-            return Id;
-        }
-
-        public override string GetName()
-        {
-            return Name;
-        }
-
-        public override string GetIP()
-        {
-            return Ip;
-        }
-
-        public override int GetPort()
-        {
-            return Port;
-        }
-        public string Name
+        public override string Name
         {
             get { return _name; }
             set
@@ -103,30 +81,30 @@ namespace SmartBulbColor.Models
             }
         }
         private string _name = "";
-        public int Id
+        public override int Id
         {
             get { return _id; }
-            set
+            protected set
             {
                 _id = value;
                 OnPropertyChanged("Id");
             }
         }
         private int _id = 0;
-        public string Ip
+        public override string Ip
         {
             get { return _ip; }
-            set
+            protected set
             {
                 _ip = value;
                 OnPropertyChanged("Ip");
             }
         }
         private string _ip = "";
-        public int Port
+        public override int Port
         {
             get { return _port; }
-            set
+            protected set
             {
                 _port = value;
                 OnPropertyChanged("Port");
@@ -150,6 +128,19 @@ namespace SmartBulbColor.Models
             }
         }
         private bool _isPowered = false;
+        public string BelongToGroup
+        {
+            get { return _belongToGroup; }
+            set
+            {
+                if (value != _belongToGroup)
+                {
+                    _belongToGroup = value;
+                    OnPropertyChanged("BelongToGroup");
+                }
+            }
+        }
+        private string _belongToGroup = "";
         public string StateIconPath
         {
             get { return _stateIconPath; }
@@ -374,7 +365,7 @@ namespace SmartBulbColor.Models
             }
             IsOnline = success;
         }
-        public override void DisconnectMusicMode()
+        public void DisconnectMusicMode()
         {
             Client?.Dispose();
             Client = null;

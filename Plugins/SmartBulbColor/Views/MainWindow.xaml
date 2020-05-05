@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
-        xmlns:properties="clr-namespace:SmartBulbColor.Properties"
         xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
         Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="520" Height="455">
@@ -15,56 +14,18 @@
         <ImageBrush ImageSource="/SmartBulbColor;component/Resources/Background.jpg"/>
     </Window.Background>
     <Window.Resources>
-        <Style x:Key="BulbListStyle" TargetType="ListBox">
-            <Setter Property="Control.Background" Value="Black"/>
-            <Setter Property="Control.FontSize" Value="14"/>
-            <Setter Property="Control.FontWeight" Value="Bold"/>
-            <Setter Property="Control.Foreground" Value="#FF0035E8"/>
-        </Style>
+
     </Window.Resources>
-    <TabControl x:Name="Tools" VerticalAlignment="Stretch">
-        <TabItem x:Name="AllBulbs">
-            <TabItem.Header>
-                <TextBlock>All bulbs</TextBlock>
-            </TabItem.Header>
-            <TabItem.Content>
-                <StackPanel>
-                    <ListBox x:Name="BulbList"
-                             Style="{StaticResource BulbListStyle}"
-                             ItemsSource="{Binding ColorBulbsVM}" SelectedItem="{Binding SelectedBulbVM}"             
-                             FontSize="16" FontWeight="Bold" 
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel/>
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="IsSelected" Value="True"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel MinWidth="150">
-                                    <StackPanel Orientation="Horizontal">
-                                    </StackPanel>
-                                    <views:ColorBulbPanel x:Name="BulbPanel"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-            </TabItem.Content>
-        </TabItem>
-        <TabItem x:Name="AmbientLight">
-            <TabItem.Header>
-                AmbientLight
-            </TabItem.Header>
-        </TabItem>
+    <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
+        <TabControl.ItemTemplate>
+            <DataTemplate>
+                <TextBlock Text="{Binding GroupName}"></TextBlock>
+            </DataTemplate>
+        </TabControl.ItemTemplate>
+        <TabControl.ContentTemplate>
+            <DataTemplate>
+                <views:GroupView></views:GroupView>
+            </DataTemplate>
+        </TabControl.ContentTemplate>
     </TabControl>
 </Window>

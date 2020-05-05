@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Threading;
 using System.Windows.Media;
-using VerySmartHome.MainController;
 using System.Windows.Threading;
 
 namespace VerySmartHome

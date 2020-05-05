@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 
 namespace CommonLibrary
@@ -11,6 +12,7 @@ namespace CommonLibrary
 
         int Position;
         object Locker = new object();
+
         T IEnumerator<T>.Current { get => Items[Position]; }
         object IEnumerator.Current { get => Items[Position]; }
         public int Count
@@ -47,7 +49,9 @@ namespace CommonLibrary
             lock (Locker)
             {
                 if (!Items.Contains(item))
+                {
                     Items.Add(item);
+                }
             }
         }
         public void Remove(T item)

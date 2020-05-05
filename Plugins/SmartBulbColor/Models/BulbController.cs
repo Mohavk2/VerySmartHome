@@ -8,12 +8,19 @@ namespace SmartBulbColor.Models
 {
     sealed class BulbController : DeviceController, IDisposable
     {
-        public delegate void BulbCollectionNotifier();
-        public delegate void BulbStatusChangedHandler(ColorBulb bulb);
-        public event BulbStatusChangedHandler BulbFound;
+        static DeviceSearchingAtributes Atributes = new DeviceSearchingAtributes
+        {
+            SsdpMessage = "M-SEARCH * HTTP/1.1\r\n" + "HOST: 239.255.255.250:1982\r\n" + "MAN: \"ssdp:discover\"\r\n" + "ST: wifi_bulb",
+            DeviceType = "MiBulbColor",
+            MulticastPort = 1982
+        };
+        readonly DeviceDiscoverer Discoverer = new DeviceDiscoverer(Atributes, new BulbFactory());
+        readonly DeviceRepository<ColorBulb> Repository;
+        private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
         public CollectionThreadSafe<ColorBulb> Bulbs { get; } = new CollectionThreadSafe<ColorBulb>();
         public CollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulb>();
+
         public override int DeviceCount
         {
             get
@@ -21,14 +28,14 @@ namespace SmartBulbColor.Models
                 return Bulbs.Count;
             }
         }
-        readonly static BulbDiscoverer Discoverer = new BulbDiscoverer(ColorBulb.SSDPMessage);
-        private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public BulbController()
+        public BulbController(DeviceRepository<ColorBulb> repository)
         {
-            DeviceDiscoverer.DeviceFound += OnDeviceFound;
+            Repository = repository;
+            Discoverer.DeviceFound += (device) => Repository.AddDevice((ColorBulb)device);
+            Discoverer.SetIdsToIgnore(new List<int>(Repository.GetDeviceIds()));
             Discoverer.StartDiscover();
         }
         public override List<Device> GetDevices()
@@ -45,14 +52,6 @@ namespace SmartBulbColor.Models
             {
                 return Bulbs;
             }
-        }
-        public void DiscoverBulbs()
-        {
-            Discoverer.FindDevices();
-        }
-        public void StartBulbsRefreshing()
-        {
-            Discoverer.StartDiscover();
         }
         public void ToggleAmbientLight(ColorBulb bulb)
         {
@@ -86,25 +85,9 @@ namespace SmartBulbColor.Models
             bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
                 CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
         }
-        private void OnDeviceFound(Device foundDevice)
-        {
-            Task task = new Task(() =>
-            {
-                var bulb = (ColorBulb)foundDevice;
-                if( ! BulbsForAmbientLight.Contains(bulb))
-                {
-                    Bulbs.Add(bulb);
-                    BulbFound?.Invoke(bulb);
-                }
-            });
-            task.Start();
-        }
         public void Dispose()
         {
-            foreach(var bulb in Bulbs)
-            {
-                bulb.Dispose();
-            }
+
         }
     }
 }

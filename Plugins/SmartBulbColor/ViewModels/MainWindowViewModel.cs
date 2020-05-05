@@ -1,46 +1,49 @@
 ﻿using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using CommonLibrary;
 using System;
 using System.Windows.Input;
+using SmartBulbColor.RemoteBulbAPI;
 
 namespace SmartBulbColor.ViewModels
 {
     class MainWindowViewModel : ViewModelBase, IDisposable
     {
+        BulbController Controller;
 
-        BulbController Controller = new BulbController();
+        DeviceRepository<ColorBulb> DevicePerository;
 
-        public DispatchedCollection<ColorBulbViewModel> ColorBulbsVM { get; } = new DispatchedCollection<ColorBulbViewModel>();
+        public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
 
-        ColorBulbViewModel _selectedBulbVM;
-        public ColorBulbViewModel SelectedBulbVM
+        GroupViewModel _selectedGroupVM;
+        public GroupViewModel SelectedGroupVM
         {
-            get { return _selectedBulbVM; }
+            get { return _selectedGroupVM; }
             set
             {
-                _selectedBulbVM = value;
-                OnPropertyChanged("SelectedBulbVM");
+                _selectedGroupVM = value;
+                OnPropertyChanged("SelectedGroupVM");
             }
         }
         public MainWindowViewModel()
         {
-            Controller.BulbFound += (foundBulb)=> { ColorBulbsVM.AddSafe(new ColorBulbViewModel(Controller, foundBulb)); };
-            Controller.StartBulbsRefreshing();
-        }
-        public ICommand FindBulbs
-        {
-            get
+            DevicePerository = new DeviceRepository<ColorBulb>();
+            Controller = new BulbController(DevicePerository);
+
+            var allBulbs = DevicePerository.GetDevices();
+            var bulbViewModels = new DispatchedCollection<ColorBulbViewModel>();
+            foreach (var bulb in allBulbs)
             {
-                return new ControllerCommand(ExecuteFindBulbsCommand);
+                bulbViewModels.Add(new ColorBulbViewModel(Controller, bulb));
             }
-        }
-        public void ExecuteFindBulbsCommand(Object parametr)
-        {
-            Controller.DiscoverBulbs();
+            var mainGroupViewModel = new GroupViewModel(Controller, "AllBulbs", bulbViewModels);
+
+            DevicePerository.NewDeviceAdded += (bulb)=> mainGroupViewModel.AddBulbVM(new ColorBulbViewModel(Controller, bulb));
+            GroupVMs.AddSafe(mainGroupViewModel);
         }
         public void Dispose()
         {
-            Controller.Dispose();
+
         }
     }
 }

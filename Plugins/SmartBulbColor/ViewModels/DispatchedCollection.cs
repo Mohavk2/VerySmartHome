@@ -1,4 +1,7 @@
-﻿using System;
+﻿using CommonLibrary;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
@@ -6,12 +9,18 @@ namespace SmartBulbColor.ViewModels
 {
     class DispatchedCollection<T> : ObservableCollection<T>
     {
-        static readonly Dispatcher CurrentDispatcher;
-        static DispatchedCollection()
+        readonly Dispatcher CurrentDispatcher;
+        public DispatchedCollection()
         {
             CurrentDispatcher = Dispatcher.CurrentDispatcher;
         }
-        public DispatchedCollection() : base() { }
+        public DispatchedCollection(IEnumerable<T> collection)
+        {
+            foreach(var item in collection)
+            {
+                Items.Add(item);
+            }
+        }
         public void AddSafe(T itemToAdd)
         {
             CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>

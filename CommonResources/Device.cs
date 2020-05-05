@@ -15,11 +15,10 @@ namespace CommonLibrary
                 handler.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        public abstract string GetName();
-        public abstract int GetId();
-        public abstract string GetIP();
-        public abstract int GetPort();
-        public abstract void DisconnectMusicMode();
+        public abstract string Name { get; set; }
+        public abstract int Id { get; protected set; }
+        public abstract string Ip { get; protected set; }
+        public abstract int Port { get; protected set; }
         public abstract void Dispose();
     }
 }
