@@ -29,7 +29,7 @@ namespace CommonLibrary
 
         public static IPAddress GetLocalIP()
         {
-            lock(Locker)
+            lock (Locker)
             {
                 IPAddress localIP;
                 using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
@@ -49,15 +49,15 @@ namespace CommonLibrary
 
         static void StartDiscovering()
         {
-            if(Clients.Count != 0)
+            if (Clients.Count != 0)
             {
-                if (RefreshingThread.IsAlive)
+                if ((RefreshingThread.ThreadState & ThreadState.Unstarted) == ThreadState.Unstarted)
                 {
-                    RefreshingTrigger.Set();
+                    RefreshingThread.Start();
                 }
                 else
                 {
-                    RefreshingThread.Start();
+                    RefreshingTrigger.Set();
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace CommonLibrary
         }
         void CreateDeviceAndnotify(Dictionary<string, List<string>> variousResponses)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 if (variousResponses.ContainsKey(Client.DeviceType))
                 {
@@ -159,7 +159,7 @@ namespace CommonLibrary
                     {
                         var foundId = ParseId(response);
                         if (!IdsToIgnore.Contains(foundId))
-                        { 
+                        {
                             var foundDevice = Factory.CreateDevice(response);
                             if (IgnoreAlreadyFoundIds)
                             {
@@ -192,7 +192,7 @@ namespace CommonLibrary
         }
         public void SetIdsToIgnore(List<int> ids)
         {
-            lock(Locker)
+            lock (Locker)
             {
                 IdsToIgnore.Clear();
                 IdsToIgnore.AddRange(ids);
@@ -200,9 +200,9 @@ namespace CommonLibrary
         }
         public void StartDiscover()
         {
-            lock(Locker)
+            lock (Locker)
             {
-                if(!Clients.Contains(Client))
+                if (!Clients.Contains(Client))
                 {
                     Clients.Add(Client);
                 }

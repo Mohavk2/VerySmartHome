@@ -16,16 +16,20 @@
     <Window.Resources>
 
     </Window.Resources>
-    <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
-        <TabControl.ItemTemplate>
-            <DataTemplate>
-                <TextBlock Text="{Binding GroupName}"></TextBlock>
-            </DataTemplate>
-        </TabControl.ItemTemplate>
-        <TabControl.ContentTemplate>
-            <DataTemplate>
-                <views:GroupView></views:GroupView>
-            </DataTemplate>
-        </TabControl.ContentTemplate>
-    </TabControl>
+    <StackPanel>
+        <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding GroupName}"></TextBlock>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <views:GroupView></views:GroupView>
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+    </StackPanel>
 </Window>
