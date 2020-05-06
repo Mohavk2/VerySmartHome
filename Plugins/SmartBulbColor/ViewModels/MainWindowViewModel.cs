@@ -22,8 +22,19 @@ namespace SmartBulbColor.ViewModels
             set
             {
                 _selectedGroupVM = value;
+                NameToInsert = _selectedGroupVM.GroupName;
                 OnPropertyChanged("SelectedGroupVM");
             }
+        }
+        string _nameToInsert;
+        public string NameToInsert 
+        { 
+            get => _nameToInsert;
+            set
+            {
+                _nameToInsert = value;
+                OnPropertyChanged("NameToInsert");
+            }                
         }
         public MainWindowViewModel()
         {
@@ -40,6 +51,45 @@ namespace SmartBulbColor.ViewModels
 
             DevicePerository.NewDeviceAdded += (bulb)=> mainGroupViewModel.AddBulbVM(new ColorBulbViewModel(Controller, bulb));
             GroupVMs.AddSafe(mainGroupViewModel);
+        }
+
+        public ICommand CreateNewGroup
+        {
+            get { return new ControllerCommand(ExecuteCreateNewGroup, CanExecuteCreateNewGroup); }
+        }
+        void ExecuteCreateNewGroup(object parametr)
+        {
+            GroupVMs.AddSafe(new GroupViewModel(Controller, NameToInsert, new DispatchedCollection<ColorBulbViewModel>()));
+        }
+        bool CanExecuteCreateNewGroup(object parametr)
+        {
+            bool NotExists = true;
+            foreach (var group in GroupVMs)
+            {
+                if (group.GroupName == NameToInsert)
+                    NotExists = false;
+            }
+            return (GroupVMs.Count < 20 && NameToInsert != "" && NotExists);
+        }
+
+        public ICommand RenameGroup
+        {
+            get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
+        }
+        void ExecuteRenameGroup(object parametr)
+        {
+            if (SelectedGroupVM.RenameGroup.CanExecute(NameToInsert))
+                SelectedGroupVM.RenameGroup.Execute(NameToInsert);
+        }
+        bool CanExecuteRenameGroup(object parametr)
+        {
+            bool NotExists = true;
+            foreach(var group in GroupVMs)
+            {
+                if (group.GroupName == NameToInsert)
+                    NotExists = false;
+            }
+            return (SelectedGroupVM?.GroupName != "AllBulbs" && NotExists && NameToInsert != "");
         }
         public void Dispose()
         {

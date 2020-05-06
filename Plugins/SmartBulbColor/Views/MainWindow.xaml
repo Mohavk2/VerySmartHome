@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SmartBulbColor.ViewModels"
         xmlns:views="clr-namespace:SmartBulbColor.Views"
         mc:Ignorable="d"
-        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="520" Height="455">
+        Title="SmartBulbColor" Icon="pack://application:,,,/Resources/AppIcon.ico" Width="620" Height="455">
     <Window.DataContext>
         <local:MainWindowViewModel></local:MainWindowViewModel>
     </Window.DataContext>
@@ -14,22 +14,40 @@
         <ImageBrush ImageSource="/SmartBulbColor;component/Resources/Background.jpg"/>
     </Window.Background>
     <Window.Resources>
-
+        
     </Window.Resources>
-    <StackPanel>
-        <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
-            <TabControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding GroupName}"></TextBlock>
-                </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <views:GroupView></views:GroupView>
-                    </StackPanel>
-                </DataTemplate>
-            </TabControl.ContentTemplate>
-        </TabControl>
-    </StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="0 5 0 5">
+                <TextBlock Text="User group name: " FontSize="18" Foreground="AliceBlue"></TextBlock>
+                <TextBox Width="150" Margin="0 0 10 0" Text="{Binding NameToInsert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                <Button Content="Add Group" FontSize="15" Margin="0 0 10 0" Command="{Binding CreateNewGroup}"></Button>
+                <Button Content="Rename Current" FontSize="15" Command="{Binding RenameGroup}"></Button>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding GroupName}" FontSize="18"></TextBlock>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <views:GroupView></views:GroupView>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </StackPanel>
+    </Grid>
 </Window>

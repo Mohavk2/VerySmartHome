@@ -1,8 +1,10 @@
 ﻿using CommonLibrary;
+using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Input;
 
 namespace SmartBulbColor.ViewModels
 {
@@ -10,10 +12,20 @@ namespace SmartBulbColor.ViewModels
     {
         private BulbController Controller;
 
-        public string GroupName { get; }
-        public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; } = new DispatchedCollection<ColorBulbViewModel>();
-        ColorBulbViewModel _selectedBulbVM;
+        string _groupName;
+        public string GroupName
+        {
+            get => _groupName;
+            set
+            {
+                _groupName = value;
+                OnPropertyChanged("GroupName");
+            }
+        }
 
+        public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; } = new DispatchedCollection<ColorBulbViewModel>();
+
+        ColorBulbViewModel _selectedBulbVM;
         public ColorBulbViewModel SelectedBulbVM
         {
             get { return _selectedBulbVM; }
@@ -27,6 +39,19 @@ namespace SmartBulbColor.ViewModels
         {
             Controller = controller;
             GroupName = groupName;
+        }
+        public ICommand RenameGroup
+        {
+            get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
+        }
+        void ExecuteRenameGroup(object parametr)
+        {
+            GroupName = parametr as string;
+        }
+        bool CanExecuteRenameGroup(object parametr)
+        {
+            var name = parametr as string;
+            return (name != null && name != "");
         }
         public void AddBulbVM(ColorBulbViewModel bulbVM)
         {
