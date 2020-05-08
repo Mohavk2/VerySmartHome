@@ -93,7 +93,8 @@ namespace SmartBulbColor.ViewModels
         }
         public void Dispose()
         {
-
+            Controller.Dispose();
+            DevicePerository.Dispose();
         }
     }
 }

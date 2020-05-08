@@ -20,17 +20,14 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("Bulb");
             }
         }
-        private SolidColorBrush _pickerBrush = Brushes.White;
-        public SolidColorBrush PickerBrush
+        private SolidColorBrush _currentColor = Brushes.White;
+        public SolidColorBrush CurrentColor
         {
-            get { return _pickerBrush; }
+            get { return _currentColor; }
             set
             {
-                _pickerBrush = value;
-                if (SetColorByColorPickerPoint.CanExecute(value))
-                {
-                    SetColorByColorPickerPoint.Execute(value);
-                }
+                _currentColor = value;
+                OnPropertyChanged("CurrentColor");
             }
         }
         private bool _isControlEnabled;
@@ -63,30 +60,19 @@ namespace SmartBulbColor.ViewModels
             Controller = controller;
             Bulb = bulb;
         }
-        public ICommand SetColorByColorPickerPoint
+        public void SetColor(SolidColorBrush brush)
         {
-            get
-            {
-                return new ControllerCommand(ExecuteSetColorByColorPickerPoint, CanExecuteSetColorByColorPickerPoint);
-            }
-        }
-        private void ExecuteSetColorByColorPickerPoint(Object parametr)
-        {
-            var brush = (SolidColorBrush)parametr;
             Color color = brush.Color;
             HSBColor hsbColor = new HSBColor(color);
-            Bulb.ExecuteCommand(
-                BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hsbColor.Hue, (int)hsbColor.Saturation, (int)hsbColor.Brightness));
+            int hue = hsbColor.Hue;
+            int sat = (int)hsbColor.Saturation;
+            int bright = (int)hsbColor.Brightness;
+            var command = BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hue, sat, bright);
+            Bulb.ExecuteCommand(command);
+            CurrentColor = brush;
             IsPowered = Bulb.IsPowered;
         }
-        private bool CanExecuteSetColorByColorPickerPoint(Object parametr)
-        {
-            if (Bulb == null)
-            {
-                return false;
-            }
-            return true;
-        }
+
         public ICommand TogglePower
         {
             get
@@ -112,35 +98,33 @@ namespace SmartBulbColor.ViewModels
         {
             get
             {
-                return new ControllerCommand(ExecuteTurnNormalLightONCommand, CanExecuteTurnNormalLightONCommand);
+                return new ControllerCommand(ExecuteTurnNormalLightON, CanExecuteTurnNormalLightON);
             }
         }
-        private void ExecuteTurnNormalLightONCommand(Object parametr)
+        private void ExecuteTurnNormalLightON(Object parametr)
         {
             Bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
             IsPowered = Bulb.IsPowered;
-            _pickerBrush = Brushes.White;
-            OnPropertyChanged("PickerBrush");
+            CurrentColor = Brushes.White;
         }
-        public ICommand ToggleAmbientLight
+        private bool CanExecuteTurnNormalLightON(Object parametr)
         {
-            get
-            {
-                return new ControllerCommand(ExecuteToggleAmbientLightCommand);
-            }
-        }
-        private void ExecuteToggleAmbientLightCommand(Object parametr)
-        {
-            Controller.ToggleAmbientLight(Bulb);
-        }
-        private bool CanExecuteTurnNormalLightONCommand(Object parametr)
-        {
-            if(Bulb == null)
+            if (Bulb == null)
             {
                 return false;
             }
             return true;
         }
-
+        public ICommand ToggleAmbientLight
+        {
+            get
+            {
+                return new ControllerCommand(ExecuteToggleAmbientLight);
+            }
+        }
+        private void ExecuteToggleAmbientLight(Object parametr)
+        {
+            Controller.ToggleAmbientLight(Bulb);
+        }
     }
 }

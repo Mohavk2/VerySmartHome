@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace SmartBulbColor.ViewModels
 {
     internal class GroupViewModel : ViewModelBase
     {
         private BulbController Controller;
+        private DeviceRepository<ColorBulb> Repository;
 
         string _groupName;
         public string GroupName
@@ -23,7 +25,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; } = new DispatchedCollection<ColorBulbViewModel>();
+        public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
 
         List<ColorBulbViewModel> _selectedBulbVMs;
         public List<ColorBulbViewModel> SelectedBulbVMs
@@ -35,11 +37,24 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("SelectedBulbVMs");
             }
         }
+        private SolidColorBrush _pickerBrush = Brushes.White;
+        public SolidColorBrush PickerBrush
+        {
+            get { return _pickerBrush; }
+            set
+            {
+                _pickerBrush = value;
+                SetColorWithBrush(value);
+            }
+        }
         public GroupViewModel(BulbController controller, string groupName, DispatchedCollection<ColorBulbViewModel> group)
         {
+            ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
+            SelectedBulbVMs = new List<ColorBulbViewModel>();
             Controller = controller;
             GroupName = groupName;
         }
+
         public ICommand RenameGroup
         {
             get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
@@ -53,9 +68,78 @@ namespace SmartBulbColor.ViewModels
             var name = parametr as string;
             return (name != null && name != "");
         }
+        public ICommand TogglePower
+        {
+            get { return new ControllerCommand(ExecuteTogglePower, CanExecuteTogglePower); }
+        }
+        void ExecuteTogglePower(object parametr)
+        {
+            foreach (var bulbVM in SelectedBulbVMs)
+            {
+                if (bulbVM.TogglePower.CanExecute(parametr))
+                    bulbVM.TogglePower.Execute(parametr);
+            }
+        }
+        bool CanExecuteTogglePower(object parametr)
+        {
+            if (SelectedBulbVMs == null || SelectedBulbVMs.Count == 0)
+                return false;
+            else
+                return true;
+        }
+        public ICommand SetNormalLight
+        {
+            get { return new ControllerCommand(ExecuteSetNormalLight, CanExecuteSetNormalLight); }
+        }
+        void ExecuteSetNormalLight(object parametr)
+        {
+            foreach(var bulbVM in SelectedBulbVMs)
+            {
+                if(bulbVM.TurnNormalLightON.CanExecute(parametr))
+                    bulbVM.TurnNormalLightON.Execute(parametr);
+            }
+        }
+        bool CanExecuteSetNormalLight(object parametr)
+        {
+            if (SelectedBulbVMs == null || SelectedBulbVMs.Count == 0)
+                return false;
+            else
+                return true;
+        }
+        public ICommand ToggleAmbientLight
+        {
+            get { return new ControllerCommand(ExecuteToggleAmbientLight, CanExecuteToggleAmbientLight); }
+        }
+        void ExecuteToggleAmbientLight(object parametr)
+        {
+            foreach (var bulbVM in SelectedBulbVMs)
+            {
+                if (bulbVM.ToggleAmbientLight.CanExecute(parametr))
+                    bulbVM.ToggleAmbientLight.Execute(parametr);
+            }
+        }
+        bool CanExecuteToggleAmbientLight(object parametr)
+        {
+            if (SelectedBulbVMs == null || SelectedBulbVMs.Count == 0)
+                return false;
+            else
+                return true;
+        }
         public void AddBulbVM(ColorBulbViewModel bulbVM)
         {
             ColorBulbVMs.AddSafe(bulbVM);
+        }
+        private void SetColorWithBrush(Object parametr)
+        {
+            if (SelectedBulbVMs != null && SelectedBulbVMs.Count != 0)
+            {
+                var brush = (SolidColorBrush)parametr;
+
+                foreach (var bulbVM in SelectedBulbVMs)
+                {
+                    bulbVM.SetColor(brush);
+                }
+            }
         }
     }
 }

@@ -21,5 +21,11 @@ namespace SmartBulbColor
         {
             InitializeComponent();
         }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            var viewModel = (MainWindowViewModel)DataContext;
+            viewModel.Dispose();
+        }
     }
 }

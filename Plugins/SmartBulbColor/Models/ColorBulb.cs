@@ -14,7 +14,7 @@ namespace SmartBulbColor.Models
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
 
-        readonly static Socket TcpServer;
+        readonly public static Socket TcpServer;
         private Socket Client = null;
 
         Object CommandLocker = new Object();

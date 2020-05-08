@@ -4,16 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:views="clr-namespace:SmartBulbColor.Views"
-             mc:Ignorable="d" Width="500">
+             mc:Ignorable="d">
     <UserControl.Resources>
-        <Style x:Key="MainButtonStyle">
-            <Setter Property="Control.Background" Value="Black"/>
-            <Setter Property="Control.MinWidth" Value="120"/>
-            <Setter Property="Control.Height" Value="50"/>
-            <Setter Property="Control.FontSize" Value="16"/>
-            <Setter Property="Control.FontWeight" Value="Bold"/>
-            <Setter Property="Control.Foreground" Value="#FF00F92D"/>
-        </Style>
         <Style x:Key="BulbIconStyle" TargetType="{x:Type Image}">
             <Setter Property="Source" Value="pack://application:,,,/SmartBulbColor;component/Resources/LightOFF.png"/>
             <Style.Triggers>
@@ -29,7 +21,7 @@
                 <Image Name="BulbIcon" Style="{StaticResource BulbIconStyle}" Width="120" Height="120"/>
                 <Ellipse x:Name="BulbGlow" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,25" 
                          Opacity="0.6" DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}" 
-                         Fill="{Binding DataContext.PickerBrush, Mode=TwoWay}">
+                         Fill="{Binding DataContext.CurrentColor, Mode=OneWay}">
                     <Ellipse.Effect>
                         <BlurEffect Radius="20" KernelType="Gaussian"/>
                     </Ellipse.Effect>
@@ -47,16 +39,6 @@
             <TextBlock Text="{Binding Path=Bulb.Name}" HorizontalAlignment="Center" Foreground="AliceBlue" FontSize="14" Height="30"/>
         </StackPanel>
         <Grid>
-            <StackPanel Orientation="Horizontal">
-                <WrapPanel Background="Black" Width="120">
-                    <Button x:Name ="PowerToggle" Command="{ Binding TogglePower }" Style="{StaticResource MainButtonStyle}"
-                            Content="ON/OFF" HorizontalAlignment="Left" VerticalAlignment="Stretch"  Width="85"/>
-                    <Button x:Name="NormalLightButton" Command="{Binding TurnNormalLightON}" Style="{StaticResource MainButtonStyle}"                           
-                            Content="Normal Light"/>
-                    <ToggleButton x:Name="AmbientLightButton" Command="{Binding ToggleAmbientLight}" Style="{StaticResource MainButtonStyle}"
-                                  Content="Ambient Light" HorizontalAlignment="Left"/>
-                </WrapPanel>
-            </StackPanel>
             <Rectangle Name="Cap" Fill="Black" Opacity="0.3">
                 <Rectangle.Style>
                     <Style TargetType="Rectangle">
@@ -69,8 +51,5 @@
                 </Rectangle.Style>
             </Rectangle>
         </Grid>
-        <views:ColorPicker x:Name="Picker" 
-                           SelectedColor="{Binding ElementName=BulbGlow, Path=Fill, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-        </views:ColorPicker>
     </StackPanel>
 </UserControl>
