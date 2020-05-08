@@ -14,13 +14,14 @@ namespace SmartBulbColor.Models
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
 
-        readonly static Socket TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        readonly static Socket TcpServer;
         private Socket Client = null;
 
         Object CommandLocker = new Object();
 
         static ColorBulb()
         {
+            TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
             TcpServer.Listen(10);
         }
