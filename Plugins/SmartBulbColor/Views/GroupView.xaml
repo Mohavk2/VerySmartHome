@@ -15,27 +15,17 @@
         </Style>
     </UserControl.Resources>
     <StackPanel>
-        <ListBox x:Name="BulbList"
+        <ListBox x:Name="BulbList" SelectionMode="Multiple"
                              Style="{StaticResource BulbListStyle}" 
                              DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}"
                              ItemsSource="{Binding DataContext.ColorBulbVMs}"
-                             SelectedItem="{Binding DataContext.SelectedBulbVM}"             
                              FontSize="16" FontWeight="Bold" 
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="BulbList_SelectionChanged">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="IsSelected" Value="True"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel MinWidth="150">

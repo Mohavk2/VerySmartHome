@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SmartBulbColor.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +23,12 @@ namespace SmartBulbColor.Views
         public GroupView()
         {
             InitializeComponent();
+        }
+
+        private void BulbList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var viewModel = (GroupViewModel)DataContext;
+            viewModel.SelectedBulbVMs = BulbList.SelectedItems.Cast<ColorBulbViewModel>().ToList();
         }
     }
 }

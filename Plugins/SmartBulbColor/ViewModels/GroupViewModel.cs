@@ -25,14 +25,14 @@ namespace SmartBulbColor.ViewModels
 
         public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; } = new DispatchedCollection<ColorBulbViewModel>();
 
-        ColorBulbViewModel _selectedBulbVM;
-        public ColorBulbViewModel SelectedBulbVM
+        List<ColorBulbViewModel> _selectedBulbVMs;
+        public List<ColorBulbViewModel> SelectedBulbVMs
         {
-            get { return _selectedBulbVM; }
+            get { return _selectedBulbVMs; }
             set
             {
-                _selectedBulbVM = value;
-                OnPropertyChanged("SelectedBulbVM");
+                _selectedBulbVMs = value;
+                OnPropertyChanged("SelectedBulbVMs");
             }
         }
         public GroupViewModel(BulbController controller, string groupName, DispatchedCollection<ColorBulbViewModel> group)
