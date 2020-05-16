@@ -16,39 +16,63 @@
     <Window.Resources>
 
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="35"></RowDefinition>
-            <RowDefinition></RowDefinition>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"></ColumnDefinition>
-            <ColumnDefinition Width="21*"></ColumnDefinition>
-            <ColumnDefinition Width="83*"/>
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Grid.ColumnSpan="2">
-            <StackPanel Orientation="Horizontal" Margin="0 5 0 5">
-                <TextBlock Text="User group name: " FontSize="18" Foreground="AliceBlue"></TextBlock>
-                <TextBox Width="150" Margin="0 0 10 0" Text="{Binding NameToInsert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-                <Button Content="Add Group" FontSize="15" Margin="0 0 10 0" Command="{Binding CreateNewGroup}"></Button>
-                <Button Content="Rename Current" FontSize="15" Command="{Binding RenameGroup}"></Button>
-            </StackPanel>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
-            <TabControl x:Name="Tools" VerticalAlignment="Stretch" ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding GroupName}" FontSize="18"></TextBlock>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <DataTemplate>
-                        <StackPanel>
-                            <views:GroupView></views:GroupView>
+    <TabControl>
+        <TabItem Header="All Bulbs">
+            <views:AllBulbsView DataContext="{Binding AllBulbsVM}"></views:AllBulbsView>
+        </TabItem>
+        <TabItem Header="Groups">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="21*"></ColumnDefinition>
+                    <ColumnDefinition Width="83*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Grid.ColumnSpan="2">
+                    <Button x:Name="AddGroupButton" Content="New Group" FontSize="15" Margin="0 0 10 0" Click="AddGroupButton_Click"></Button>
+                    <Popup x:Name="AddGoupPopup" Width="150"
+                   PlacementTarget="{Binding ElementName=AddGroupButton}" Placement="Bottom"
+                   StaysOpen="False" PopupAnimation="Scroll">
+                        <StackPanel Orientation="Vertical" Margin="0 5 0 5">
+                            <TextBlock Text="User group name:" FontSize="12" Foreground="AliceBlue"></TextBlock>
+                            <TextBox Text="{Binding NameToInsert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                            <Button Content="Add" FontSize="15" Command="{Binding CreateNewGroup}"></Button>
                         </StackPanel>
-                    </DataTemplate>
-                </TabControl.ContentTemplate>
-            </TabControl>
-        </StackPanel>
-    </Grid>
+                    </Popup>
+                    <Button x:Name="RenameGroupButton" Content="Rename Group" FontSize="15" Margin="0 0 10 0" Click="RenameGroupButton_Click"></Button>
+                    <Popup x:Name="RenameGoupPopup" Width="150"
+                   PlacementTarget="{Binding ElementName=RenameGroupButton}" Placement="Bottom"
+                   StaysOpen="False" PopupAnimation="Scroll">
+                        <StackPanel Orientation="Vertical" Margin="0 5 0 5">
+                            <TextBlock Text="User group name:" FontSize="12" Foreground="AliceBlue"></TextBlock>
+                            <TextBox Text="{Binding NameToInsert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                            <Button Content="Rename" FontSize="15" Command="{Binding RenameGroup}"></Button>
+                        </StackPanel>
+                    </Popup>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                    <TabControl x:Name="Tools" VerticalAlignment="Stretch" HorizontalAlignment="Left" TabStripPlacement="Left"
+                        ItemsSource="{Binding GroupVMs}" SelectedItem="{Binding SelectedGroupVM}">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Width="100" Height="35">
+                                    <TextBlock Text="{Binding GroupName}"  Margin="0 5 0 0"
+                                       HorizontalAlignment="Center" FontSize="18" FontWeight="Bold"></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <views:GroupView></views:GroupView>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </StackPanel>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>

@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace SmartBulbColor.ViewModels
 {
-    class GroupViewModel : ViewModelBase
+    internal class AllBulbsViewModel : ViewModelBase
     {
         private BulbController Controller;
         private DeviceRepository<ColorBulb> Repository;
@@ -47,7 +47,8 @@ namespace SmartBulbColor.ViewModels
                 SetColorWithBrush(value);
             }
         }
-        public GroupViewModel(string groupName, BulbController controller, DeviceRepository<ColorBulb> repository)
+
+        public AllBulbsViewModel(string groupName, BulbController controller, DeviceRepository<ColorBulb> repository)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
@@ -94,9 +95,9 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteSetNormalLight(object parametr)
         {
-            foreach(var bulbVM in SelectedBulbVMs)
+            foreach (var bulbVM in SelectedBulbVMs)
             {
-                if(bulbVM.TurnNormalLightON.CanExecute(parametr))
+                if (bulbVM.TurnNormalLightON.CanExecute(parametr))
                     bulbVM.TurnNormalLightON.Execute(parametr);
             }
         }

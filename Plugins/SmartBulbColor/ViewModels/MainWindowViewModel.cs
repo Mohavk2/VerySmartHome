@@ -7,13 +7,17 @@ using SmartBulbColor.RemoteBulbAPI;
 
 namespace SmartBulbColor.ViewModels
 {
-    class MainWindowViewModel : ViewModelBase, IDisposable
+    internal class MainWindowViewModel : ViewModelBase, IDisposable
     {
         BulbController Controller;
 
-        DeviceRepository<ColorBulb> DevicePerository;
+        DeviceRepository<ColorBulb> Repository;
+
+        public AllBulbsViewModel AllBulbsVM { get; }
 
         public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
+
+        public string MainGroupName { get; } = "AllBulbs";
 
         GroupViewModel _selectedGroupVM;
         public GroupViewModel SelectedGroupVM
@@ -36,21 +40,15 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("NameToInsert");
             }                
         }
+
         public MainWindowViewModel()
         {
-            DevicePerository = new DeviceRepository<ColorBulb>();
-            Controller = new BulbController(DevicePerository);
+            Repository = new DeviceRepository<ColorBulb>();
+            Controller = new BulbController(Repository);
 
-            var allBulbs = DevicePerository.GetDevices();
-            var bulbViewModels = new DispatchedCollection<ColorBulbViewModel>();
-            foreach (var bulb in allBulbs)
-            {
-                bulbViewModels.Add(new ColorBulbViewModel(Controller, bulb));
-            }
-            var mainGroupViewModel = new GroupViewModel(Controller, "AllBulbs", bulbViewModels);
+            AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);
 
-            DevicePerository.NewDeviceAdded += (bulb)=> mainGroupViewModel.AddBulbVM(new ColorBulbViewModel(Controller, bulb));
-            GroupVMs.AddSafe(mainGroupViewModel);
+            Repository.NewDeviceAdded += (bulb)=> AllBulbsVM.AddBulbVM(new ColorBulbViewModel(Controller, bulb));
         }
 
         public ICommand CreateNewGroup
@@ -59,7 +57,7 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteCreateNewGroup(object parametr)
         {
-            GroupVMs.AddSafe(new GroupViewModel(Controller, NameToInsert, new DispatchedCollection<ColorBulbViewModel>()));
+            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Controller, Repository));
         }
         bool CanExecuteCreateNewGroup(object parametr)
         {
@@ -89,12 +87,12 @@ namespace SmartBulbColor.ViewModels
                 if (group.GroupName == NameToInsert)
                     NotExists = false;
             }
-            return (SelectedGroupVM?.GroupName != "AllBulbs" && NotExists && NameToInsert != "");
+            return (SelectedGroupVM?.GroupName != MainGroupName && NotExists && NameToInsert != "");
         }
         public void Dispose()
         {
             Controller.Dispose();
-            DevicePerository.Dispose();
+            Repository.Dispose();
         }
     }
 }
