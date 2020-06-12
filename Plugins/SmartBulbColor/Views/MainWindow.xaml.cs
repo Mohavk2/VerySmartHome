@@ -27,15 +27,5 @@ namespace SmartBulbColor
             var viewModel = (MainWindowViewModel)DataContext;
             viewModel.Dispose();
         }
-
-        private void AddGroupButton_Click(object sender, RoutedEventArgs e)
-        {
-            AddGoupPopup.IsOpen = true;
-        }
-
-        private void RenameGroupButton_Click(object sender, RoutedEventArgs e)
-        {
-            RenameGoupPopup.IsOpen = true;
-        }
     }
 }

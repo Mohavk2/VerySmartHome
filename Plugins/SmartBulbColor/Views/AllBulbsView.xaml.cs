@@ -19,5 +19,10 @@ namespace SmartBulbColor.Views
             var viewModel = (AllBulbsViewModel)DataContext;
             viewModel.SelectedBulbVMs = BulbList.SelectedItems.Cast<ColorBulbViewModel>().ToList();
         }
+
+        private void AddToGroupButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            AddToGroupPopup.IsOpen = true;
+        }
     }
 }

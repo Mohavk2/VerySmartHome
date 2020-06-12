@@ -15,31 +15,9 @@ namespace SmartBulbColor.ViewModels
 
         public AllBulbsViewModel AllBulbsVM { get; }
 
-        public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
+        public GroupsViewModel GroupsVM { get; }
 
         public string MainGroupName { get; } = "AllBulbs";
-
-        GroupViewModel _selectedGroupVM;
-        public GroupViewModel SelectedGroupVM
-        {
-            get { return _selectedGroupVM; }
-            set
-            {
-                _selectedGroupVM = value;
-                NameToInsert = _selectedGroupVM.GroupName;
-                OnPropertyChanged("SelectedGroupVM");
-            }
-        }
-        string _nameToInsert;
-        public string NameToInsert 
-        { 
-            get => _nameToInsert;
-            set
-            {
-                _nameToInsert = value;
-                OnPropertyChanged("NameToInsert");
-            }                
-        }
 
         public MainWindowViewModel()
         {
@@ -47,48 +25,9 @@ namespace SmartBulbColor.ViewModels
             Controller = new BulbController(Repository);
 
             AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);
-
-            Repository.NewDeviceAdded += (bulb)=> AllBulbsVM.AddBulbVM(new ColorBulbViewModel(Controller, bulb));
+            GroupsVM = new GroupsViewModel(Controller, Repository);
         }
 
-        public ICommand CreateNewGroup
-        {
-            get { return new ControllerCommand(ExecuteCreateNewGroup, CanExecuteCreateNewGroup); }
-        }
-        void ExecuteCreateNewGroup(object parametr)
-        {
-            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Controller, Repository));
-        }
-        bool CanExecuteCreateNewGroup(object parametr)
-        {
-            bool NotExists = true;
-            foreach (var group in GroupVMs)
-            {
-                if (group.GroupName == NameToInsert)
-                    NotExists = false;
-            }
-            return (GroupVMs.Count < 20 && NameToInsert != "" && NotExists);
-        }
-
-        public ICommand RenameGroup
-        {
-            get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
-        }
-        void ExecuteRenameGroup(object parametr)
-        {
-            if (SelectedGroupVM.RenameGroup.CanExecute(NameToInsert))
-                SelectedGroupVM.RenameGroup.Execute(NameToInsert);
-        }
-        bool CanExecuteRenameGroup(object parametr)
-        {
-            bool NotExists = true;
-            foreach(var group in GroupVMs)
-            {
-                if (group.GroupName == NameToInsert)
-                    NotExists = false;
-            }
-            return (SelectedGroupVM?.GroupName != MainGroupName && NotExists && NameToInsert != "");
-        }
         public void Dispose()
         {
             Controller.Dispose();

@@ -3,6 +3,7 @@ using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -14,14 +15,25 @@ namespace SmartBulbColor.ViewModels
         private BulbController Controller;
         private DeviceRepository<ColorBulb> Repository;
 
-        string _groupName;
-        public string GroupName
+
+        List<string> _GroupNames;
+        public List<string> GroupNames
         {
-            get => _groupName;
+            get { return Repository.GetUserGroupNames().ToList(); }
             set
             {
-                _groupName = value;
-                OnPropertyChanged("GroupName");
+                _GroupNames = value;
+                OnPropertyChanged("GroupNames");
+            }
+        }
+        string _selectedGroupName;
+        public string SelectedGroupName
+        {
+            get => _selectedGroupName;
+            set
+            {
+                _selectedGroupName = value;
+                OnPropertyChanged("SelectedGroupName");
             }
         }
 
@@ -53,23 +65,10 @@ namespace SmartBulbColor.ViewModels
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
             Repository = repository;
+            Repository.NewDeviceAdded += (bulb) => OnNewBulbAdded(new ColorBulbViewModel(Controller, bulb));
             Controller = controller;
-            GroupName = groupName;
         }
 
-        public ICommand RenameGroup
-        {
-            get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
-        }
-        void ExecuteRenameGroup(object parametr)
-        {
-            GroupName = parametr as string;
-        }
-        bool CanExecuteRenameGroup(object parametr)
-        {
-            var name = parametr as string;
-            return (name != null && name != "");
-        }
         public ICommand TogglePower
         {
             get { return new ControllerCommand(ExecuteTogglePower, CanExecuteTogglePower); }
@@ -129,15 +128,23 @@ namespace SmartBulbColor.ViewModels
         }
         public ICommand MoveToGroup
         {
-            get { return new ControllerCommand(ExecuteMoveToGroup); }
+            get { return new ControllerCommand(ExecuteMoveToGroup, CanExecuteMoveToGroup); }
         }
         void ExecuteMoveToGroup(object parametr)
         {
 
         }
-        public void AddBulbVM(ColorBulbViewModel bulbVM)
+        bool CanExecuteMoveToGroup(object parametr)
+        {
+            return GroupNames.Count != 0;
+        }
+        public void OnNewBulbAdded(ColorBulbViewModel bulbVM)
         {
             ColorBulbVMs.AddSafe(bulbVM);
+        }
+        public void OnGroupNamesChanged(string[] groupNames)
+        {
+            GroupNames = groupNames.ToList();
         }
         private void SetColorWithBrush(Object parametr)
         {

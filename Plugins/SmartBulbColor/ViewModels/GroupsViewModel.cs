@@ -1,10 +1,111 @@
-﻿using System;
+﻿using CommonLibrary;
+using SmartBulbColor.Infrastructure;
+using SmartBulbColor.Models;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Windows.Input;
 
 namespace SmartBulbColor.ViewModels
 {
-    class GroupsViewModel
+    internal class GroupsViewModel : ViewModelBase
     {
+        BulbController Controller;
+
+        DeviceRepository<ColorBulb> Repository;
+
+        public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
+
+        List<string> _GroupNames;
+        public List<string> GroupNames
+        {
+            get { return Repository.GetUserGroupNames().ToList(); }
+            set
+            {
+                _GroupNames = value;
+                OnPropertyChanged("GroupNames");
+            }
+        }
+        string _selectedGroupName;
+        public string SelectedGroupName
+        {
+            get => _selectedGroupName;
+            set
+            {
+                _selectedGroupName = value;
+                OnPropertyChanged("SelectedGroupName");
+            }
+        }
+        GroupViewModel _selectedGroupVM;
+        public GroupViewModel SelectedGroupVM
+        {
+            get { return _selectedGroupVM; }
+            set
+            {
+                _selectedGroupVM = value;
+                NameToInsert = _selectedGroupVM.GroupName;
+                OnPropertyChanged("SelectedGroupVM");
+            }
+        }
+        string _nameToInsert;
+        public string NameToInsert
+        {
+            get => _nameToInsert;
+            set
+            {
+                _nameToInsert = value;
+                OnPropertyChanged("NameToInsert");
+            }
+        }
+        public GroupsViewModel(BulbController controller, DeviceRepository<ColorBulb> repository)
+        {
+            Controller = controller;
+            Repository = repository;
+        }
+
+        public ICommand CreateNewGroup
+        {
+            get { return new ControllerCommand(ExecuteCreateNewGroup, CanExecuteCreateNewGroup); }
+        }
+        void ExecuteCreateNewGroup(object parametr)
+        {
+            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Controller, Repository));
+            Repository.AddGroup(NameToInsert);
+        }
+        bool CanExecuteCreateNewGroup(object parametr)
+        {
+            bool NotExists = true;
+            foreach (var group in GroupVMs)
+            {
+                if (group.GroupName == NameToInsert)
+                    NotExists = false;
+            }
+            return (GroupVMs.Count < 20 && NameToInsert != "" && NotExists);
+        }
+        public ICommand RenameGroup
+        {
+            get { return new ControllerCommand(ExecuteRenameGroup, CanExecuteRenameGroup); }
+        }
+        void ExecuteRenameGroup(object parametr)
+        {
+            if (SelectedGroupVM.RenameGroup.CanExecute(NameToInsert))
+                SelectedGroupVM.RenameGroup.Execute(NameToInsert);
+        }
+        bool CanExecuteRenameGroup(object parametr)
+        {
+            bool NotExists = true;
+            foreach (var group in GroupVMs)
+            {
+                if (group.GroupName == NameToInsert)
+                    NotExists = false;
+            }
+            return (NotExists && NameToInsert != "");
+        }
+        public void RefreshGroupNames(string[] groupNames)
+        {
+            GroupNames = groupNames.ToList();
+        }
+
     }
 }

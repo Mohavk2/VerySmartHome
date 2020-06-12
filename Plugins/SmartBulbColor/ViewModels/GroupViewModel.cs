@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace SmartBulbColor.ViewModels
 {
@@ -125,14 +126,6 @@ namespace SmartBulbColor.ViewModels
                 return false;
             else
                 return true;
-        }
-        public ICommand MoveToGroup
-        {
-            get { return new ControllerCommand(ExecuteMoveToGroup); }
-        }
-        void ExecuteMoveToGroup(object parametr)
-        {
-
         }
         public void AddBulbVM(ColorBulbViewModel bulbVM)
         {

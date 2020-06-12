@@ -33,7 +33,7 @@ namespace SmartBulbColor.ViewModels
         private bool _isControlEnabled;
         public bool IsControlEnabled
         {
-            get { return IsControlEnabled; }
+            get { return _isControlEnabled; }
             set
             {
                 _isControlEnabled = value;
@@ -55,6 +55,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsPowered");
             }
         }
+        
         public ColorBulbViewModel(BulbController controller, ColorBulb bulb)
         {
             Controller = controller;
