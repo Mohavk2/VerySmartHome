@@ -1,8 +1,8 @@
-﻿using SmartBulbColor.RemoteBulbAPI;
+﻿using SmartBulbColor.Models;
 using System.Threading;
 using CommonLibrary;
 
-namespace SmartBulbColor.Models
+namespace SmartBulbColor.PluginApplication
 {
     class AmbientLightStreamer
     {

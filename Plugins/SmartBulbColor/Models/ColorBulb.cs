@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using CommonLibrary;
-using SmartBulbColor.RemoteBulbAPI;
 using System.Text.Json;
 
 namespace SmartBulbColor.Models

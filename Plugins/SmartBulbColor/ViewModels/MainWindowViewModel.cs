@@ -1,15 +1,14 @@
-﻿using SmartBulbColor.Infrastructure;
-using SmartBulbColor.Models;
+﻿using SmartBulbColor.Models;
 using CommonLibrary;
 using System;
 using System.Windows.Input;
-using SmartBulbColor.RemoteBulbAPI;
+using SmartBulbColor.PluginApplication;
 
 namespace SmartBulbColor.ViewModels
 {
     internal class MainWindowViewModel : ViewModelBase, IDisposable
     {
-        BulbController Controller;
+        AppCore Controller;
 
         DeviceRepository<ColorBulb> Repository;
 
@@ -22,7 +21,7 @@ namespace SmartBulbColor.ViewModels
         public MainWindowViewModel()
         {
             Repository = new DeviceRepository<ColorBulb>();
-            Controller = new BulbController(Repository);
+            Controller = new AppCore(Repository);
 
             AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);
             GroupsVM = new GroupsViewModel(Controller, Repository);

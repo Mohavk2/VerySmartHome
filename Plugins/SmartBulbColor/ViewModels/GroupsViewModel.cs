@@ -1,6 +1,6 @@
 ﻿using CommonLibrary;
-using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using SmartBulbColor.PluginApplication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class GroupsViewModel : ViewModelBase
     {
-        BulbController Controller;
+        AppCore Controller;
 
         DeviceRepository<ColorBulb> Repository;
 
@@ -58,7 +58,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("NameToInsert");
             }
         }
-        public GroupsViewModel(BulbController controller, DeviceRepository<ColorBulb> repository)
+        public GroupsViewModel(AppCore controller, DeviceRepository<ColorBulb> repository)
         {
             Controller = controller;
             Repository = repository;

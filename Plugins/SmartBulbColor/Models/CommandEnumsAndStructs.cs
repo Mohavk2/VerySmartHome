@@ -1,4 +1,4 @@
-﻿namespace SmartBulbColor.RemoteBulbAPI
+﻿namespace SmartBulbColor.Models
 {
 	public enum Power { On, Off }
 	public enum Effect { Sudden, Smooth }

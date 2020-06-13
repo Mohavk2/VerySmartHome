@@ -4,7 +4,7 @@ using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 using System.Windows;
 
-namespace SmartBulbColor.Models
+namespace SmartBulbColor.PluginApplication
 {
     public sealed class ScreenColorAnalyzer
     {

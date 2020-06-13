@@ -1,12 +1,12 @@
-﻿using SmartBulbColor.RemoteBulbAPI;
+﻿using SmartBulbColor.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommonLibrary;
 
-namespace SmartBulbColor.Models
+namespace SmartBulbColor.PluginApplication
 {
-    sealed class BulbController : DeviceController, IDisposable
+    sealed class AppCore : DeviceController, IDisposable
     {
         static DeviceSearchingAtributes Atributes = new DeviceSearchingAtributes
         {
@@ -31,7 +31,7 @@ namespace SmartBulbColor.Models
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public BulbController(DeviceRepository<ColorBulb> repository)
+        public AppCore(DeviceRepository<ColorBulb> repository)
         {
             Repository = repository;
             Discoverer.DeviceFound += (device) => Repository.AddDevice((ColorBulb)device);

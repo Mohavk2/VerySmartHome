@@ -1,4 +1,4 @@
-﻿using SmartBulbColor.Models;
+﻿using SmartBulbColor.PluginApplication;
 using System.Drawing;
 using System.Threading;
 using System.Windows;

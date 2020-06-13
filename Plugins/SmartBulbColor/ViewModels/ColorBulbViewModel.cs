@@ -1,6 +1,5 @@
-﻿using SmartBulbColor.Infrastructure;
-using SmartBulbColor.Models;
-using SmartBulbColor.RemoteBulbAPI;
+﻿using SmartBulbColor.Models;
+using SmartBulbColor.PluginApplication;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -9,7 +8,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class ColorBulbViewModel : ViewModelBase
     {
-        readonly BulbController Controller;
+        readonly AppCore Controller;
         private ColorBulb _bulb;
         public ColorBulb Bulb
         {
@@ -56,7 +55,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
         
-        public ColorBulbViewModel(BulbController controller, ColorBulb bulb)
+        public ColorBulbViewModel(AppCore controller, ColorBulb bulb)
         {
             Controller = controller;
             Bulb = bulb;

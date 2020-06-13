@@ -1,6 +1,6 @@
 ﻿using CommonLibrary;
-using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using SmartBulbColor.PluginApplication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class AllBulbsViewModel : ViewModelBase
     {
-        private BulbController Controller;
+        private AppCore Controller;
         private DeviceRepository<ColorBulb> Repository;
 
 
@@ -60,7 +60,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public AllBulbsViewModel(string groupName, BulbController controller, DeviceRepository<ColorBulb> repository)
+        public AllBulbsViewModel(string groupName, AppCore controller, DeviceRepository<ColorBulb> repository)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();

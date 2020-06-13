@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.RemoteBulbAPI
+namespace SmartBulbColor.Models
 {
     public static class BulbSsdpOptions
     {

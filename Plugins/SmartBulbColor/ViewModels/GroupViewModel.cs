@@ -1,6 +1,6 @@
 ﻿using CommonLibrary;
-using SmartBulbColor.Infrastructure;
 using SmartBulbColor.Models;
+using SmartBulbColor.PluginApplication;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +12,7 @@ namespace SmartBulbColor.ViewModels
 {
     class GroupViewModel : ViewModelBase
     {
-        private BulbController Controller;
+        private AppCore Controller;
         private DeviceRepository<ColorBulb> Repository;
 
         string _groupName;
@@ -48,7 +48,7 @@ namespace SmartBulbColor.ViewModels
                 SetColorWithBrush(value);
             }
         }
-        public GroupViewModel(string groupName, BulbController controller, DeviceRepository<ColorBulb> repository)
+        public GroupViewModel(string groupName, AppCore controller, DeviceRepository<ColorBulb> repository)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();

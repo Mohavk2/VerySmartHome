@@ -1,4 +1,4 @@
-﻿namespace SmartBulbColor.RemoteBulbAPI
+﻿namespace SmartBulbColor.Models
 {
     public class BulbJsonResponse
     {

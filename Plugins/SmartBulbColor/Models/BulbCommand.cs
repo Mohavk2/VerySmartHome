@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Text.Json.Serialization;
 
-namespace SmartBulbColor.RemoteBulbAPI
+namespace SmartBulbColor.Models
 {
     public class BulbCommand
     {
