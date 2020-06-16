@@ -67,6 +67,7 @@ namespace SmartBulbColor.Domain
                 }
             }
         }
+        #region Properties
         public string Name
         {
             get { return _name; }
@@ -274,8 +275,9 @@ namespace SmartBulbColor.Domain
             }
         }
         private int _saturation = 0;
+        #endregion
 
-        public void ExecuteCommand(BulbCommand command)
+        public void PushCommand(BulbCommand command)
         {
             lock (CommandLocker)
             {

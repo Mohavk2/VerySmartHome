@@ -60,7 +60,7 @@ namespace SmartBulbColor.PluginApp
                 { 
                     foreach (var bulb in BulbsForStreaming)
                     {
-                        bulb.ExecuteCommand(command);
+                        bulb.PushCommand(command);
                     }
                 }
                 else StopStreaming();

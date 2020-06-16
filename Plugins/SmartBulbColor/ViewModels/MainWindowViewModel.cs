@@ -8,7 +8,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class MainWindowViewModel : ViewModelBase, IDisposable
     {
-        AppCore Controller;
+        Mediator Controller;
 
         BulbRepository Repository;
 
@@ -21,7 +21,7 @@ namespace SmartBulbColor.ViewModels
         public MainWindowViewModel()
         {
             Repository = new BulbRepository();
-            Controller = new AppCore(Repository);
+            Controller = new Mediator(Repository);
 
             AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);
             GroupsVM = new GroupsViewModel(Controller, Repository);

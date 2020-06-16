@@ -12,7 +12,7 @@ namespace SmartBulbColor.ViewModels
 {
     class GroupViewModel : ViewModelBase
     {
-        private AppCore Controller;
+        private Mediator Controller;
         private BulbRepository Repository;
 
         string _groupName;
@@ -48,7 +48,7 @@ namespace SmartBulbColor.ViewModels
                 SetColorWithBrush(value);
             }
         }
-        public GroupViewModel(string groupName, AppCore controller, BulbRepository repository)
+        public GroupViewModel(string groupName, Mediator controller, BulbRepository repository)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();

@@ -12,7 +12,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class AllBulbsViewModel : ViewModelBase
     {
-        private AppCore Controller;
+        private Mediator Controller;
         private BulbRepository Repository;
 
 
@@ -60,7 +60,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public AllBulbsViewModel(string groupName, AppCore controller, BulbRepository repository)
+        public AllBulbsViewModel(string groupName, Mediator controller, BulbRepository repository)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();

@@ -8,7 +8,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class ColorBulbViewModel : ViewModelBase
     {
-        readonly AppCore Controller;
+        readonly Mediator Controller;
         private ColorBulbProxy _bulb;
         public ColorBulbProxy Bulb
         {
@@ -55,7 +55,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
         
-        public ColorBulbViewModel(AppCore controller, ColorBulbProxy bulb)
+        public ColorBulbViewModel(Mediator controller, ColorBulbProxy bulb)
         {
             Controller = controller;
             Bulb = bulb;
@@ -68,7 +68,7 @@ namespace SmartBulbColor.ViewModels
             int sat = (int)hsbColor.Saturation;
             int bright = (int)hsbColor.Brightness;
             var command = BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hue, sat, bright);
-            Bulb.ExecuteCommand(command);
+            Bulb.PushCommand(command);
             CurrentColor = brush;
             IsPowered = Bulb.IsPowered;
         }
@@ -82,7 +82,7 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteTogglePower(Object parametr)
         {
-            Bulb.ExecuteCommand(BulbCommandBuilder.CreateToggleCommand());
+            Bulb.PushCommand(BulbCommandBuilder.CreateToggleCommand());
             OnPropertyChanged("Bulb");
             IsPowered = Bulb.IsPowered;
         }
@@ -103,7 +103,7 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteTurnNormalLightON(Object parametr)
         {
-            Bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
+            Bulb.PushCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
             IsPowered = Bulb.IsPowered;
             CurrentColor = Brushes.White;
         }

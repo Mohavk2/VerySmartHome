@@ -7,7 +7,7 @@ using System.Windows.Data;
 
 namespace SmartBulbColor.PluginApp
 {
-    sealed class AppCore : IDisposable
+    sealed class Mediator : IDisposable
     {
         static HsdpSearchingAtributes Atributes = new HsdpSearchingAtributes
         {
@@ -32,7 +32,7 @@ namespace SmartBulbColor.PluginApp
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public AppCore(BulbRepository repository)
+        public Mediator(BulbRepository repository)
         {
             Repository = repository;
             Discoverer.ResponsesReceived += OnResponsesReceived;
@@ -82,7 +82,7 @@ namespace SmartBulbColor.PluginApp
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
         public void SetSceneHSV(ColorBulbProxy bulb, HSBColor color)
         {
-            bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
+            bulb.PushCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
                 CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
         }
 

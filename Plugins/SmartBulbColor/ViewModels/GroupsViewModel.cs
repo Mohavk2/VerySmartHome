@@ -11,7 +11,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class GroupsViewModel : ViewModelBase
     {
-        AppCore Controller;
+        Mediator Controller;
 
         BulbRepository Repository;
 
@@ -58,7 +58,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("NameToInsert");
             }
         }
-        public GroupsViewModel(AppCore controller, BulbRepository repository)
+        public GroupsViewModel(Mediator controller, BulbRepository repository)
         {
             Controller = controller;
             Repository = repository;
