@@ -9,7 +9,7 @@ namespace CommonLibrary
 {
     public delegate void HTTPResponsesReceivedHandler(Dictionary<string, List<string>> variousResponses);
 
-    public class DeviceDiscoverer
+    public class HsdpDiscoverer
     {
         static List<DiscovererClient> Clients = new List<DiscovererClient>();
 
@@ -40,7 +40,7 @@ namespace CommonLibrary
                 }
             }
         }
-        static DeviceDiscoverer()
+        static HsdpDiscoverer()
         {
             RefreshingThread = new Thread(new ThreadStart(Discovering));
             RefreshingThread.IsBackground = true;
@@ -137,7 +137,7 @@ namespace CommonLibrary
         List<int> IdsToIgnore = new List<int>();
         public bool IgnoreAlreadyFoundIds = true;
 
-        public DeviceDiscoverer(DeviceSearchingAtributes Atributes)
+        public HsdpDiscoverer(HsdpSearchingAtributes Atributes)
         {
             Client = new DiscovererClient(Atributes.SsdpMessage, Atributes.DeviceType, Atributes.MulticastPort);
             Clients.Add(Client);

@@ -13,7 +13,7 @@ namespace SmartBulbColor.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
+        readonly static IPAddress LocalIP = HsdpDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
 
         readonly public static Socket TcpServer;

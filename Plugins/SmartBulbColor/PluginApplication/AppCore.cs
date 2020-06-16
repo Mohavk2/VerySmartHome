@@ -9,13 +9,13 @@ namespace SmartBulbColor.PluginApplication
 {
     sealed class AppCore : IDisposable
     {
-        static DeviceSearchingAtributes Atributes = new DeviceSearchingAtributes
+        static HsdpSearchingAtributes Atributes = new HsdpSearchingAtributes
         {
             SsdpMessage = "M-SEARCH * HTTP/1.1\r\n" + "HOST: 239.255.255.250:1982\r\n" + "MAN: \"ssdp:discover\"\r\n" + "ST: wifi_bulb",
             DeviceType = "MiBulbColor",
             MulticastPort = 1982
         };
-        readonly DeviceDiscoverer Discoverer = new DeviceDiscoverer(Atributes);
+        readonly HsdpDiscoverer Discoverer = new HsdpDiscoverer(Atributes);
         readonly BulbRepository Repository;
         private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
