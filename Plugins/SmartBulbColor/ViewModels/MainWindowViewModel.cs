@@ -1,4 +1,4 @@
-﻿using SmartBulbColor.Models;
+﻿using SmartBulbColor.Domain;
 using CommonLibrary;
 using System;
 using System.Windows.Input;

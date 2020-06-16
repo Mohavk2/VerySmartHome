@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Text;
 
-namespace SmartBulbColor.Models
+namespace SmartBulbColor.Domain
 {
     public static class BulbCommandBuilder
     {

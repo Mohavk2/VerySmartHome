@@ -7,7 +7,7 @@ using CommonLibrary;
 using System.Text.Json;
 using System.ComponentModel;
 
-namespace SmartBulbColor.Models
+namespace SmartBulbColor.Domain
 {
     internal sealed class ColorBulbProxy : INotifyPropertyChanged, IDisposable
     {
@@ -408,7 +408,7 @@ namespace SmartBulbColor.Models
         }
         private void ParseJsonProperties(string jsonResponse)
         {
-            BulbJsonResponse bulbJsonResponse = JsonSerializer.Deserialize<BulbJsonResponse>(jsonResponse);
+            BulbResponse bulbJsonResponse = JsonSerializer.Deserialize<BulbResponse>(jsonResponse);
 
             if (bulbJsonResponse != null && bulbJsonResponse.result != null && bulbJsonResponse.result.Length != 0)
             {

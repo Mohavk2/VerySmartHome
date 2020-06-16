@@ -1,4 +1,4 @@
-﻿namespace SmartBulbColor.Models
+﻿namespace SmartBulbColor.Domain
 {
 	public enum Power { On, Off }
 	public enum Effect { Sudden, Smooth }

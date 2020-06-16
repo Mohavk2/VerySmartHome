@@ -1,6 +1,6 @@
-﻿namespace SmartBulbColor.Models
+﻿namespace SmartBulbColor.Domain
 {
-    public class BulbJsonResponse
+    public class BulbResponse
     {
         public int id { get; set; }
         public string [] result { get; set; }

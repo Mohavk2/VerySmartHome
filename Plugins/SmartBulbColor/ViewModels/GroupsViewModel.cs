@@ -1,5 +1,5 @@
 ﻿using CommonLibrary;
-using SmartBulbColor.Models;
+using SmartBulbColor.Domain;
 using SmartBulbColor.PluginApp;
 using System;
 using System.Collections.Generic;

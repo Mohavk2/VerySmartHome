@@ -7,7 +7,7 @@ using SmartBulbColor.ViewModels;
 using System.Windows.Media.Imaging;
 using System.Threading;
 using System.Windows.Controls;
-using SmartBulbColor.Models;
+using SmartBulbColor.Domain;
 using System.Collections.ObjectModel;
 
 namespace SmartBulbColor

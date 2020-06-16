@@ -1,4 +1,4 @@
-﻿using SmartBulbColor.Models;
+﻿using SmartBulbColor.Domain;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
