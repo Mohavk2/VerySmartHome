@@ -5,11 +5,14 @@ using System.Net.Sockets;
 using System.Text;
 using CommonLibrary;
 using System.Text.Json;
+using System.ComponentModel;
 
 namespace SmartBulbColor.Models
 {
-    internal sealed class ColorBulb : Device
+    internal sealed class ColorBulb : INotifyPropertyChanged, IDisposable
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         readonly static IPAddress LocalIP = DeviceDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
 
@@ -64,7 +67,7 @@ namespace SmartBulbColor.Models
                 }
             }
         }
-        public override string Name
+        public string Name
         {
             get { return _name; }
             set
@@ -81,30 +84,30 @@ namespace SmartBulbColor.Models
             }
         }
         private string _name = "";
-        public override int Id
+        public int Id
         {
             get { return _id; }
-            protected set
+            private set
             {
                 _id = value;
                 OnPropertyChanged("Id");
             }
         }
         private int _id = 0;
-        public override string Ip
+        public string Ip
         {
             get { return _ip; }
-            protected set
+            private set
             {
                 _ip = value;
                 OnPropertyChanged("Ip");
             }
         }
         private string _ip = "";
-        public override int Port
+        public int Port
         {
             get { return _port; }
-            protected set
+            private set
             {
                 _port = value;
                 OnPropertyChanged("Port");
@@ -426,6 +429,12 @@ namespace SmartBulbColor.Models
         {
             //TODO: add 
         }
+
+        void OnPropertyChanged(string propName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+
         public override string ToString()
         {
             if (Name == "")
@@ -433,7 +442,7 @@ namespace SmartBulbColor.Models
             else
                 return Name;
         }
-        public override void Dispose()
+        public void Dispose()
         {
             DisconnectMusicMode();
         }

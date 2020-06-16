@@ -129,74 +129,27 @@ namespace CommonLibrary
             }
         }
         ///////////////////*Client instance Part*//////////////////
-        public delegate void DeviceFoundHandler(Device foundDevice);
-        public event DeviceFoundHandler DeviceFound;
+        public delegate void ResponsesReceivedHandler(List<string> responses);
+        public event ResponsesReceivedHandler ResponsesReceived;
 
         DiscovererClient Client;
-        DeviceFactory Factory;
 
         List<int> IdsToIgnore = new List<int>();
         public bool IgnoreAlreadyFoundIds = true;
 
-        public DeviceDiscoverer(DeviceSearchingAtributes Atributes, DeviceFactory factory)
+        public DeviceDiscoverer(DeviceSearchingAtributes Atributes)
         {
             Client = new DiscovererClient(Atributes.SsdpMessage, Atributes.DeviceType, Atributes.MulticastPort);
-            Factory = factory;
-            lock (Locker)
-            {
-                Clients.Add(Client);
-            }
-            HTTPResponsesFound += CreateDeviceAndnotify;
-        }
-        void CreateDeviceAndnotify(Dictionary<string, List<string>> variousResponses)
-        {
-            lock (Locker)
-            {
-                if (variousResponses.ContainsKey(Client.DeviceType))
-                {
-                    var responses = variousResponses[Client.DeviceType];
-                    foreach (var response in responses)
-                    {
-                        var foundId = ParseId(response);
-                        if (!IdsToIgnore.Contains(foundId))
-                        {
-                            var foundDevice = Factory.CreateDevice(response);
-                            if (IgnoreAlreadyFoundIds)
-                            {
-                                IdsToIgnore.Add(foundId);
-                            }
-                            DeviceFound?.Invoke(foundDevice);
-                        }
-                    }
-                }
-            }
-        }
-        /// <summary>
-        /// Returns Id if exist, else returns -1
-        /// </summary>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        private int ParseId(string response)
-        {
-            var targetStartsWith = "id: ";
+            Clients.Add(Client);
 
-            string[] properties = response.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            foreach (var property in properties)
-            {
-                if (property.Contains(targetStartsWith))
-                {
-                    return Convert.ToInt32(property.Substring(targetStartsWith.Length), 16);
-                }
-            }
-            return -1;
+            HTTPResponsesFound += NotifySubscriber;
         }
-        public void SetIdsToIgnore(List<int> ids)
+        void NotifySubscriber(Dictionary<string, List<string>> variousResponses)
         {
-            lock (Locker)
+            if (variousResponses.ContainsKey(Client.DeviceType))
             {
-                IdsToIgnore.Clear();
-                IdsToIgnore.AddRange(ids);
-            }
+                ResponsesReceived?.Invoke(variousResponses[Client.DeviceType]);
+            }        
         }
         public void StartDiscover()
         {

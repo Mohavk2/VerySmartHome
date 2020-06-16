@@ -13,7 +13,7 @@ namespace SmartBulbColor.ViewModels
     {
         AppCore Controller;
 
-        DeviceRepository<ColorBulb> Repository;
+        BulbRepository Repository;
 
         public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
 
@@ -58,7 +58,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("NameToInsert");
             }
         }
-        public GroupsViewModel(AppCore controller, DeviceRepository<ColorBulb> repository)
+        public GroupsViewModel(AppCore controller, BulbRepository repository)
         {
             Controller = controller;
             Repository = repository;

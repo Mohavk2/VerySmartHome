@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommonLibrary;
+using System.Windows.Data;
 
 namespace SmartBulbColor.PluginApplication
 {
-    sealed class AppCore : DeviceController, IDisposable
+    sealed class AppCore : IDisposable
     {
         static DeviceSearchingAtributes Atributes = new DeviceSearchingAtributes
         {
@@ -14,14 +15,14 @@ namespace SmartBulbColor.PluginApplication
             DeviceType = "MiBulbColor",
             MulticastPort = 1982
         };
-        readonly DeviceDiscoverer Discoverer = new DeviceDiscoverer(Atributes, new BulbFactory());
-        readonly DeviceRepository<ColorBulb> Repository;
+        readonly DeviceDiscoverer Discoverer = new DeviceDiscoverer(Atributes);
+        readonly BulbRepository Repository;
         private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
         public CollectionThreadSafe<ColorBulb> Bulbs { get; } = new CollectionThreadSafe<ColorBulb>();
         public CollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulb>();
 
-        public override int DeviceCount
+        public int DeviceCount
         {
             get
             {
@@ -31,16 +32,15 @@ namespace SmartBulbColor.PluginApplication
 
         public bool IsMusicModeON { get; private set; } = false;
 
-        public AppCore(DeviceRepository<ColorBulb> repository)
+        public AppCore(BulbRepository repository)
         {
             Repository = repository;
-            Discoverer.DeviceFound += (device) => Repository.AddDevice((ColorBulb)device);
-            Discoverer.SetIdsToIgnore(new List<int>(Repository.GetDeviceIds()));
+            Discoverer.ResponsesReceived += OnResponsesReceived;
             Discoverer.StartDiscover();
         }
-        public override List<Device> GetDevices()
+        public List<ColorBulb> GetDevices()
         {
-            return new List<Device>();
+            return new List<ColorBulb>();
         }
         public CollectionThreadSafe<ColorBulb> GetBulbs()
         {
@@ -59,7 +59,7 @@ namespace SmartBulbColor.PluginApplication
             {
                 try
                 {
-                    Discoverer.StopDiscover();         
+                    Discoverer.StopDiscover();
                     BulbsForAmbientLight.Add(bulb);
                     AmbientLight.AddBulbForStreaming(bulb);
                 }
@@ -84,6 +84,31 @@ namespace SmartBulbColor.PluginApplication
         {
             bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
                 CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
+        }
+
+        void OnResponsesReceived(List<string> responses)
+        {
+            List<int> ids = Repository.GetDeviceIds();
+
+            if (ids.Count == 0)
+            {
+                foreach (var response in responses)
+                {
+                    Repository.AddDevice(new ColorBulb(response));
+                }
+            }
+            else
+            {
+                foreach (var response in responses)
+                {
+                    foreach (var id in ids)
+                    {
+                        var tempId = id.ToString("X").ToLower();
+                        if (!response.Contains(tempId))
+                            Repository.AddDevice(new ColorBulb(response));
+                    }
+                }
+            }
         }
         public void Dispose()
         {

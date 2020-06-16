@@ -10,7 +10,7 @@ namespace SmartBulbColor.ViewModels
     {
         AppCore Controller;
 
-        DeviceRepository<ColorBulb> Repository;
+        BulbRepository Repository;
 
         public AllBulbsViewModel AllBulbsVM { get; }
 
@@ -20,7 +20,7 @@ namespace SmartBulbColor.ViewModels
 
         public MainWindowViewModel()
         {
-            Repository = new DeviceRepository<ColorBulb>();
+            Repository = new BulbRepository();
             Controller = new AppCore(Repository);
 
             AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);

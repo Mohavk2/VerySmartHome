@@ -1,38 +1,40 @@
-﻿using System;
+﻿using SmartBulbColor.Models;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace CommonLibrary
+namespace SmartBulbColor.PluginApplication
 {
-    public class DeviceRepository<T> : IDisposable where T: Device
+    internal class BulbRepository
     {
-        public delegate void DeviceAddedHandler(T device);
-        public event DeviceAddedHandler NewDeviceAdded;
+        public delegate void BulbAddedHandler(ColorBulb bulb);
+        public event BulbAddedHandler NewDeviceAdded;
 
-        Dictionary<string, List<T>> UserGroups = new Dictionary<string, List<T>>();
-        List<T> AllDevices = new List<T>();
+        Dictionary<string, List<ColorBulb>> UserGroups = new Dictionary<string, List<ColorBulb>>();
+        List<ColorBulb> AllBulbs = new List<ColorBulb>();
 
         object Locker = new object();
 
-        public DeviceRepository()
+        public BulbRepository()
         {
 
         }
-        public int[] GetDeviceIds()
+        public List<int> GetDeviceIds()
         {
             lock(Locker)
             {
-                int[] ids = new int[AllDevices.Count];
-                for(int i = 0; i < AllDevices.Count; i++)
+                List<int> ids = new List<int>();
+                foreach(var bulb in AllBulbs)
                 {
-                    ids[i] = AllDevices[i].Id;
+                    ids.Add(bulb.Id);
                 }
-                return ids;
+                return ids.ToList<int>();
             }
         }
-        public List<T> GetDevices()
+        public List<ColorBulb> GetDevices()
         {
-            return new List<T>(AllDevices);
+            return new List<ColorBulb>(AllBulbs);
         }
         public string[] GetUserGroupNames()
         {
@@ -48,22 +50,22 @@ namespace CommonLibrary
                 return names;
             }
         }
-        public void AddDevice(T device)
+        public void AddDevice(ColorBulb bulb)
         {
             lock (Locker)
             {
-                AllDevices.Add(device);
-                OnDeviceAdded(device);
+                AllBulbs.Add(bulb);
+                OnDeviceAdded(bulb);
             }
         }
         public void AddGroup(string Name)
         {
             lock(Locker)
             {
-                UserGroups.Add(Name, new List<T>());
+                UserGroups.Add(Name, new List<ColorBulb>());
             }
         }
-        public void AddDeviceToGroup(string Name, T device)
+        public void AddDeviceToGroup(string Name, ColorBulb device)
         {
             lock(Locker)
             {
@@ -73,22 +75,22 @@ namespace CommonLibrary
                 }
                 else
                 {
-                    UserGroups.Add(Name, new List<T>());
+                    UserGroups.Add(Name, new List<ColorBulb>());
                     UserGroups[Name].Add(device);
                 }
             }
         }
-        public void RemoveDeviceFromGroup(string Name, T device)
+        public void RemoveDeviceFromGroup(string Name, ColorBulb bulb)
         {
             lock (Locker)
             {
                 if (UserGroups.ContainsKey(Name))
                 {
-                    UserGroups[Name].Remove(device);
+                    UserGroups[Name].Remove(bulb);
                 }
             }
         }
-        public List<T> GetGroup(string Name)
+        public List<ColorBulb> GetGroup(string Name)
         {
             lock (Locker)
             {
@@ -97,19 +99,19 @@ namespace CommonLibrary
                     return UserGroups[Name];
                 }
                 else
-                    return new List<T>();
+                    return new List<ColorBulb>();
             }
         }
-        private void OnDeviceAdded(T device)
+        private void OnDeviceAdded(ColorBulb bulb)
         {
-            NewDeviceAdded?.Invoke(device);
+            NewDeviceAdded?.Invoke(bulb);
         }
 
         public void Dispose()
         {
-            foreach(var device in AllDevices)
+            foreach(var bulb in AllBulbs)
             {
-                device.Dispose();
+                bulb.Dispose();
             }
         }
     }

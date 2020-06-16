@@ -7,7 +7,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VerySmartHome", "VerySmartH
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartBulbColor", "Plugins\SmartBulbColor\SmartBulbColor.csproj", "{99F3DE7C-6202-46B3-9BC0-A1C380298CE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonLibrary", "CommonLibrary\CommonLibrary.csproj", "{1A2AE741-5888-422B-8DEF-F92C89355D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PluginLibrary", "CommonLibrary\PluginLibrary.csproj", "{1A2AE741-5888-422B-8DEF-F92C89355D65}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Host", "Host", "{5EF64141-A469-4DE7-942C-8FE4E66AE1FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{6F83BE4E-D017-4565-909B-5932AE01B36F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PluginCore", "PluginCore", "{C56BA6BA-98C3-4C54-8AFD-3F63E7C45CA0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "YeeLightColorBulb", "YeeLightColorBulb", "{C88AFBF0-02DE-45A8-9999-C52377E2366E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +38,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9D1F25DE-E250-468C-B2B7-7860212BE46B} = {5EF64141-A469-4DE7-942C-8FE4E66AE1FF}
+		{99F3DE7C-6202-46B3-9BC0-A1C380298CE1} = {C88AFBF0-02DE-45A8-9999-C52377E2366E}
+		{1A2AE741-5888-422B-8DEF-F92C89355D65} = {C56BA6BA-98C3-4C54-8AFD-3F63E7C45CA0}
+		{C88AFBF0-02DE-45A8-9999-C52377E2366E} = {6F83BE4E-D017-4565-909B-5932AE01B36F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FFB114C-D277-463E-A7A9-3B19BE99CF29}
