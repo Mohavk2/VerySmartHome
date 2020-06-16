@@ -1,6 +1,6 @@
 ﻿using CommonLibrary;
 using SmartBulbColor.Models;
-using SmartBulbColor.PluginApplication;
+using SmartBulbColor.PluginApp;
 using System;
 using System.Collections.Generic;
 using System.Linq;

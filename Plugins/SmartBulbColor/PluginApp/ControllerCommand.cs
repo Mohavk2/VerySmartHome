@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace SmartBulbColor.PluginApplication
+namespace SmartBulbColor.PluginApp
 {
     class ControllerCommand : ICommand
     {

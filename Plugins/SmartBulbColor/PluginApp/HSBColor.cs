@@ -2,7 +2,7 @@
 using DColor = System.Drawing.Color;
 using MColor = System.Windows.Media.Color;
 
-namespace SmartBulbColor.PluginApplication
+namespace SmartBulbColor.PluginApp
 {
     public class HSBColor
     {

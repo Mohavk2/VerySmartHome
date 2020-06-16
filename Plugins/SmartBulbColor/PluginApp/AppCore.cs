@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CommonLibrary;
 using System.Windows.Data;
 
-namespace SmartBulbColor.PluginApplication
+namespace SmartBulbColor.PluginApp
 {
     sealed class AppCore : IDisposable
     {

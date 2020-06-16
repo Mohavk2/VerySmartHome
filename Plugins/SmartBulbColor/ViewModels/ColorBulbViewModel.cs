@@ -1,5 +1,5 @@
 ﻿using SmartBulbColor.Models;
-using SmartBulbColor.PluginApplication;
+using SmartBulbColor.PluginApp;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;

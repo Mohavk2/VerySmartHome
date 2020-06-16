@@ -2,7 +2,7 @@
 using CommonLibrary;
 using System;
 using System.Windows.Input;
-using SmartBulbColor.PluginApplication;
+using SmartBulbColor.PluginApp;
 
 namespace SmartBulbColor.ViewModels
 {

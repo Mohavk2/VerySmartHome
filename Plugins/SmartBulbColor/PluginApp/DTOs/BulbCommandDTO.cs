@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.PluginApplication.AoolicationDTOs
+namespace SmartBulbColor.PluginApp.DTOs
 {
     public class BulbCommandDTO
     {

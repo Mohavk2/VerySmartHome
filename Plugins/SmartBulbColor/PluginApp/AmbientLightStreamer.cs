@@ -2,7 +2,7 @@
 using System.Threading;
 using CommonLibrary;
 
-namespace SmartBulbColor.PluginApplication
+namespace SmartBulbColor.PluginApp
 {
     class AmbientLightStreamer
     {
