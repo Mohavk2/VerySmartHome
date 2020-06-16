@@ -8,11 +8,11 @@ namespace SmartBulbColor.PluginApp
 {
     internal class BulbRepository
     {
-        public delegate void BulbAddedHandler(ColorBulb bulb);
+        public delegate void BulbAddedHandler(ColorBulbProxy bulb);
         public event BulbAddedHandler NewDeviceAdded;
 
-        Dictionary<string, List<ColorBulb>> UserGroups = new Dictionary<string, List<ColorBulb>>();
-        List<ColorBulb> AllBulbs = new List<ColorBulb>();
+        Dictionary<string, List<ColorBulbProxy>> UserGroups = new Dictionary<string, List<ColorBulbProxy>>();
+        List<ColorBulbProxy> AllBulbs = new List<ColorBulbProxy>();
 
         object Locker = new object();
 
@@ -32,9 +32,9 @@ namespace SmartBulbColor.PluginApp
                 return ids.ToList<int>();
             }
         }
-        public List<ColorBulb> GetDevices()
+        public List<ColorBulbProxy> GetDevices()
         {
-            return new List<ColorBulb>(AllBulbs);
+            return new List<ColorBulbProxy>(AllBulbs);
         }
         public string[] GetUserGroupNames()
         {
@@ -50,7 +50,7 @@ namespace SmartBulbColor.PluginApp
                 return names;
             }
         }
-        public void AddDevice(ColorBulb bulb)
+        public void AddDevice(ColorBulbProxy bulb)
         {
             lock (Locker)
             {
@@ -62,10 +62,10 @@ namespace SmartBulbColor.PluginApp
         {
             lock(Locker)
             {
-                UserGroups.Add(Name, new List<ColorBulb>());
+                UserGroups.Add(Name, new List<ColorBulbProxy>());
             }
         }
-        public void AddDeviceToGroup(string Name, ColorBulb device)
+        public void AddDeviceToGroup(string Name, ColorBulbProxy device)
         {
             lock(Locker)
             {
@@ -75,12 +75,12 @@ namespace SmartBulbColor.PluginApp
                 }
                 else
                 {
-                    UserGroups.Add(Name, new List<ColorBulb>());
+                    UserGroups.Add(Name, new List<ColorBulbProxy>());
                     UserGroups[Name].Add(device);
                 }
             }
         }
-        public void RemoveDeviceFromGroup(string Name, ColorBulb bulb)
+        public void RemoveDeviceFromGroup(string Name, ColorBulbProxy bulb)
         {
             lock (Locker)
             {
@@ -90,7 +90,7 @@ namespace SmartBulbColor.PluginApp
                 }
             }
         }
-        public List<ColorBulb> GetGroup(string Name)
+        public List<ColorBulbProxy> GetGroup(string Name)
         {
             lock (Locker)
             {
@@ -99,10 +99,10 @@ namespace SmartBulbColor.PluginApp
                     return UserGroups[Name];
                 }
                 else
-                    return new List<ColorBulb>();
+                    return new List<ColorBulbProxy>();
             }
         }
-        private void OnDeviceAdded(ColorBulb bulb)
+        private void OnDeviceAdded(ColorBulbProxy bulb)
         {
             NewDeviceAdded?.Invoke(bulb);
         }

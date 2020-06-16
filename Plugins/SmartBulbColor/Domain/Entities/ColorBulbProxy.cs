@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace SmartBulbColor.Models
 {
-    internal sealed class ColorBulb : INotifyPropertyChanged, IDisposable
+    internal sealed class ColorBulbProxy : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -21,14 +21,14 @@ namespace SmartBulbColor.Models
 
         Object CommandLocker = new Object();
 
-        static ColorBulb()
+        static ColorBulbProxy()
         {
             TcpServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             TcpServer.Bind(new IPEndPoint(LocalIP, LocalPort));
             TcpServer.Listen(10);
         }
 
-        public ColorBulb(string BulbResponse)
+        public ColorBulbProxy(string BulbResponse)
         {
             Parse(BulbResponse);
         }

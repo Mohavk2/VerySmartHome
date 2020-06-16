@@ -6,7 +6,7 @@ namespace SmartBulbColor.PluginApp
 {
     class AmbientLightStreamer
     {
-        CollectionThreadSafe<ColorBulb> BulbsForStreaming { get; set; } = new CollectionThreadSafe<ColorBulb>();
+        CollectionThreadSafe<ColorBulbProxy> BulbsForStreaming { get; set; } = new CollectionThreadSafe<ColorBulbProxy>();
 
         readonly Thread AmbilightThread;
         readonly ManualResetEvent AmbilightTrigger;
@@ -20,7 +20,7 @@ namespace SmartBulbColor.PluginApp
             AmbilightThread.IsBackground = true;
             AmbilightTrigger = new ManualResetEvent(true);
         }
-        public void AddBulbForStreaming(ColorBulb bulb)
+        public void AddBulbForStreaming(ColorBulbProxy bulb)
         {
             //bulb.ExecuteCommand(BulbCommandBuilder.CreateSetPowerCommand(Power.On, Effect.Smooth, 5, ColorMode.HSV));
             BulbsForStreaming.Add(bulb);
@@ -69,7 +69,7 @@ namespace SmartBulbColor.PluginApp
                 Thread.Sleep(60);
             }
         }
-        public void RemoveBulb(ColorBulb bulb)
+        public void RemoveBulb(ColorBulbProxy bulb)
         {
             BulbsForStreaming.Remove(bulb);
         }

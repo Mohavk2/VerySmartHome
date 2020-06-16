@@ -9,8 +9,8 @@ namespace SmartBulbColor.ViewModels
     internal class ColorBulbViewModel : ViewModelBase
     {
         readonly AppCore Controller;
-        private ColorBulb _bulb;
-        public ColorBulb Bulb
+        private ColorBulbProxy _bulb;
+        public ColorBulbProxy Bulb
         {
             get { return _bulb; }
             set
@@ -55,7 +55,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
         
-        public ColorBulbViewModel(AppCore controller, ColorBulb bulb)
+        public ColorBulbViewModel(AppCore controller, ColorBulbProxy bulb)
         {
             Controller = controller;
             Bulb = bulb;

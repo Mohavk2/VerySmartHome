@@ -19,8 +19,8 @@ namespace SmartBulbColor.PluginApp
         readonly BulbRepository Repository;
         private readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
-        public CollectionThreadSafe<ColorBulb> Bulbs { get; } = new CollectionThreadSafe<ColorBulb>();
-        public CollectionThreadSafe<ColorBulb> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulb>();
+        public CollectionThreadSafe<ColorBulbProxy> Bulbs { get; } = new CollectionThreadSafe<ColorBulbProxy>();
+        public CollectionThreadSafe<ColorBulbProxy> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulbProxy>();
 
         public int DeviceCount
         {
@@ -38,11 +38,11 @@ namespace SmartBulbColor.PluginApp
             Discoverer.ResponsesReceived += OnResponsesReceived;
             Discoverer.StartDiscover();
         }
-        public List<ColorBulb> GetDevices()
+        public List<ColorBulbProxy> GetDevices()
         {
-            return new List<ColorBulb>();
+            return new List<ColorBulbProxy>();
         }
-        public CollectionThreadSafe<ColorBulb> GetBulbs()
+        public CollectionThreadSafe<ColorBulbProxy> GetBulbs()
         {
             if (Bulbs.Count != 0)
             {
@@ -53,7 +53,7 @@ namespace SmartBulbColor.PluginApp
                 return Bulbs;
             }
         }
-        public void ToggleAmbientLight(ColorBulb bulb)
+        public void ToggleAmbientLight(ColorBulbProxy bulb)
         {
             if (!BulbsForAmbientLight.Contains(bulb))
             {
@@ -80,7 +80,7 @@ namespace SmartBulbColor.PluginApp
         /// Sets color mode
         /// </summary>
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
-        public void SetSceneHSV(ColorBulb bulb, HSBColor color)
+        public void SetSceneHSV(ColorBulbProxy bulb, HSBColor color)
         {
             bulb.ExecuteCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
                 CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
@@ -94,7 +94,7 @@ namespace SmartBulbColor.PluginApp
             {
                 foreach (var response in responses)
                 {
-                    Repository.AddDevice(new ColorBulb(response));
+                    Repository.AddDevice(new ColorBulbProxy(response));
                 }
             }
             else
@@ -105,7 +105,7 @@ namespace SmartBulbColor.PluginApp
                     {
                         var tempId = id.ToString("X").ToLower();
                         if (!response.Contains(tempId))
-                            Repository.AddDevice(new ColorBulb(response));
+                            Repository.AddDevice(new ColorBulbProxy(response));
                     }
                 }
             }
