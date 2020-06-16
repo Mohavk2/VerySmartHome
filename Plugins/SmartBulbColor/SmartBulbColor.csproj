@@ -37,7 +37,7 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Models\ColorBulb.cs">
+    <Compile Update="Domain\Entities\ColorBulb.cs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
