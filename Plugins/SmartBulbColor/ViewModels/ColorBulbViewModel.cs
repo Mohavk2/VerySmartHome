@@ -1,5 +1,6 @@
 ﻿using SmartBulbColor.PluginApp;
 using System;
+using System.Threading;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -7,6 +8,7 @@ namespace SmartBulbColor.ViewModels
 {
     internal class ColorBulbViewModel : ViewModelBase
     {
+        SynchronizationContext Context = SynchronizationContext.Current;
         readonly AppMediator Mediator;
 
         private BulbDTO _bulb;

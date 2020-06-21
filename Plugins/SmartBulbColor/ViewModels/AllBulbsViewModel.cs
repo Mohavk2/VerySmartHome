@@ -1,7 +1,9 @@
 ﻿using SmartBulbColor.PluginApp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -9,6 +11,8 @@ namespace SmartBulbColor.ViewModels
 {
     internal class AllBulbsViewModel : ViewModelBase
     {
+        SynchronizationContext Context = SynchronizationContext.Current;
+
         private AppMediator Mediator;
 
         List<string> _groupNames;
@@ -32,7 +36,7 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public DispatchedCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
+        public ObservableCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
 
         List<ColorBulbViewModel> _selectedBulbVMs;
         public List<ColorBulbViewModel> SelectedBulbVMs
@@ -57,7 +61,7 @@ namespace SmartBulbColor.ViewModels
 
         public AllBulbsViewModel(string groupName, AppMediator mediator)
         {
-            ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
+            ColorBulbVMs = new ObservableCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
             Mediator = mediator;
             Mediator.BulbAdded += (bulb) => OnNewBulbAdded(new ColorBulbViewModel(Mediator, bulb));
@@ -134,7 +138,7 @@ namespace SmartBulbColor.ViewModels
         }
         public void OnNewBulbAdded(ColorBulbViewModel bulbVM)
         {
-            ColorBulbVMs.AddSafe(bulbVM);
+            Context.Post((object state) => { ColorBulbVMs.Add(bulbVM); }, new object());  
         }
         public void OnGroupNamesChanged(string[] groupNames)
         {

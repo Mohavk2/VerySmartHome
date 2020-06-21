@@ -1,15 +1,18 @@
 ﻿using SmartBulbColor.PluginApp;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 
 namespace SmartBulbColor.ViewModels
 {
     internal class GroupsViewModel : ViewModelBase
     {
+        SynchronizationContext Context = SynchronizationContext.Current;
         AppMediator Mediator;
 
-        public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
+        public ObservableCollection<GroupViewModel> GroupVMs { get; set; } = new ObservableCollection<GroupViewModel>();
 
         List<string> _GroupNames;
         public List<string> GroupNames
@@ -63,7 +66,7 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteCreateNewGroup(object parametr)
         {
-            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Mediator));
+            Context.Post((object state) => { GroupVMs.Add(new GroupViewModel(NameToInsert, Mediator)); }, new object());
             Mediator.AddGroup(NameToInsert);
         }
         bool CanExecuteCreateNewGroup(object parametr)
