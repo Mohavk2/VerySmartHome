@@ -1,26 +1,20 @@
-﻿using CommonLibrary;
-using SmartBulbColor.Domain;
-using SmartBulbColor.PluginApp;
-using System;
+﻿using SmartBulbColor.PluginApp;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
 
 namespace SmartBulbColor.ViewModels
 {
     internal class GroupsViewModel : ViewModelBase
     {
-        Mediator Controller;
-
-        BulbRepository Repository;
+        AppMediator Mediator;
 
         public DispatchedCollection<GroupViewModel> GroupVMs { get; set; } = new DispatchedCollection<GroupViewModel>();
 
         List<string> _GroupNames;
         public List<string> GroupNames
         {
-            get { return Repository.GetUserGroupNames().ToList(); }
+            get => Mediator.GetGroupNames();
             set
             {
                 _GroupNames = value;
@@ -58,10 +52,9 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("NameToInsert");
             }
         }
-        public GroupsViewModel(Mediator controller, BulbRepository repository)
+        public GroupsViewModel(AppMediator controller)
         {
-            Controller = controller;
-            Repository = repository;
+            Mediator = controller;
         }
 
         public ICommand CreateNewGroup
@@ -70,8 +63,8 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteCreateNewGroup(object parametr)
         {
-            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Controller, Repository));
-            Repository.AddGroup(NameToInsert);
+            GroupVMs.AddSafe(new GroupViewModel(NameToInsert, Mediator));
+            Mediator.AddGroup(NameToInsert);
         }
         bool CanExecuteCreateNewGroup(object parametr)
         {

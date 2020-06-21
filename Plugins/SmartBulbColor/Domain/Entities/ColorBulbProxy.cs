@@ -51,7 +51,7 @@ namespace SmartBulbColor.Domain
                                 Ip = url.Host;
                                 Port = url.Port;
                                 break;
-                            case "id": Id = Convert.ToInt32(pair.Value, 16); break;
+                            case "id": Id = pair.Value; break;
                             case "model": Model = pair.Value; break;
                             case "fw_ver": FwVer = int.Parse(pair.Value); break;
                             case "power": IsPowered = pair.Value == "on" ? true : false; break;
@@ -85,7 +85,7 @@ namespace SmartBulbColor.Domain
             }
         }
         private string _name = "";
-        public int Id
+        public string Id
         {
             get { return _id; }
             private set
@@ -94,7 +94,7 @@ namespace SmartBulbColor.Domain
                 OnPropertyChanged("Id");
             }
         }
-        private int _id = 0;
+        private string _id = string.Empty;
         public string Ip
         {
             get { return _ip; }
@@ -132,7 +132,7 @@ namespace SmartBulbColor.Domain
             }
         }
         private bool _isPowered = false;
-        public string BelongToGroup
+        public string BelongsToGroup
         {
             get { return _belongToGroup; }
             set

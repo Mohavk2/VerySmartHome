@@ -4,13 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.PluginApp.DTOs
+namespace SmartBulbColor.PluginApp
 {
     public class BulbCommandDTO
     {
         public TargetType Target;
         public CommandType Mode;
-        public int TargetId;
+        public string TargetId;
         public string Method;
         public ArrayList Parameters;
     }

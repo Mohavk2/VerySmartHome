@@ -1,16 +1,13 @@
 ﻿using SmartBulbColor.Domain;
 using CommonLibrary;
 using System;
-using System.Windows.Input;
 using SmartBulbColor.PluginApp;
 
 namespace SmartBulbColor.ViewModels
 {
     internal class MainWindowViewModel : ViewModelBase, IDisposable
     {
-        Mediator Controller;
-
-        BulbRepository Repository;
+        AppMediator Mediator;
 
         public AllBulbsViewModel AllBulbsVM { get; }
 
@@ -20,17 +17,15 @@ namespace SmartBulbColor.ViewModels
 
         public MainWindowViewModel()
         {
-            Repository = new BulbRepository();
-            Controller = new Mediator(Repository);
+            Mediator = new AppMediator();
 
-            AllBulbsVM = new AllBulbsViewModel(MainGroupName, Controller, Repository);
-            GroupsVM = new GroupsViewModel(Controller, Repository);
+            AllBulbsVM = new AllBulbsViewModel(MainGroupName, Mediator);
+            GroupsVM = new GroupsViewModel(Mediator);
         }
 
         public void Dispose()
         {
-            Controller.Dispose();
-            Repository.Dispose();
+            Mediator.Dispose();
         }
     }
 }

@@ -1,19 +1,14 @@
-﻿using CommonLibrary;
-using SmartBulbColor.Domain;
-using SmartBulbColor.PluginApp;
+﻿using SmartBulbColor.PluginApp;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace SmartBulbColor.ViewModels
 {
     class GroupViewModel : ViewModelBase
     {
-        private Mediator Controller;
-        private BulbRepository Repository;
+        private AppMediator Mediator;
 
         string _groupName;
         public string GroupName
@@ -48,13 +43,13 @@ namespace SmartBulbColor.ViewModels
                 SetColorWithBrush(value);
             }
         }
-        public GroupViewModel(string groupName, Mediator controller, BulbRepository repository)
+        public GroupViewModel(string groupName, AppMediator mediator)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
-            Repository = repository;
-            Controller = controller;
+            Mediator = mediator;
             GroupName = groupName;
+            Mediator.GroupUpdated += OnGroupUpdated;
         }
 
         public ICommand RenameGroup
@@ -142,6 +137,10 @@ namespace SmartBulbColor.ViewModels
                     bulbVM.SetColor(brush);
                 }
             }
+        }
+        private void OnGroupUpdated(GroupDTO group)
+        {
+            
         }
     }
 }

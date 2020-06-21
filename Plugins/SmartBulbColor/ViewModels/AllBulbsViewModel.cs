@@ -1,10 +1,7 @@
-﻿using CommonLibrary;
-using SmartBulbColor.Domain;
-using SmartBulbColor.PluginApp;
+﻿using SmartBulbColor.PluginApp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -12,17 +9,15 @@ namespace SmartBulbColor.ViewModels
 {
     internal class AllBulbsViewModel : ViewModelBase
     {
-        private Mediator Controller;
-        private BulbRepository Repository;
+        private AppMediator Mediator;
 
-
-        List<string> _GroupNames;
+        List<string> _groupNames;
         public List<string> GroupNames
         {
-            get { return Repository.GetUserGroupNames().ToList(); }
+            get => Mediator.GetGroupNames();
             set
             {
-                _GroupNames = value;
+                _groupNames = value;
                 OnPropertyChanged("GroupNames");
             }
         }
@@ -60,13 +55,12 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public AllBulbsViewModel(string groupName, Mediator controller, BulbRepository repository)
+        public AllBulbsViewModel(string groupName, AppMediator mediator)
         {
             ColorBulbVMs = new DispatchedCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
-            Repository = repository;
-            Repository.NewDeviceAdded += (bulb) => OnNewBulbAdded(new ColorBulbViewModel(Controller, bulb));
-            Controller = controller;
+            Mediator = mediator;
+            Mediator.BulbAdded += (bulb) => OnNewBulbAdded(new ColorBulbViewModel(Mediator, bulb));
         }
 
         public ICommand TogglePower

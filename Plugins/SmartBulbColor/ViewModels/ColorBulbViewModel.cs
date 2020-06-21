@@ -1,5 +1,4 @@
-﻿using SmartBulbColor.Domain;
-using SmartBulbColor.PluginApp;
+﻿using SmartBulbColor.PluginApp;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -8,9 +7,10 @@ namespace SmartBulbColor.ViewModels
 {
     internal class ColorBulbViewModel : ViewModelBase
     {
-        readonly Mediator Controller;
-        private ColorBulbProxy _bulb;
-        public ColorBulbProxy Bulb
+        readonly AppMediator Mediator;
+
+        private BulbDTO _bulb;
+        public BulbDTO Bulb
         {
             get { return _bulb; }
             set
@@ -39,7 +39,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsControlEnabled");
             }
         }
-        public int GetId() { return Bulb.Id; }
+        public string GetId() { return Bulb.Id; }
         private bool _isPowered;
         public bool IsPowered
         {
@@ -55,20 +55,17 @@ namespace SmartBulbColor.ViewModels
             }
         }
         
-        public ColorBulbViewModel(Mediator controller, ColorBulbProxy bulb)
+        public ColorBulbViewModel(AppMediator mediator, BulbDTO bulb)
         {
-            Controller = controller;
+            Mediator = mediator;
             Bulb = bulb;
         }
+
         public void SetColor(SolidColorBrush brush)
         {
             Color color = brush.Color;
             HSBColor hsbColor = new HSBColor(color);
-            int hue = hsbColor.Hue;
-            int sat = (int)hsbColor.Saturation;
-            int bright = (int)hsbColor.Brightness;
-            var command = BulbCommandBuilder.CreateSetSceneHsvCommand(CommandType.Stream, hue, sat, bright);
-            Bulb.PushCommand(command);
+            Mediator.SetSceneHSV(Bulb, hsbColor);
             CurrentColor = brush;
             IsPowered = Bulb.IsPowered;
         }
@@ -77,43 +74,27 @@ namespace SmartBulbColor.ViewModels
         {
             get
             {
-                return new ControllerCommand(ExecuteTogglePower, CanExecuteTogglePower);
+                return new ControllerCommand(ExecuteTogglePower);
             }
         }
         private void ExecuteTogglePower(Object parametr)
         {
-            Bulb.PushCommand(BulbCommandBuilder.CreateToggleCommand());
+            Mediator.TogglePower(Bulb);
             OnPropertyChanged("Bulb");
             IsPowered = Bulb.IsPowered;
-        }
-        private bool CanExecuteTogglePower(Object parametr)
-        {
-            if (Bulb == null)
-            {
-                return false;
-            }
-            return true;
         }
         public ICommand TurnNormalLightON
         {
             get
             {
-                return new ControllerCommand(ExecuteTurnNormalLightON, CanExecuteTurnNormalLightON);
+                return new ControllerCommand(ExecuteTurnNormalLightON);
             }
         }
         private void ExecuteTurnNormalLightON(Object parametr)
         {
-            Bulb.PushCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
+            Mediator.TurnNormalLightOn(Bulb);  
             IsPowered = Bulb.IsPowered;
             CurrentColor = Brushes.White;
-        }
-        private bool CanExecuteTurnNormalLightON(Object parametr)
-        {
-            if (Bulb == null)
-            {
-                return false;
-            }
-            return true;
         }
         public ICommand ToggleAmbientLight
         {
@@ -124,7 +105,7 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteToggleAmbientLight(Object parametr)
         {
-            Controller.ToggleAmbientLight(Bulb);
+            Mediator.ToggleAmbientLight(Bulb);
         }
     }
 }

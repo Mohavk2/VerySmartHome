@@ -8,7 +8,7 @@ namespace SmartBulbColor.Domain
         public CommandType Mode { get; private set; }
 
         [JsonPropertyName(name: "id")]
-        public int? Id { get; set; }
+        public string Id { get; set; }
         [JsonPropertyName(name: "method")]
         public string Method { get; set; }
         [JsonPropertyName(name: "params")]
@@ -20,7 +20,7 @@ namespace SmartBulbColor.Domain
             Method = method;
             Parameters = parameters;
         }
-        public void SetDeviceId(int id)
+        public void SetDeviceId(string id)
         {
             Id = id;
         }

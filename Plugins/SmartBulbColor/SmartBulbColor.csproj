@@ -52,4 +52,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PluginApp\Interfaces\" />
+  </ItemGroup>
 </Project>

@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.PluginApp.DTOs
+namespace SmartBulbColor.PluginApp
 {
     public struct BulbDTO
     {
-        public int Id;
+        public string Id;
         public string Name;
         public string Model;
         public string Ip;
         public bool IsPowered;
-        public string BelongToGroup;
+        public string BelongsToGroup;
         public bool IsOnline;
         public bool IsMusicModeOn;
         public int FwVer;

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SmartBulbColor.PluginApp.DTOs
+namespace SmartBulbColor.PluginApp
 {
     public struct GroupDTO
     {
+        public string Id;
         public string Name;
-        public List<BulbDTO> Bulbs;
+        public Dictionary<string, BulbDTO> Bulbs;
     }
 }
