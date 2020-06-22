@@ -15,16 +15,8 @@ namespace SmartBulbColor.ViewModels
 
         private AppMediator Mediator;
 
-        List<string> _groupNames;
-        public List<string> GroupNames
-        {
-            get => Mediator.GetGroupNames();
-            set
-            {
-                _groupNames = value;
-                OnPropertyChanged("GroupNames");
-            }
-        }
+        public ObservableCollection<string> GroupNames { get; set; } = new ObservableCollection<string>();
+
         string _selectedGroupName;
         public string SelectedGroupName
         {
@@ -33,6 +25,7 @@ namespace SmartBulbColor.ViewModels
             {
                 _selectedGroupName = value;
                 OnPropertyChanged("SelectedGroupName");
+                AddToGroup.Execute(new object());
             }
         }
 
@@ -59,12 +52,15 @@ namespace SmartBulbColor.ViewModels
             }
         }
 
-        public AllBulbsViewModel(string groupName, AppMediator mediator)
+        public AllBulbsViewModel(AppMediator mediator)
         {
             ColorBulbVMs = new ObservableCollection<ColorBulbViewModel>();
             SelectedBulbVMs = new List<ColorBulbViewModel>();
             Mediator = mediator;
-            Mediator.BulbAdded += (bulb) => OnNewBulbAdded(new ColorBulbViewModel(Mediator, bulb));
+            UpdateBulbs(Mediator.GetBulbs());
+            UpdateGroupNames(Mediator.GetGroups());
+            Mediator.BulbsCollectionUpdated += (allBulbs) => Context.Post((state) => UpdateBulbs(allBulbs), new object());
+            Mediator.GroupsUpdated += (groups) => Context.Post((state) => UpdateGroupNames(groups), new object());
         }
 
         public ICommand TogglePower
@@ -124,25 +120,53 @@ namespace SmartBulbColor.ViewModels
             else
                 return true;
         }
-        public ICommand MoveToGroup
+        public ICommand AddToGroup
         {
-            get { return new ControllerCommand(ExecuteMoveToGroup, CanExecuteMoveToGroup); }
+            get { return new ControllerCommand(ExecuteAddToGroup, CanExecuteAddToGroup); }
         }
-        void ExecuteMoveToGroup(object parametr)
+        void ExecuteAddToGroup(object parametr)
         {
-
+            foreach(var bulbVM in SelectedBulbVMs)
+            {
+                Mediator.AddBulbToGroup(SelectedGroupName, bulbVM.Bulb);
+            }
         }
-        bool CanExecuteMoveToGroup(object parametr)
+        bool CanExecuteAddToGroup(object parametr)
         {
             return GroupNames.Count != 0;
         }
-        public void OnNewBulbAdded(ColorBulbViewModel bulbVM)
+        public void UpdateBulbs(List<BulbDTO> bulbs)
         {
-            Context.Post((object state) => { ColorBulbVMs.Add(bulbVM); }, new object());  
+            foreach (var bulb in bulbs)
+            {
+                bool alreadyExists = false;
+                foreach (var bulbVM in ColorBulbVMs)
+                {
+                    if (bulbVM.Id == bulb.Id)
+                        alreadyExists = true;
+                }
+                if (alreadyExists == false)
+                    ColorBulbVMs.Add(new ColorBulbViewModel(bulb, Mediator));
+            }
+            foreach(var bulbVM in ColorBulbVMs)
+            {
+                bool isAbsolite = true;
+                foreach (var bulb in bulbs)
+                {
+                    if (bulb.Id == bulbVM.Id)
+                        isAbsolite = false;
+                }
+                if (isAbsolite)
+                    ColorBulbVMs.Remove(bulbVM);
+            }
         }
-        public void OnGroupNamesChanged(string[] groupNames)
+        public void UpdateGroupNames(List<GroupDTO> groups)
         {
-            GroupNames = groupNames.ToList();
+            GroupNames.Clear();
+            foreach(var group in groups)
+            {
+                GroupNames.Add(group.Name);
+            }
         }
         private void SetColorWithBrush(Object parametr)
         {

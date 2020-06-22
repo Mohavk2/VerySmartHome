@@ -8,6 +8,6 @@ namespace SmartBulbColor.PluginApp
     {
         public string Id;
         public string Name;
-        public Dictionary<string, BulbDTO> Bulbs;
+        public List<BulbDTO> Bulbs;
     }
 }

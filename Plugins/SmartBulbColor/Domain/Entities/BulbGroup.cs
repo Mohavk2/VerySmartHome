@@ -47,7 +47,7 @@ namespace SmartBulbColor.Domain.Entities
         {
             foreach(var bulb in Bulbs)
             {
-                yield return bulb;
+                yield return bulb.Value;
             }
         }
     }

@@ -36,7 +36,7 @@
                     </Ellipse.Style>
                 </Ellipse>
             </Grid>
-            <TextBlock Text="{Binding Path=Bulb.Name}" HorizontalAlignment="Center" Foreground="AliceBlue" FontSize="14" Height="30"/>
+            <TextBlock Text="{Binding Path=Name}" HorizontalAlignment="Center" Foreground="AliceBlue" FontSize="14" Height="30"/>
         </StackPanel>
         <Grid>
             <Rectangle Name="Cap" Fill="Black" Opacity="0.3">

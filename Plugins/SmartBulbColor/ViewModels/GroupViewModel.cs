@@ -13,20 +13,27 @@ namespace SmartBulbColor.ViewModels
         SynchronizationContext Context = SynchronizationContext.Current;
         private AppMediator Mediator;
 
+        public delegate void GroupRenamedHandler(string currentGroupName, string newGroupName);
+        public event GroupRenamedHandler GroupRenamed;
+
+        public string Id { get; }
+
         string _groupName;
         public string GroupName
         {
             get => _groupName;
             set
             {
+                var temp = _groupName;
                 _groupName = value;
                 OnPropertyChanged("GroupName");
+                OnGroupRenamed(temp, value);
             }
         }
 
-        public ObservableCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
+        public ObservableCollection<ColorBulbViewModel> ColorBulbVMs { get; set; } = new ObservableCollection<ColorBulbViewModel>();
 
-        List<ColorBulbViewModel> _selectedBulbVMs;
+        List<ColorBulbViewModel> _selectedBulbVMs = new List<ColorBulbViewModel>();
         public List<ColorBulbViewModel> SelectedBulbVMs
         {
             get { return _selectedBulbVMs; }
@@ -46,13 +53,12 @@ namespace SmartBulbColor.ViewModels
                 SetColorWithBrush(value);
             }
         }
-        public GroupViewModel(string groupName, AppMediator mediator)
+        public GroupViewModel(GroupDTO group, AppMediator mediator)
         {
-            ColorBulbVMs = new ObservableCollection<ColorBulbViewModel>();
-            SelectedBulbVMs = new List<ColorBulbViewModel>();
+            Id = group.Id;
+            UpdateGroup(group);
             Mediator = mediator;
-            GroupName = groupName;
-            Mediator.GroupUpdated += OnGroupUpdated;
+            Mediator.GroupUpdated += (group) => Context.Post((state) => UpdateGroup(group), new object());
         }
 
         public ICommand RenameGroup
@@ -93,9 +99,9 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteSetNormalLight(object parametr)
         {
-            foreach(var bulbVM in SelectedBulbVMs)
+            foreach (var bulbVM in SelectedBulbVMs)
             {
-                if(bulbVM.TurnNormalLightON.CanExecute(parametr))
+                if (bulbVM.TurnNormalLightON.CanExecute(parametr))
                     bulbVM.TurnNormalLightON.Execute(parametr);
             }
         }
@@ -127,7 +133,7 @@ namespace SmartBulbColor.ViewModels
         }
         public void AddBulbVM(ColorBulbViewModel bulbVM)
         {
-            Context.Post((object state)=> { ColorBulbVMs.Add(bulbVM); }, new object());
+            Context.Post((object state) => { ColorBulbVMs.Add(bulbVM); }, new object());
         }
         private void SetColorWithBrush(Object parametr)
         {
@@ -141,9 +147,26 @@ namespace SmartBulbColor.ViewModels
                 }
             }
         }
-        private void OnGroupUpdated(GroupDTO group)
+        private void UpdateGroup(GroupDTO group)
         {
-            
+            if (Id == group.Id)
+            {
+                ColorBulbVMs.Clear();
+                GroupName = group.Name;
+                var bulbs = group.Bulbs;
+                if (bulbs != null && bulbs.Count != 0)
+                {
+                    foreach (var bulb in bulbs)
+                    {
+                        ColorBulbVMs.Add(new ColorBulbViewModel(bulb, Mediator));
+                    }
+                }
+            }
+        }
+
+        void OnGroupRenamed(string currentGroupName, string newGroupName)
+        {
+            GroupRenamed?.Invoke(currentGroupName, newGroupName);
         }
     }
 }

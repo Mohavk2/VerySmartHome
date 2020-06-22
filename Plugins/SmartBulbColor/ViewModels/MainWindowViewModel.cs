@@ -19,7 +19,7 @@ namespace SmartBulbColor.ViewModels
         {
             Mediator = new AppMediator();
 
-            AllBulbsVM = new AllBulbsViewModel(MainGroupName, Mediator);
+            AllBulbsVM = new AllBulbsViewModel(Mediator);
             GroupsVM = new GroupsViewModel(Mediator);
         }
 

@@ -86,15 +86,22 @@ namespace SmartBulbColor.PluginApp
          *  Repository
          */
 
+        // Use cases
+
         public List<BulbDTO> GetBulbs() => Mapper.ToListBulbDTO(Repository.GetAllBulbs());
         public List<GroupDTO> GetGroups() => Mapper.ToListGroupDTO(Repository.GetGroups());
         public List<string> GetGroupNames() => Repository.GetGroupNames();
 
         public void AddGroup(string groupName)
         {
-            var newBulbGpoup = new BulbGroup(groupName);
-            Repository.AddGroup(newBulbGpoup);
-            OnGroupAdded(newBulbGpoup);
+            Repository.AddGroup(new BulbGroup(groupName));
+            OnGroupsUpdated();
+        }
+
+        public void RemoveGroup(string groupId)
+        {
+            Repository.RemoveGroup(groupId);
+            OnGroupsUpdated();
         }
 
         public void AddBulbToGroup(string groupName, BulbDTO bulbDTO)
@@ -115,40 +122,25 @@ namespace SmartBulbColor.PluginApp
             OnGroupUpdated(updatedGroup);
         }
 
-        public void RemoveGroup(string groupName)
-        {
-            BulbGroup removedGroup = Repository.RemoveGroup(groupName);
-            OnGroupRemoved(removedGroup);
-        }
+        //Events
 
-        public delegate void BulbEventHandler(BulbDTO bulb);
-        public event BulbEventHandler BulbAdded;
-        public event BulbEventHandler BulbUpdated;
-        public event BulbEventHandler BulbRemoved;
-
+        public delegate void BulbsCollectionEventHandler(List<BulbDTO> allBulbs);
+        public event BulbsCollectionEventHandler BulbsCollectionUpdated;
+        public delegate void GroupsEventHandler(List<GroupDTO> groups);
+        public event GroupsEventHandler GroupsUpdated;
         public delegate void GroupEventHandler(GroupDTO group);
-        public event GroupEventHandler GroupAdded;
         public event GroupEventHandler GroupUpdated;
-        public event GroupEventHandler GroupRemoved;
+        public delegate void BulbEventHandler(BulbDTO bulb);
+        public event BulbEventHandler BulbUpdated;
 
-        public void OnBulbAdded(ColorBulbProxy bulb)
+        public void OnBulbsCollectionUpdated(List<ColorBulbProxy> allBulbs)
         {
-            BulbAdded?.Invoke(Mapper.ToBulbDto(bulb));
+            BulbsCollectionUpdated?.Invoke(Mapper.ToListBulbDTO(allBulbs));
         }
 
-        public void OnBulbUpdated(ColorBulbProxy bulb)
+        public void OnGroupsUpdated()
         {
-            BulbUpdated?.Invoke(Mapper.ToBulbDto(bulb));
-        }
-
-        public void OnBulbRemoved(ColorBulbProxy bulb)
-        {
-            BulbRemoved?.Invoke(Mapper.ToBulbDto(bulb));
-        }
-
-        public void OnGroupAdded(BulbGroup group)
-        {
-            GroupAdded?.Invoke(Mapper.ToGroupDTO(group));
+            GroupsUpdated?.Invoke(Mapper.ToListGroupDTO(Repository.GetGroups()));
         }
 
         public void OnGroupUpdated(BulbGroup group)
@@ -156,9 +148,9 @@ namespace SmartBulbColor.PluginApp
             GroupUpdated?.Invoke(Mapper.ToGroupDTO(group));
         }
 
-        public void OnGroupRemoved(BulbGroup group)
+        public void OnBulbUpdated(ColorBulbProxy bulb)
         {
-            GroupRemoved?.Invoke(Mapper.ToGroupDTO(group));
+            BulbUpdated?.Invoke(Mapper.ToBulbDto(bulb));
         }
 
         void OnResponsesReceived(List<string> responses)
@@ -171,12 +163,10 @@ namespace SmartBulbColor.PluginApp
                 {
                     ColorBulbProxy foundBulb = new ColorBulbProxy(response);
                     Repository.AddBulb(foundBulb);
-                    OnBulbAdded(foundBulb);
                 }
             }
             else
             {
-
                 foreach (var response in responses)
                 {
                     string responseId = ParseBulbIdFromHTTPResponse(response);
@@ -186,10 +176,10 @@ namespace SmartBulbColor.PluginApp
                     {
                         ColorBulbProxy foundBulb = new ColorBulbProxy(response);
                         Repository.AddBulb(foundBulb);
-                        OnBulbAdded(foundBulb);
                     }
                 }
             }
+            OnBulbsCollectionUpdated(Repository.GetAllBulbs());
         }
 
         string ParseBulbIdFromHTTPResponse(string response)
@@ -198,7 +188,7 @@ namespace SmartBulbColor.PluginApp
             foreach (var line in lines)
             {
                 string[] lineParams = line.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                if(lineParams.Length == 2)
+                if (lineParams.Length == 2)
                 {
                     KeyValuePair<string, string> pair = new KeyValuePair<string, string>(lineParams[0].Trim(), lineParams[1].Trim());
                     if (pair.Key == "id")

@@ -11,6 +11,8 @@ namespace SmartBulbColor.ViewModels
         SynchronizationContext Context = SynchronizationContext.Current;
         readonly AppMediator Mediator;
 
+        public string Id { get; }
+
         private BulbDTO _bulb;
         public BulbDTO Bulb
         {
@@ -21,6 +23,18 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("Bulb");
             }
         }
+
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+
         private SolidColorBrush _currentColor = Brushes.White;
         public SolidColorBrush CurrentColor
         {
@@ -41,7 +55,6 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsControlEnabled");
             }
         }
-        public string GetId() { return Bulb.Id; }
         private bool _isPowered;
         public bool IsPowered
         {
@@ -57,9 +70,12 @@ namespace SmartBulbColor.ViewModels
             }
         }
         
-        public ColorBulbViewModel(AppMediator mediator, BulbDTO bulb)
+        public ColorBulbViewModel(BulbDTO bulb, AppMediator mediator)
         {
+            Id = bulb.Id;
             Mediator = mediator;
+            UpdateBulb(bulb);
+            Mediator.BulbUpdated += UpdateBulb;
             Bulb = bulb;
         }
 
@@ -108,6 +124,16 @@ namespace SmartBulbColor.ViewModels
         private void ExecuteToggleAmbientLight(Object parametr)
         {
             Mediator.ToggleAmbientLight(Bulb);
+        }
+
+        private void UpdateBulb(BulbDTO bulb)
+        {
+            if(Id == bulb.Id)
+            {
+                Bulb = bulb;
+                Name = bulb.Name;
+                IsPowered = bulb.IsPowered;
+            }
         }
     }
 }

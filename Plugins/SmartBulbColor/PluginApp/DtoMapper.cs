@@ -34,14 +34,24 @@ namespace SmartBulbColor.PluginApp
             };
             return bulbDTO;
         }
-
-        public GroupDTO ToGroupDTO(BulbGroup group)
+        public List<BulbDTO> ToListBulbDTO(IEnumerable<ColorBulbProxy> group)
         {
-            Dictionary<string, BulbDTO> temp = new Dictionary<string, BulbDTO>();
+            List<BulbDTO> tempGroup = new List<BulbDTO>();
 
             foreach (ColorBulbProxy bulb in group)
             {
-                temp.Add(bulb.Id, ToBulbDto(bulb));
+                BulbDTO tempBulb = ToBulbDto(bulb);
+                tempGroup.Add(tempBulb);
+            }
+            return tempGroup;
+        }
+        public GroupDTO ToGroupDTO(BulbGroup group)
+        {
+            List<BulbDTO> temp = new List<BulbDTO>();
+
+            foreach (ColorBulbProxy bulb in group)
+            {
+                temp.Add(ToBulbDto(bulb));
             }
 
             return new GroupDTO
@@ -51,26 +61,16 @@ namespace SmartBulbColor.PluginApp
                 Bulbs = temp 
             };
         }
-        public List<BulbDTO> ToListBulbDTO(List<ColorBulbProxy> group)
+        public List<GroupDTO> ToListGroupDTO(IEnumerable<BulbGroup> groups)
         {
-            List<BulbDTO> temp = new List<BulbDTO>();
-
-            foreach (ColorBulbProxy bulb in group)
-            {
-                temp.Add(ToBulbDto(bulb));
-            }
-
-            return temp;
-        }
-        public List<GroupDTO> ToListGroupDTO(List<BulbGroup> groups)
-        {
-            List<GroupDTO> temp = new List<GroupDTO>();
+            List<GroupDTO> tempGroups = new List<GroupDTO>();
 
             foreach(var group in groups)
             {
-                temp.Add(ToGroupDTO(group));
+                GroupDTO tempGroup = ToGroupDTO(group);
+                tempGroups.Add(tempGroup);
             }
-            return temp;
+            return tempGroups;
         }
     }
 }
