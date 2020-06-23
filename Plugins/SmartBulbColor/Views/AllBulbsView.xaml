@@ -38,14 +38,36 @@
             <ColumnDefinition Width="250"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Grid.ColumnSpan="2">
-            <Button x:Name="AddToGroupButton" Content="Add to group" FontSize="15" Margin="0 0 10 0" Click="AddToGroupButton_Click"></Button>
+            <Button x:Name="AddToGroupButton" Content="Add to group" FontSize="15" Margin="0 0 10 0" Click="AddToGroupButton_Click"/>
             <Popup x:Name="AddToGroupPopup" Width="150"
                    PlacementTarget="{Binding ElementName=AddToGroupButton}" Placement="Bottom"
                    StaysOpen="False" PopupAnimation="Scroll">
                 <StackPanel Orientation="Vertical" Margin="0 5 0 5">
                     <TextBlock Text="User group name:" FontSize="12" Foreground="AliceBlue"></TextBlock>
-                    <ListView DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}"
-                              ItemsSource="{Binding DataContext.GroupNames}" SelectedItem="{Binding DataContext.SelectedGroupName}"/>
+                    <ListView x:Name="GroupList" DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}"
+                              ItemsSource="{Binding DataContext.Groups}" SelectedItem="{Binding DataContext.SelectedGroup}"
+                              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="0,0,0,0">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Button Height="20" DataContext="{Binding RelativeSource={RelativeSource AncestorType=UserControl, Mode=FindAncestor}}"
+                                            Command="{Binding DataContext.AddToGroup}">
+                                    <TextBlock DataContext="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem, Mode=FindAncestor}}"
+                                               Text="{Binding Path=DataContext.Name}"/>
+                                </Button>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="IsSelected" Value="True"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Padding" Value="0"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
                 </StackPanel>
             </Popup>
         </StackPanel>

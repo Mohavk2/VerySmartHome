@@ -16,6 +16,8 @@ namespace SmartBulbColor.ViewModels
         public delegate void GroupRenamedHandler(string currentGroupName, string newGroupName);
         public event GroupRenamedHandler GroupRenamed;
 
+        public GroupDTO Group { get; set; }
+
         public string Id { get; }
 
         string _groupName;
@@ -56,9 +58,9 @@ namespace SmartBulbColor.ViewModels
         public GroupViewModel(GroupDTO group, AppMediator mediator)
         {
             Id = group.Id;
-            UpdateGroup(group);
             Mediator = mediator;
             Mediator.GroupUpdated += (group) => Context.Post((state) => UpdateGroup(group), new object());
+            UpdateGroup(group);
         }
 
         public ICommand RenameGroup
@@ -152,6 +154,7 @@ namespace SmartBulbColor.ViewModels
             if (Id == group.Id)
             {
                 ColorBulbVMs.Clear();
+                Group = group;
                 GroupName = group.Name;
                 var bulbs = group.Bulbs;
                 if (bulbs != null && bulbs.Count != 0)

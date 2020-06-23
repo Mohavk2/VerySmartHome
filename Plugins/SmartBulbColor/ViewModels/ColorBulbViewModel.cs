@@ -69,7 +69,7 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("IsPowered");
             }
         }
-        
+
         public ColorBulbViewModel(BulbDTO bulb, AppMediator mediator)
         {
             Id = bulb.Id;
@@ -110,7 +110,7 @@ namespace SmartBulbColor.ViewModels
         }
         private void ExecuteTurnNormalLightON(Object parametr)
         {
-            Mediator.TurnNormalLightOn(Bulb);  
+            Mediator.TurnNormalLightOn(Bulb);
             IsPowered = Bulb.IsPowered;
             CurrentColor = Brushes.White;
         }
@@ -128,7 +128,7 @@ namespace SmartBulbColor.ViewModels
 
         private void UpdateBulb(BulbDTO bulb)
         {
-            if(Id == bulb.Id)
+            if (Id == bulb.Id)
             {
                 Bulb = bulb;
                 Name = bulb.Name;

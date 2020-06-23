@@ -6,8 +6,8 @@ namespace SmartBulbColor.PluginApp
 {
     public struct GroupDTO
     {
-        public string Id;
-        public string Name;
-        public List<BulbDTO> Bulbs;
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public List<BulbDTO> Bulbs { get; set; }
     }
 }

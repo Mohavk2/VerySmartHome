@@ -15,21 +15,19 @@ namespace SmartBulbColor.ViewModels
 
         private AppMediator Mediator;
 
-        public ObservableCollection<string> GroupNames { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
 
-        string _selectedGroupName;
-        public string SelectedGroupName
+        public ObservableCollection<GroupDTO> Groups { get; set; } = new ObservableCollection<GroupDTO>();
+        GroupDTO _selectedGroup;
+        public GroupDTO SelectedGroup
         {
-            get => _selectedGroupName;
+            get { return _selectedGroup; }
             set
             {
-                _selectedGroupName = value;
-                OnPropertyChanged("SelectedGroupName");
-                AddToGroup.Execute(new object());
+                _selectedGroup = value;
+                OnPropertyChanged("SelectedGroup");
             }
         }
-
-        public ObservableCollection<ColorBulbViewModel> ColorBulbVMs { get; set; }
 
         List<ColorBulbViewModel> _selectedBulbVMs;
         public List<ColorBulbViewModel> SelectedBulbVMs
@@ -128,12 +126,12 @@ namespace SmartBulbColor.ViewModels
         {
             foreach(var bulbVM in SelectedBulbVMs)
             {
-                Mediator.AddBulbToGroup(SelectedGroupName, bulbVM.Bulb);
+                Mediator.AddBulbToGroup(SelectedGroup, bulbVM.Bulb);
             }
         }
         bool CanExecuteAddToGroup(object parametr)
         {
-            return GroupNames.Count != 0;
+            return Groups.Count != 0;
         }
         public void UpdateBulbs(List<BulbDTO> bulbs)
         {
@@ -162,10 +160,10 @@ namespace SmartBulbColor.ViewModels
         }
         public void UpdateGroupNames(List<GroupDTO> groups)
         {
-            GroupNames.Clear();
-            foreach(var group in groups)
+            Groups.Clear();
+            foreach (var group in groups)
             {
-                GroupNames.Add(group.Name);
+                Groups.Add(group);
             }
         }
         private void SetColorWithBrush(Object parametr)

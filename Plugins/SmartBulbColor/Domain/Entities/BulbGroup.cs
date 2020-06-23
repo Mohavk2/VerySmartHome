@@ -23,11 +23,12 @@ namespace SmartBulbColor.Domain.Entities
         }
         public void Add(ColorBulbProxy bulb)
         {
-            Bulbs.Add(bulb.Id, bulb);
+            if (!Bulbs.ContainsKey(bulb.Id))
+                Bulbs.Add(bulb.Id, bulb);
         }
         public void AddBunch(List<ColorBulbProxy> bulbs)
         {
-            foreach(var bulb in bulbs)
+            foreach (var bulb in bulbs)
             {
                 Bulbs.Add(bulb.Id, bulb);
             }
@@ -38,14 +39,14 @@ namespace SmartBulbColor.Domain.Entities
         }
         public void RemoveBunch(List<ColorBulbProxy> bulbs)
         {
-            foreach(var bulb in bulbs)
+            foreach (var bulb in bulbs)
             {
                 Bulbs.Remove(bulb.Id);
             }
         }
         public IEnumerator GetEnumerator()
         {
-            foreach(var bulb in Bulbs)
+            foreach (var bulb in Bulbs)
             {
                 yield return bulb.Value;
             }

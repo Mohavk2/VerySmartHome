@@ -104,21 +104,21 @@ namespace SmartBulbColor.PluginApp
             OnGroupsUpdated();
         }
 
-        public void AddBulbToGroup(string groupName, BulbDTO bulbDTO)
+        public void AddBulbToGroup(GroupDTO group, BulbDTO bulbDTO)
         {
-            BulbGroup updatedGroup = Repository.AddBulbToGroup(groupName, bulbDTO.Id);
+            BulbGroup updatedGroup = Repository.AddBulbToGroup(group.Id, bulbDTO.Id);
             OnGroupUpdated(updatedGroup);
         }
 
-        public void RemoveBulbFromGroup(string groupName, BulbDTO bulbDTO)
+        public void RemoveBulbFromGroup(GroupDTO group, BulbDTO bulbDTO)
         {
-            BulbGroup updatedGroup = Repository.RemoveBulbFromGroup(groupName, bulbDTO.Id);
+            BulbGroup updatedGroup = Repository.RemoveBulbFromGroup(group.Id, bulbDTO.Id);
             OnGroupUpdated(updatedGroup);
         }
 
-        public void RenameGroup(string currentGroupName, string newGroupName)
+        public void RenameGroup(GroupDTO group, string newGroupName)
         {
-            BulbGroup updatedGroup = Repository.RenameGroup(currentGroupName, newGroupName);
+            BulbGroup updatedGroup = Repository.RenameGroup(group.Id, newGroupName);
             OnGroupUpdated(updatedGroup);
         }
 

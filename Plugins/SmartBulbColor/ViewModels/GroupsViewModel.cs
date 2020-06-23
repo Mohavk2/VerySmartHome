@@ -1,4 +1,5 @@
 ﻿using SmartBulbColor.PluginApp;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,7 +21,6 @@ namespace SmartBulbColor.ViewModels
             set
             {
                 _selectedGroupVM = value;
-                NameToInsert = _selectedGroupVM.GroupName;
                 OnPropertyChanged("SelectedGroupVM");
             }
         }
@@ -49,8 +49,9 @@ namespace SmartBulbColor.ViewModels
         public GroupsViewModel(AppMediator mediator)
         {
             Mediator = mediator;
+            var groups = Mediator.GetGroups();
+            UpdateGroups(groups);
             Mediator.GroupsUpdated += (groups) => Context.Post((state) => UpdateGroups(groups), new object());
-            UpdateGroups(Mediator.GetGroups());
         }
 
         public ICommand CreateNewGroup
@@ -61,6 +62,7 @@ namespace SmartBulbColor.ViewModels
         void ExecuteCreateNewGroup(object parametr)
         {
             Mediator.AddGroup(NameToInsert);
+            NameToInsert = "";
         }
 
         bool CanExecuteCreateNewGroup(object parametr)
@@ -82,10 +84,8 @@ namespace SmartBulbColor.ViewModels
 
         void ExecuteRenameGroup(object parametr)
         {
-            if (SelectedGroupVM.RenameGroup.CanExecute(NameToInsert))
-            {
-                SelectedGroupVM.RenameGroup.Execute(NameToInsert);
-            }
+            Mediator.RenameGroup(SelectedGroupVM.Group, NameToInsert);
+            NameToInsert = "";
         }
 
         bool CanExecuteRenameGroup(object parametr)
