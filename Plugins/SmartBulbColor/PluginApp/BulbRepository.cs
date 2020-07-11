@@ -139,12 +139,15 @@ namespace SmartBulbColor.PluginApp
             return groups;
         }
 
-        public void AddGroup(BulbGroup group)
+        public BulbGroup AddGroup(BulbGroup group)
         {
+            BulbGroup tempGroup;
             lock (Locker)
             {
                 UserGroups.Add(group.Id, group);
+                tempGroup = UserGroups[group.Id];
             }
+            return tempGroup;
         }
 
         public BulbGroup RenameGroup(string groupId, string newGroupName)

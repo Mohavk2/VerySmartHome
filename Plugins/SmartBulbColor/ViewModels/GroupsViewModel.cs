@@ -24,17 +24,6 @@ namespace SmartBulbColor.ViewModels
                 OnPropertyChanged("SelectedGroupVM");
             }
         }
-        public ObservableCollection<string> GroupNames { get; set; } = new ObservableCollection<string>();
-        string _selectedGroupName;
-        public string SelectedGroupName
-        {
-            get => _selectedGroupName;
-            set
-            {
-                _selectedGroupName = value;
-                OnPropertyChanged("SelectedGroupName");
-            }
-        }
 
         string _nameToInsert;
         public string NameToInsert
@@ -50,8 +39,9 @@ namespace SmartBulbColor.ViewModels
         {
             Mediator = mediator;
             var groups = Mediator.GetGroups();
-            UpdateGroups(groups);
-            Mediator.GroupsUpdated += (groups) => Context.Post((state) => UpdateGroups(groups), new object());
+
+            Mediator.GroupCreated += (group) => Context.Post((state) => OnGroupCreated(group), new object());
+            Mediator.GroupDeleted += (group) => Context.Post((state) => OnGroupDeleted(group), new object());
         }
 
         public ICommand CreateNewGroup
@@ -61,7 +51,7 @@ namespace SmartBulbColor.ViewModels
 
         void ExecuteCreateNewGroup(object parametr)
         {
-            Mediator.AddGroup(NameToInsert);
+            Mediator.CreateGroup(NameToInsert);
             NameToInsert = "";
         }
 
@@ -71,7 +61,7 @@ namespace SmartBulbColor.ViewModels
 
             foreach (var group in GroupVMs)
             {
-                if (group.GroupName == NameToInsert)
+                if (group.Name == NameToInsert)
                     NotExists = false;
             }
             return (GroupVMs.Count < 20 && NameToInsert != "" && NotExists);
@@ -84,7 +74,7 @@ namespace SmartBulbColor.ViewModels
 
         void ExecuteRenameGroup(object parametr)
         {
-            Mediator.RenameGroup(SelectedGroupVM.Group, NameToInsert);
+            Mediator.RenameGroup(SelectedGroupVM.Id, NameToInsert);
             NameToInsert = "";
         }
 
@@ -93,30 +83,34 @@ namespace SmartBulbColor.ViewModels
             bool NotExists = true;
             foreach (var group in GroupVMs)
             {
-                if (group.GroupName == NameToInsert)
+                if (group.Name == NameToInsert)
                     NotExists = false;
             }
             return (NotExists && NameToInsert != "");
         }
 
-        private void UpdateGroups(List<GroupDTO> groups)
+        private void OnGroupDeleted(GroupDTO group)
         {
-            GroupVMs.Clear();
-            GroupNames.Clear();
-
-            foreach (var group in groups)
+            GroupViewModel groupVmToRemove = null;
+            foreach (var groupVM in GroupVMs)
             {
-                var newGroup = new GroupViewModel(group, Mediator);
-                newGroup.GroupRenamed += OnGroupRenamed;
-                GroupVMs.Add(newGroup);
-                GroupNames.Add(group.Name);
+                if (groupVM.Id == group.Id)
+                    groupVmToRemove = groupVM;
             }
+            if (groupVmToRemove != null)
+                GroupVMs.Remove(groupVmToRemove);
         }
 
-        private void OnGroupRenamed(string currentName, string newName)
+        private void OnGroupCreated(GroupDTO group)
         {
-            GroupNames.Remove(currentName);
-            GroupNames.Add(newName);
+            var isContains = false;
+            foreach (var groupVM in GroupVMs)
+            {
+                if (groupVM.Id == group.Id)
+                    isContains = true;
+            }
+            if (isContains == false)
+                GroupVMs.Add(new GroupViewModel(group, Mediator));
         }
     }
 }

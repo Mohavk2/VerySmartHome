@@ -21,7 +21,7 @@ namespace SmartBulbColor.ViewModels
         public string Id { get; }
 
         string _groupName;
-        public string GroupName
+        public string Name
         {
             get => _groupName;
             set
@@ -58,9 +58,10 @@ namespace SmartBulbColor.ViewModels
         public GroupViewModel(GroupDTO group, AppMediator mediator)
         {
             Id = group.Id;
+            Name = group.Name;
             Mediator = mediator;
-            Mediator.GroupUpdated += (group) => Context.Post((state) => UpdateGroup(group), new object());
-            UpdateGroup(group);
+
+            Mediator.GroupUpdated += (group) => Context.Post((state) => OnGroupUpdated(group), new object());
         }
 
         public ICommand RenameGroup
@@ -69,7 +70,7 @@ namespace SmartBulbColor.ViewModels
         }
         void ExecuteRenameGroup(object parametr)
         {
-            GroupName = parametr as string;
+            Name = parametr as string;
         }
         bool CanExecuteRenameGroup(object parametr)
         {
@@ -149,21 +150,40 @@ namespace SmartBulbColor.ViewModels
                 }
             }
         }
-        private void UpdateGroup(GroupDTO group)
+        private void OnGroupUpdated(GroupDTO group)
         {
-            if (Id == group.Id)
+            if(Id == group.Id)
             {
-                ColorBulbVMs.Clear();
-                Group = group;
-                GroupName = group.Name;
-                var bulbs = group.Bulbs;
-                if (bulbs != null && bulbs.Count != 0)
+                Name = group.Name;
+
+                var bulbList = group.Bulbs;
+
+                foreach (var bulb in bulbList)
                 {
-                    foreach (var bulb in bulbs)
+                    var isContains = false;
+                    foreach (var bulbVM in ColorBulbVMs)
                     {
-                        ColorBulbVMs.Add(new ColorBulbViewModel(bulb, Mediator));
+                        if (bulbVM.Id == bulb.Id)
+                            isContains = true;
                     }
+                    if (isContains == false)
+                        ColorBulbVMs.Add(new ColorBulbViewModel(bulb, Mediator));
                 }
+
+                ColorBulbViewModel bulbVmToRemove = null;
+
+                foreach(var bulbVM in ColorBulbVMs)
+                {
+                    var isContains = false;
+                    foreach(var bulb in bulbList)
+                    {
+                        if(bulb.Id == bulbVM.Id)
+                            isContains = true;
+                    }
+                    if (isContains == false)
+                        bulbVmToRemove = bulbVM;
+                }
+                ColorBulbVMs.Remove(bulbVmToRemove);
             }
         }
 

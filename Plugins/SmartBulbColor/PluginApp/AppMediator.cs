@@ -23,7 +23,6 @@ namespace SmartBulbColor.PluginApp
         readonly DtoMapper Mapper = new DtoMapper();
         readonly AmbientLightStreamer AmbientLight = new AmbientLightStreamer();
 
-        public CollectionThreadSafe<ColorBulbProxy> Bulbs { get; } = new CollectionThreadSafe<ColorBulbProxy>();
         public CollectionThreadSafe<ColorBulbProxy> BulbsForAmbientLight { get; private set; } = new CollectionThreadSafe<ColorBulbProxy>();
 
         public int DeviceCount { get => Repository.Count; }
@@ -34,9 +33,9 @@ namespace SmartBulbColor.PluginApp
             Discoverer.StartDiscover();
         }
 
-        public void ToggleAmbientLight(BulbDTO bulbDTO)
+        public void ToggleAmbientLight(string Id)
         {
-            ColorBulbProxy bulb = Repository.GetBulb(bulbDTO.Id);
+            ColorBulbProxy bulb = Repository.GetBulb(Id);
             if (!BulbsForAmbientLight.Contains(bulb))
             {
                 try
@@ -58,100 +57,85 @@ namespace SmartBulbColor.PluginApp
                     Discoverer.StartDiscover();
             }
         }
-        public void TogglePower(BulbDTO bulbDTO)
+        public void TogglePower(string bulbId)
         {
-            ColorBulbProxy bulb = Repository.GetBulb(bulbDTO.Id);
+            ColorBulbProxy bulb = Repository.GetBulb(bulbId);
             bulb.PushCommand(BulbCommandBuilder.CreateToggleCommand());
-            OnBulbUpdated(bulb);
+            OnBulbUpdated(Mapper.ToBulbDto(bulb));
         }
-        public void TurnNormalLightOn(BulbDTO bulbDTO)
+        public void TurnNormalLightOn(string bulbId)
         {
-            ColorBulbProxy bulb = Repository.GetBulb(bulbDTO.Id);
+            ColorBulbProxy bulb = Repository.GetBulb(bulbId);
             bulb.PushCommand(BulbCommandBuilder.CreateSetSceneColorTemperatureCommand(CommandType.RefreshState, 5400, 100));
-            OnBulbUpdated(bulb);
+            OnBulbUpdated(Mapper.ToBulbDto(bulb));
         }
         /// <summary>
         /// Sets color mode
         /// </summary>
         /// <param name="value"> 1 - CT mode, 2 - RGB mode , 3 - HSV mode</param>
-        public void SetSceneHSV(BulbDTO bulbDTO, HSBColor color)
+        public void SetSceneHSV(string bulbId, HSBColor color)
         {
-            ColorBulbProxy bulb = Repository.GetBulb(bulbDTO.Id);
+            ColorBulbProxy bulb = Repository.GetBulb(bulbId);
             bulb.PushCommand(BulbCommandBuilder.CreateSetSceneHsvCommand(
                 CommandType.Stream, color.Hue, (int)color.Saturation, (int)color.Brightness));
-            OnBulbUpdated(bulb);
+            OnBulbUpdated(Mapper.ToBulbDto(bulb));
         }
-
-        /*
-         *  Repository
-         */
-
-        // Use cases
 
         public List<BulbDTO> GetBulbs() => Mapper.ToListBulbDTO(Repository.GetAllBulbs());
         public List<GroupDTO> GetGroups() => Mapper.ToListGroupDTO(Repository.GetGroups());
         public List<string> GetGroupNames() => Repository.GetGroupNames();
 
-        public void AddGroup(string groupName)
+        public void CreateGroup(string groupName)
         {
-            Repository.AddGroup(new BulbGroup(groupName));
-            OnGroupsUpdated();
+            var group = Repository.AddGroup(new BulbGroup(groupName));
+            OnGroupCreated(Mapper.ToGroupDTO(group));
         }
 
-        public void RemoveGroup(string groupId)
+        public void DeleteGroup(string groupId)
         {
-            Repository.RemoveGroup(groupId);
-            OnGroupsUpdated();
+            var group = Repository.RemoveGroup(groupId);
+            OnGroupDeleted(Mapper.ToGroupDTO(group));
         }
 
-        public void AddBulbToGroup(GroupDTO group, BulbDTO bulbDTO)
+        public void RenameGroup(string groupId, string newGroupName)
         {
-            BulbGroup updatedGroup = Repository.AddBulbToGroup(group.Id, bulbDTO.Id);
-            OnGroupUpdated(updatedGroup);
+            BulbGroup updatedGroup = Repository.RenameGroup(groupId, newGroupName);
+            OnGroupUpdated(Mapper.ToGroupDTO(updatedGroup));
         }
 
-        public void RemoveBulbFromGroup(GroupDTO group, BulbDTO bulbDTO)
+        public void AddBulbToGroup(string groupId, string bulbId)
         {
-            BulbGroup updatedGroup = Repository.RemoveBulbFromGroup(group.Id, bulbDTO.Id);
-            OnGroupUpdated(updatedGroup);
+            BulbGroup updatedGroup = Repository.AddBulbToGroup(groupId, bulbId);
+            OnGroupUpdated(Mapper.ToGroupDTO(updatedGroup));
         }
 
-        public void RenameGroup(GroupDTO group, string newGroupName)
+        public void RemoveBulbFromGroup(string groupId, string bulbId)
         {
-            BulbGroup updatedGroup = Repository.RenameGroup(group.Id, newGroupName);
-            OnGroupUpdated(updatedGroup);
+            BulbGroup updatedGroup = Repository.RemoveBulbFromGroup(groupId, bulbId);
+            OnGroupUpdated(Mapper.ToGroupDTO(updatedGroup));
         }
 
-        //Events
+        //CRUD Events
 
-        public delegate void BulbsCollectionEventHandler(List<BulbDTO> allBulbs);
-        public event BulbsCollectionEventHandler BulbsCollectionUpdated;
-        public delegate void GroupsEventHandler(List<GroupDTO> groups);
-        public event GroupsEventHandler GroupsUpdated;
-        public delegate void GroupEventHandler(GroupDTO group);
-        public event GroupEventHandler GroupUpdated;
         public delegate void BulbEventHandler(BulbDTO bulb);
+        public event BulbEventHandler BulbCreated;
         public event BulbEventHandler BulbUpdated;
+        public event BulbEventHandler BulbDeleted;
 
-        public void OnBulbsCollectionUpdated(List<ColorBulbProxy> allBulbs)
-        {
-            BulbsCollectionUpdated?.Invoke(Mapper.ToListBulbDTO(allBulbs));
-        }
+        public void OnBulbCreated(BulbDTO bulb) => BulbCreated?.Invoke(bulb);
+        public void OnBulbUpdated(BulbDTO bulb) => BulbUpdated?.Invoke(bulb);
+        public void OnBulbDeleted(BulbDTO bulb) => BulbDeleted?.Invoke(bulb);
 
-        public void OnGroupsUpdated()
-        {
-            GroupsUpdated?.Invoke(Mapper.ToListGroupDTO(Repository.GetGroups()));
-        }
+        public delegate void GroupEventHandler(GroupDTO group);
+        public event GroupEventHandler GroupCreated;
+        public event GroupEventHandler GroupUpdated;
+        public event GroupEventHandler GroupDeleted;
 
-        public void OnGroupUpdated(BulbGroup group)
-        {
-            GroupUpdated?.Invoke(Mapper.ToGroupDTO(group));
-        }
+        public void OnGroupCreated(GroupDTO group) => GroupCreated?.Invoke(group);
+        public void OnGroupUpdated(GroupDTO group) => GroupUpdated?.Invoke(group);
+        public void OnGroupDeleted(GroupDTO group) => GroupDeleted?.Invoke(group);
 
-        public void OnBulbUpdated(ColorBulbProxy bulb)
-        {
-            BulbUpdated?.Invoke(Mapper.ToBulbDto(bulb));
-        }
+        //On Bulb Found
 
         void OnResponsesReceived(List<string> responses)
         {
@@ -163,6 +147,7 @@ namespace SmartBulbColor.PluginApp
                 {
                     ColorBulbProxy foundBulb = new ColorBulbProxy(response);
                     Repository.AddBulb(foundBulb);
+                    OnBulbCreated(Mapper.ToBulbDto(foundBulb));
                 }
             }
             else
@@ -176,10 +161,10 @@ namespace SmartBulbColor.PluginApp
                     {
                         ColorBulbProxy foundBulb = new ColorBulbProxy(response);
                         Repository.AddBulb(foundBulb);
+                        OnBulbCreated(Mapper.ToBulbDto(foundBulb));
                     }
                 }
             }
-            OnBulbsCollectionUpdated(Repository.GetAllBulbs());
         }
 
         string ParseBulbIdFromHTTPResponse(string response)
