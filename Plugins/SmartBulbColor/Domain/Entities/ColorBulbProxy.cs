@@ -9,9 +9,11 @@ using System.ComponentModel;
 
 namespace SmartBulbColor.Domain
 {
-    internal sealed class ColorBulbProxy : INotifyPropertyChanged, IDisposable
+    internal delegate void BulbRefreshedHandler(ColorBulbProxy bulb);
+
+    internal sealed class ColorBulbProxy : IDisposable
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public static event BulbRefreshedHandler BulbRefreshed;
 
         readonly static IPAddress LocalIP = HsdpDiscoverer.GetLocalIP();
         readonly static int LocalPort = 19446;
@@ -68,53 +70,11 @@ namespace SmartBulbColor.Domain
             }
         }
         #region Properties
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                if (value == "")
-                {
-                    value = "Bulb";
-                }
-                if (_name != value)
-                {
-                    _name = value;
-                    OnPropertyChanged("Name");
-                }
-            }
-        }
-        private string _name = "";
-        public string Id
-        {
-            get { return _id; }
-            private set
-            {
-                _id = value;
-                OnPropertyChanged("Id");
-            }
-        }
-        private string _id = string.Empty;
-        public string Ip
-        {
-            get { return _ip; }
-            private set
-            {
-                _ip = value;
-                OnPropertyChanged("Ip");
-            }
-        }
-        private string _ip = "";
-        public int Port
-        {
-            get { return _port; }
-            private set
-            {
-                _port = value;
-                OnPropertyChanged("Port");
-            }
-        }
-        private int _port = 0;
+        public string Name { get; set; } = "";
+        public string Id { get; set; } = string.Empty;
+        public string Ip { get; set; } = "";
+        public int Port { get; set; } = 0;
+        private bool _isPowered = false;
         public bool IsPowered
         {
             get { return _isPowered; }
@@ -127,154 +87,22 @@ namespace SmartBulbColor.Domain
                         ReconnectMusicMode();
                     else
                         DisconnectMusicMode();
-                    OnPropertyChanged("IsPowered");
                 }
             }
         }
-        private bool _isPowered = false;
-        public string BelongsToGroup
-        {
-            get { return _belongToGroup; }
-            set
-            {
-                if (value != _belongToGroup)
-                {
-                    _belongToGroup = value;
-                    OnPropertyChanged("BelongToGroup");
-                }
-            }
-        }
-        private string _belongToGroup = "";
-        public string StateIconPath
-        {
-            get { return _stateIconPath; }
-            set
-            {
-                _stateIconPath = value;
-                OnPropertyChanged("StateIconPath");
-            }
-        }
-        private string _stateIconPath = "";
-        public bool IsOnline
-        {
-            get { return _isOnline; }
-            private set
-            {
-                _isOnline = value;
-                OnPropertyChanged("IsOnline");
-            }
-        }
-        private bool _isOnline = true;
-        public bool IsMusicModeOn
-        {
-            get { return _isMusicModeOn; }
-            set
-            {
-                _isMusicModeOn = value;
-                OnPropertyChanged("IsMusicModeOn");
-            }
-        }
-        private bool _isMusicModeOn = false;
-        public string Model
-        {
-            get { return _model; }
-            set
-            {
-                _model = value;
-                OnPropertyChanged("Model");
-            }
-        }
-        private string _model = "";
-        public int FwVer
-        {
-            get { return _fwVer; }
-            set
-            {
-                _fwVer = value;
-                OnPropertyChanged("FwVer");
-            }
-        }
-        private int _fwVer = 0;
-        public int Brightness
-        {
-            get { return _brightness; }
-            set
-            {
-                _brightness = value;
-                OnPropertyChanged("Brightness");
-            }
-        }
-        private int _brightness = 0;
-        public int ColorMode
-        {
-            get { return _colorMode; }
-            set
-            {
-                _colorMode = value;
-                OnPropertyChanged("ColorMode");
-            }
-        }
-        private int _colorMode = 0;
-        public int ColorTemperature
-        {
-            get { return _colorTemperature; }
-            set
-            {
-                _colorTemperature = value;
-                OnPropertyChanged("ColorTemperature");
-            }
-        }
-        private int _colorTemperature = 0;
-        public bool Flowing
-        {
-            get { return _flowing; }
-            set
-            {
-                _flowing = value;
-                OnPropertyChanged("Flowing");
-            }
-        }
-        private bool _flowing = false;
-        public int Delayoff
-        {
-            get { return _delayoff; }
-            set
-            {
-                _delayoff = value;
-                OnPropertyChanged("Delayoff");
-            }
-        }
-        private int _delayoff = 0;
-        public int Rgb
-        {
-            get { return _rgb; }
-            set
-            {
-                _rgb = value;
-                OnPropertyChanged("Rgb");
-            }
-        }
-        private int _rgb = 0;
-        public int Hue
-        {
-            get { return _hue; }
-            set
-            {
-                _hue = value;
-                OnPropertyChanged("_hue");
-            }
-        }
-        private int _hue = 0;
-        public int Saturation
-        {
-            get { return _saturation; }
-            set
-            {
-                _saturation = value;
-                OnPropertyChanged("Saturation");
-            }
-        }
-        private int _saturation = 0;
+        public string BelongsToGroup { get; set; }= "";
+        public bool IsOnline { get; set; } = true;
+        public bool IsMusicModeOn { get; set; } = false;
+        public string Model { get; set; } = "";
+        public int FwVer { get; set; } = 0;
+        public int Brightness { get; set; } = 0;
+        public int ColorMode { get; set; } = 0;
+        public int ColorTemperature { get; set; } = 0;
+        public bool Flowing { get; set; } = false;
+        public int Delayoff { get; set; } = 0;
+        public int Rgb { get; set; } = 0;
+        public int Hue { get; set; } = 0;
+        public int Saturation { get; set; } = 0;
         #endregion
 
         public void PushCommand(BulbCommand command)
@@ -432,9 +260,9 @@ namespace SmartBulbColor.Domain
             //TODO: add 
         }
 
-        void OnPropertyChanged(string propName)
+        void OnBulbRefreshed()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            BulbRefreshed?.Invoke(this);
         }
 
         public override string ToString()
